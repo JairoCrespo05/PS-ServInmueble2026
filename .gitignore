@@ -5,7 +5,6 @@
 # Archivos de configuración locales
 .env
 .env.*
-!.env.example
 
 # Archivos temporales y logs
 /writable/cache/*
