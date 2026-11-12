@@ -112,16 +112,18 @@
         </div>
 
         <!-- Alerta de Validación Dinámica (Vanilla JS) -->
-        <div class="form-alert" id="loginAlert">
+        <?php $loginError = $loginError ?? null; ?>
+        <div class="form-alert <?= $loginError ? 'show alert-error' : '' ?>" id="loginAlert" aria-live="polite">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="12" y1="8" x2="12" y2="12"></line>
             <line x1="12" y1="16" x2="12.01" y2="16"></line>
           </svg>
-          <span id="loginAlertText" class="">Por favor completá las credenciales correctamente.</span>
+          <span id="loginAlertText" class=""><?= esc($loginError ?? '') ?></span>
         </div>
 
-        <form id="formLogin" novalidate="">
+        <form id="formLogin" method="POST" action="<?= base_url('login') ?>" >
+          <?= csrf_field() ?>
           
           <!-- Campo: Correo Electrónico -->
           <div class="form-group">
@@ -135,7 +137,7 @@
                   <polyline points="22,6 12,13 2,6"></polyline>
                 </svg>
               </div>
-              <input type="email" id="inputEmail" name="email" class="form-input" placeholder="ejemplo@serviinmueble.com.ar" required="" autocomplete="email">
+              <input type="email" id="inputEmail" name="email" class="form-input" placeholder="ejemplo@serviinmueble.com.ar" value="<?= esc($oldEmail ?? '') ?>" required autocomplete="email">
             </div>
           </div>
 
@@ -153,7 +155,7 @@
                 </svg>
               </div>
               <input type="password" id="inputPassword" name="password" class="form-input" placeholder="Ingresá tu contraseña" required="" autocomplete="current-password">
-              <button type="button" class="btn-toggle-password" id="btnTogglePassword" aria-label="Mostrar u ocultar contraseña">
+              <button type="button" class="btn-toggle-password" id="btnTogglePassword" aria-controls="inputPassword" aria-label="Mostrar u ocultar contraseña" aria-pressed="false">
                 <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>

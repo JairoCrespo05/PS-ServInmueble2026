@@ -10,6 +10,43 @@ class CreateServiInmuebleSchema extends Migration
     {
         $this->forge->addField('id');
         $this->forge->addField([
+            'nombre'     => ['type' => 'VARCHAR', 'constraint' => 100],
+            'apellido'   => ['type' => 'VARCHAR', 'constraint' => 100],
+            'email'      => ['type' => 'VARCHAR', 'constraint' => 150, 'unique' => true],
+            'password'   => ['type' => 'VARCHAR', 'constraint' => 255],
+            'telefono'   => ['type' => 'VARCHAR', 'constraint' => 30, 'null' => true],
+            'created_at' => ['type' => 'DATETIME', 'null' => true],
+            'updated_at' => ['type' => 'DATETIME', 'null' => true],
+        ]);
+        $this->forge->createTable('usuarios', true);
+
+        $this->forge->addField('id');
+        $this->forge->addField([
+            'nombre' => [
+                'type'       => 'ENUM',
+                'constraint' => ['Administrador', 'Propietario', 'Usuario_Nuevo'],
+            ],
+        ]);
+        $this->forge->createTable('roles', true);
+        $this->db->table('roles')->insertBatch([
+            ['nombre' => 'Administrador'],
+            ['nombre' => 'Propietario'],
+            ['nombre' => 'Usuario_Nuevo'],
+        ]);
+
+        $this->forge->addField('id');
+        $this->forge->addField([
+            'usuario_id' => ['type' => 'INT'],
+            'rol_id'     => ['type' => 'INT'],
+        ]);
+        $this->forge->addKey('usuario_id');
+        $this->forge->addKey('rol_id');
+        $this->forge->addForeignKey('usuario_id', 'usuarios', 'id', '', 'CASCADE');
+        $this->forge->addForeignKey('rol_id', 'roles', 'id', '', 'RESTRICT');
+        $this->forge->createTable('rol_usuario', true);
+
+        $this->forge->addField('id');
+        $this->forge->addField([
             'calle'      => ['type' => 'VARCHAR', 'constraint' => 150],
             'numero'     => ['type' => 'VARCHAR', 'constraint' => 20],
             'piso_dpto'  => ['type' => 'VARCHAR', 'constraint' => 50, 'null' => true],
@@ -95,5 +132,8 @@ class CreateServiInmuebleSchema extends Migration
         $this->forge->dropTable('servicios');
         $this->forge->dropTable('inmuebles');
         $this->forge->dropTable('direcciones');
+        $this->forge->dropTable('rol_usuario');
+        $this->forge->dropTable('roles');
+        $this->forge->dropTable('usuarios');
     }
 }

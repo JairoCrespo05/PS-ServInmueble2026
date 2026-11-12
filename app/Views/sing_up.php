@@ -1,3 +1,25 @@
+<?php
+$errors = $errors ?? [];
+$oldInput = $oldInput ?? [];
+$formError = $formError ?? null;
+$success = $success ?? null;
+$fieldError = static function (string $field) use ($errors): string {
+  if (! isset($errors[$field])) {
+    return '';
+  }
+
+  return '<div class="field-error" id="error-' . esc($field, 'attr') . '" role="alert">' . esc($errors[$field]) . '</div>';
+};
+$fieldErrorAttributes = static function (string $field) use ($errors): string {
+  if (! isset($errors[$field])) {
+    return '';
+  }
+
+  return ' aria-invalid="true" aria-describedby="error-' . esc($field, 'attr') . '"';
+};
+$alertMessage = $formError ?? ($errors ? 'Revisá los campos marcados e intentá nuevamente.' : $success);
+$alertClass = $success !== null && $formError === null && ! $errors ? 'alert-success' : 'alert-error';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -124,7 +146,7 @@
       <section class="form-card">
         <div class="form-header">
           <div class="form-meta">
-            <span class="form-category">Alta de Propietario / Gestor</span>
+            <span class="form-category">Alta de Usuario</span>
             <span class="badge-code">SEC-4.2 // US-01</span>
           </div>
           <h2 class="form-title">Crear Cuenta</h2>
@@ -132,26 +154,29 @@
         </div>
 
         <!-- Alerta de Validación -->
-        <div class="form-alert" id="registerAlert">
+        <div class="form-alert <?= $alertMessage ? 'show ' . esc($alertClass, 'attr') : '' ?>" id="registerAlert" aria-live="polite">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="12" y1="8" x2="12" y2="12"></line>
             <line x1="12" y1="16" x2="12.01" y2="16"></line>
           </svg>
-          <span id="registerAlertText">Por favor completá los campos obligatorios.</span>
+          <span id="registerAlertText"><?= esc($alertMessage ?? '') ?></span>
         </div>
 
-        <form id="formRegister" novalidate>
+        <form id="formRegister" method="post" action="<?= base_url('sing_up') ?>">
+          <?= csrf_field() ?>
 
           <!-- Fila Nombre y Apellido -->
           <div class="form-grid-2">
             <div class="form-group">
               <label for="inputFirstName" class="form-label">Nombre *</label>
-              <input type="text" id="inputFirstName" name="first_name" class="form-input no-icon" placeholder="Ej. Martín" required />
+              <input type="text" id="inputFirstName" name="first_name" class="form-input no-icon" placeholder="Ej. Martín" value="<?= esc($oldInput['first_name'] ?? '') ?>" required<?= $fieldErrorAttributes('first_name') ?> />
+              <?= $fieldError('first_name') ?>
             </div>
             <div class="form-group">
               <label for="inputLastName" class="form-label">Apellido *</label>
-              <input type="text" id="inputLastName" name="last_name" class="form-input no-icon" placeholder="Ej. Rossi" required />
+              <input type="text" id="inputLastName" name="last_name" class="form-input no-icon" placeholder="Ej. Rossi" value="<?= esc($oldInput['last_name'] ?? '') ?>" required<?= $fieldErrorAttributes('last_name') ?> />
+              <?= $fieldError('last_name') ?>
             </div>
           </div>
 
@@ -165,8 +190,9 @@
                   <polyline points="22,6 12,13 2,6"></polyline>
                 </svg>
               </div>
-              <input type="email" id="inputRegEmail" name="email" class="form-input" placeholder="ejemplo@serviinmueble.com.ar" required autocomplete="email" />
+              <input type="email" id="inputRegEmail" name="email" class="form-input" placeholder="ejemplo@serviinmueble.com.ar" value="<?= esc($oldInput['email'] ?? '') ?>" required autocomplete="email"<?= $fieldErrorAttributes('email') ?> />
             </div>
+            <?= $fieldError('email') ?>
           </div>
 
           <!-- Teléfono Móvil (Opcional según 4.2) -->
@@ -176,8 +202,9 @@
               <div class="phone-prefix-block">
                 <span>🇦🇷 +54</span>
               </div>
-              <input type="tel" id="inputPhone" name="phone" class="form-input with-prefix" placeholder="11 4589 1234" />
+              <input type="tel" id="inputPhone" name="phone" class="form-input with-prefix" placeholder="11 4589 1234" value="<?= esc($oldInput['phone'] ?? '') ?>"<?= $fieldErrorAttributes('phone') ?> />
             </div>
+            <?= $fieldError('phone') ?>
           </div>
 
           <!-- Fila Contraseña y Confirmación -->
@@ -185,21 +212,29 @@
             <div class="form-group">
               <label for="inputRegPassword" class="form-label">Contraseña *</label>
               <div class="input-wrapper">
-                <input type="password" id="inputRegPassword" name="password" class="form-input no-icon" placeholder="Mín. 8 caracteres" required />
-                <button type="button" class="btn-toggle-password" id="toggleRegPass" aria-label="Mostrar u ocultar contraseña">
+                <input type="password" id="inputRegPassword" name="password" class="form-input no-icon" placeholder="Mín. 8 caracteres" minlength="8" required<?= $fieldErrorAttributes('password') ?> />
+                <button type="button" class="btn-toggle-password" id="toggleRegPass" aria-controls="inputRegPassword" aria-label="Mostrar u ocultar contraseña" aria-pressed="false">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>
                 </button>
               </div>
+              <?= $fieldError('password') ?>
             </div>
 
             <div class="form-group">
               <label for="inputConfirmPassword" class="form-label">Confirmar Contraseña *</label>
               <div class="input-wrapper">
-                <input type="password" id="inputConfirmPassword" name="confirm_password" class="form-input no-icon" placeholder="Repita la clave" required />
+                <input type="password" id="inputConfirmPassword" name="confirm_password" class="form-input no-icon" placeholder="Repita la clave" required<?= $fieldErrorAttributes('confirm_password') ?> />
+                <button type="button" class="btn-toggle-password" id="toggleConfirmPass" aria-controls="inputConfirmPassword" aria-label="Mostrar u ocultar contraseña" aria-pressed="false">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
               </div>
+              <?= $fieldError('confirm_password') ?>
             </div>
           </div>
 
@@ -226,13 +261,13 @@
               <line x1="12" y1="8" x2="12.01" y2="8"></line>
             </svg>
             <div class="role-notice-text">
-              <strong>Nota de Arquitectura de Accesos:</strong> El registro inicial habilita tu cuenta con rol de <strong>Propietario/Gestor</strong>. Los accesos de Administrador del Consorcio son asignados internamente por la cátedra o dirección técnica tras validación de credenciales.
+              <strong>Solicitud de acceso:</strong> al registrarte, tu cuenta queda pendiente de aprobación. Cuando un administrador la apruebe, se habilitarán las funciones del rol <strong>Propietario</strong>.
             </div>
           </div>
 
           <!-- Checkbox Términos -->
           <label class="checkbox-row">
-            <input type="checkbox" id="checkTerms" name="terms" required />
+            <input type="checkbox" id="checkTerms" name="terms" value="1" required<?= ($oldInput['terms'] ?? '') === '1' ? ' checked' : '' ?><?= $fieldErrorAttributes('terms') ?> />
             <span class="custom-checkbox">
               <svg class="checkbox-icon" viewBox="0 0 24 24" fill="none">
                 <polyline points="20 6 9 17 4 12"></polyline>
@@ -242,6 +277,7 @@
               Acepto los <a href="#">Términos del Servicio</a> y la <a href="#">Política de Privacidad</a> de ServiInmueble.
             </span>
           </label>
+          <?= $fieldError('terms') ?>
 
           <!-- Botón de Envío -->
           <button type="submit" class="btn-primary" id="btnSubmitRegister">

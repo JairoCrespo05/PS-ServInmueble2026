@@ -531,6 +531,21 @@
       display: flex;
     }
 
+    .field-error {
+      color: #991B1B;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .form-alert.is-dismissed,
+    .field-error.is-dismissed {
+      display: none;
+    }
+
+    .form-input[aria-invalid="true"] {
+      border-color: #DC2626;
+    }
+
     /* PIE DEL FORMULARIO Y ENLACES */
     .divider-text {
       text-align: center;
