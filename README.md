@@ -13,6 +13,15 @@ El proyecto utiliza MySQL/MariaDB por defecto. Para configurar una instalación 
    ```sh
    php spark migrate
    ```
+4. En el entorno local de desarrollo, cargue el administrador de prueba:
+
+   ```sh
+   php spark db:seed DevelopmentAdminSeeder
+   ```
+
+   Credenciales locales: `admin.pruebas@example.com` / `Passw0rd!`. La contraseña
+   se guarda con hash. El seeder no se ejecuta fuera de `development`, no cambia
+   una cuenta existente y falla si ese correo ya está asociado a otro rol.
 
 Para revertir la estructura:
 
