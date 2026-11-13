@@ -16,6 +16,7 @@ class UserModel extends Model
     public const APPROVAL_SUCCESS           = 'approval_success';
     public const APPROVAL_NOT_PENDING       = 'approval_not_pending';
     public const APPROVAL_ROLE_MISSING      = 'approval_role_missing';
+    public const APPROVAL_INVALID_ROLE      = 'approval_invalid_role';
     public const APPROVAL_FAILED            = 'approval_failed';
 
     protected $table         = 'usuarios';
@@ -99,13 +100,17 @@ class UserModel extends Model
             ->getResultArray();
     }
 
-    public function approvePendingUser(int $userId): string
+    public function approvePendingUser(int $userId, string $targetRoleName): string
     {
+        if (! in_array($targetRoleName, [RolModel::ROLE_ADMINISTRATOR, RolModel::ROLE_OWNER], true)) {
+            return self::APPROVAL_INVALID_ROLE;
+        }
+
         $roleModel = new RolModel();
         $pendingRoleId = $roleModel->getIdByName(RolModel::ROLE_PENDING);
-        $ownerRoleId = $roleModel->getIdByName(RolModel::ROLE_OWNER);
+        $targetRoleId = $roleModel->getIdByName($targetRoleName);
 
-        if ($pendingRoleId === null || $ownerRoleId === null) {
+        if ($pendingRoleId === null || $targetRoleId === null) {
             return self::APPROVAL_ROLE_MISSING;
         }
 
@@ -116,7 +121,7 @@ class UserModel extends Model
         $updated = $this->db->table('rol_usuario')
             ->where('usuario_id', $userId)
             ->where('rol_id', $pendingRoleId)
-            ->update(['rol_id' => $ownerRoleId]);
+            ->update(['rol_id' => $targetRoleId]);
         $transactionFailed = $this->db->transStatus() === false;
 
         if (! $updated || $this->db->affectedRows() !== 1 || $transactionFailed) {

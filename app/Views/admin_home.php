@@ -61,7 +61,7 @@
                 <th scope="col">Nombre</th>
                 <th scope="col">Correo electrónico</th>
                 <th scope="col">Fecha de registro</th>
-                <th scope="col">Acción</th>
+                <th scope="col">Rol y acción</th>
               </tr>
             </thead>
             <tbody>
@@ -76,9 +76,14 @@
                     <td><?= esc($pendingUser['email']) ?></td>
                     <td><?= esc($pendingUser['created_at'] ?? 'Sin fecha') ?></td>
                     <td>
-                      <form method="post" action="<?= base_url('admin/solicitudes/' . (int) $pendingUser['id'] . '/aprobar') ?>">
+                      <form class="approval-form" method="post" action="<?= base_url('admin/solicitudes/' . (int) $pendingUser['id'] . '/aprobar') ?>">
                         <?= csrf_field() ?>
-                        <button type="submit" class="btn btn-primary">Aprobar como Propietario</button>
+                        <label for="approval-role-<?= (int) $pendingUser['id'] ?>">Rol al aprobar</label>
+                        <select id="approval-role-<?= (int) $pendingUser['id'] ?>" name="role" required>
+                          <option value="Propietario">Propietario</option>
+                          <option value="Administrador">Administrador</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Aprobar</button>
                       </form>
                     </td>
                   </tr>

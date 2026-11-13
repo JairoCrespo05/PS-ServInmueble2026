@@ -37,12 +37,28 @@ final class UserApprovalTest extends CIUnitTestCase
         $identity = $users->findAccessIdentityById($userId);
         $this->assertNotNull($identity);
         $this->assertSame(RolModel::ROLE_PENDING, $identity['role']);
-        $this->assertSame(UserModel::APPROVAL_SUCCESS, $users->approvePendingUser($userId));
+        $this->assertSame(UserModel::APPROVAL_SUCCESS, $users->approvePendingUser($userId, RolModel::ROLE_OWNER));
         $identity = $users->findAccessIdentityById($userId);
         $this->assertNotNull($identity);
         $this->assertSame(RolModel::ROLE_OWNER, $identity['role']);
-        $this->assertSame(UserModel::APPROVAL_NOT_PENDING, $users->approvePendingUser($userId));
+        $this->assertSame(
+            UserModel::APPROVAL_NOT_PENDING,
+            $users->approvePendingUser($userId, RolModel::ROLE_OWNER)
+        );
         $this->assertSame([], $users->findPendingApprovals());
+    }
+
+    public function testApprovalRejectsRolesOutsideAdministratorAndOwner(): void
+    {
+        $user = $this->registerTestUser('invalid-approval-role@example.test');
+
+        $this->assertSame(
+            UserModel::APPROVAL_INVALID_ROLE,
+            (new UserModel())->approvePendingUser($user['userId'], RolModel::ROLE_PENDING)
+        );
+        $identity = (new UserModel())->findAccessIdentityById($user['userId']);
+        $this->assertNotNull($identity);
+        $this->assertSame(RolModel::ROLE_PENDING, $identity['role']);
     }
 
     public function testInvalidCredentialsUseTheSameFailureStatus(): void
@@ -149,7 +165,7 @@ final class UserApprovalTest extends CIUnitTestCase
     {
         $this->assertSame(
             UserModel::APPROVAL_NOT_PENDING,
-            (new UserModel())->approvePendingUser(999999)
+            (new UserModel())->approvePendingUser(999999, RolModel::ROLE_OWNER)
         );
     }
 
@@ -164,7 +180,7 @@ final class UserApprovalTest extends CIUnitTestCase
         $pendingHome->assertDontSee('Inmuebles (ABMC)');
 
         $users = new UserModel();
-        $this->assertSame(UserModel::APPROVAL_SUCCESS, $users->approvePendingUser($userId));
+        $this->assertSame(UserModel::APPROVAL_SUCCESS, $users->approvePendingUser($userId, RolModel::ROLE_OWNER));
 
         $ownerHome = $this->withSession(['user_id' => $userId])->get('home');
         $ownerHome->assertOK();
@@ -203,7 +219,10 @@ final class UserApprovalTest extends CIUnitTestCase
         $this->db->table('rol_usuario')
             ->where('usuario_id', $administrator['userId'])
             ->update(['rol_id' => $administratorRoleId]);
-        $this->assertSame(UserModel::APPROVAL_SUCCESS, (new UserModel())->approvePendingUser($owner['userId']));
+        $this->assertSame(
+            UserModel::APPROVAL_SUCCESS,
+            (new UserModel())->approvePendingUser($owner['userId'], RolModel::ROLE_OWNER)
+        );
 
         $response = $this->withSession(['user_id' => $administrator['userId']])->get('home');
         $body = $response->response()->getBody();
@@ -238,6 +257,8 @@ final class UserApprovalTest extends CIUnitTestCase
             ->update(['rol_id' => $administratorRoleId]);
 
         $adminHome = $this->withSession(['user_id' => $administrator['userId']])->get('home');
+        $adminHome->assertSee('value="Propietario"');
+        $adminHome->assertSee('value="Administrador"');
         preg_match('/name="csrf_test_name" value="([^"]+)"/', $adminHome->response()->getBody(), $tokenMatches);
         $this->assertNotEmpty($tokenMatches[1] ?? null);
 
@@ -245,13 +266,16 @@ final class UserApprovalTest extends CIUnitTestCase
             ->withHeaders(['Cookie' => 'csrf_cookie_name=' . $tokenMatches[1]])
             ->post(
                 'admin/solicitudes/' . $pendingUser['userId'] . '/aprobar',
-                ['csrf_test_name' => $tokenMatches[1]]
+                [
+                    'role'           => RolModel::ROLE_ADMINISTRATOR,
+                    'csrf_test_name' => $tokenMatches[1],
+                ]
             );
 
         $response->assertRedirectTo(base_url('home'));
         $identity = (new UserModel())->findAccessIdentityById($pendingUser['userId']);
         $this->assertNotNull($identity);
-        $this->assertSame(RolModel::ROLE_OWNER, $identity['role']);
+        $this->assertSame(RolModel::ROLE_ADMINISTRATOR, $identity['role']);
     }
 
     public function testMutatingRouteRejectsMissingCsrfToken(): void
