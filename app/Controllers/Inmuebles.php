@@ -6,6 +6,26 @@ use CodeIgniter\HTTP\RedirectResponse;
 
 class Inmuebles extends BaseController
 {
+    private function currentUserId(): int
+    {
+        $userId = session()->get('user_id');
+
+        return is_numeric($userId) ? (int) $userId : 0;
+    }
+
+    private function userOwnsInmueble(int $inmuebleId): bool
+    {
+        if ($this->currentUserId() <= 0) {
+            return false;
+        }
+
+        return db_connect()
+            ->table('inmuebles')
+            ->where('id', $inmuebleId)
+            ->where('usuario_id', $this->currentUserId())
+            ->countAllResults() > 0;
+    }
+
     private function inmuebleValidationRules(): array
     {
         return [
@@ -85,8 +105,11 @@ class Inmuebles extends BaseController
 
     public function index(): string
     {
+        $usuarioId = $this->currentUserId();
+
         $inmuebles = db_connect()
             ->table('inmuebles i')
+            ->where('i.usuario_id', $usuarioId)
             ->select([
                 'i.id',
                 'i.alias_nombre',
@@ -133,6 +156,8 @@ class Inmuebles extends BaseController
         $serviciosPorInmueble = [];
         $asociaciones = db_connect()
             ->table('inmueble_servicios isv')
+            ->join('inmuebles i', 'i.id = isv.inmueble_id', 'left')
+            ->where('i.usuario_id', $usuarioId)
             ->select([
                 'isv.id AS asociacion_id',
                 'isv.inmueble_id',
@@ -188,6 +213,7 @@ class Inmuebles extends BaseController
 
         $db = db_connect();
         $now = date('Y-m-d H:i:s');
+        $usuarioId = $this->currentUserId();
 
         $db->transStart();
         $db->table('direcciones')->insert([
@@ -205,6 +231,7 @@ class Inmuebles extends BaseController
             'tipo'         => trim($formData['tipo']),
             'superficie'   => $formData['superficie'],
             'estado'       => $formData['estado'],
+            'usuario_id'   => $usuarioId,
             'direccion_id' => $direccionId,
             'created_at'   => $now,
             'updated_at'   => $now,
@@ -229,12 +256,13 @@ class Inmuebles extends BaseController
         $db = db_connect();
         $inmueble = $db->table('inmuebles')
             ->where('id', $id)
+            ->where('usuario_id', $this->currentUserId())
             ->get()
             ->getRowArray();
 
         if ($inmueble === null) {
             return redirect()->to(site_url('inmuebles'))
-                ->with('error', 'No se encontró el inmueble que intentás modificar.');
+                ->with('error', 'No se encontró el inmueble que intentás modificar o no tenés permisos sobre él.');
         }
 
         $submittedData = $this->submittedInmuebleData();
@@ -291,12 +319,13 @@ class Inmuebles extends BaseController
         $inmueble = $db->table('inmuebles')
             ->select('id')
             ->where('id', $id)
+            ->where('usuario_id', $this->currentUserId())
             ->get()
             ->getRowArray();
 
         if ($inmueble === null) {
             return redirect()->to(site_url('inmuebles'))
-                ->with('error', 'No se encontró el inmueble que intentás dar de baja.');
+                ->with('error', 'No se encontró el inmueble que intentás dar de baja o no tenés permisos sobre él.');
         }
 
         $db->transStart();

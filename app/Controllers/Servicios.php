@@ -9,6 +9,40 @@ use CodeIgniter\HTTP\RedirectResponse;
 
 class Servicios extends BaseController
 {
+    private function currentUserId(): int
+    {
+        $userId = session()->get('user_id');
+
+        return is_numeric($userId) ? (int) $userId : 0;
+    }
+
+    private function userOwnsInmueble(int $inmuebleId): bool
+    {
+        if ($this->currentUserId() <= 0) {
+            return false;
+        }
+
+        return db_connect()
+            ->table('inmuebles')
+            ->where('id', $inmuebleId)
+            ->where('usuario_id', $this->currentUserId())
+            ->countAllResults() > 0;
+    }
+
+    private function userOwnsAssociation(int $asociacionId): bool
+    {
+        if ($this->currentUserId() <= 0) {
+            return false;
+        }
+
+        return db_connect()
+            ->table('inmueble_servicios isv')
+            ->join('inmuebles i', 'i.id = isv.inmueble_id', 'inner')
+            ->where('isv.id', $asociacionId)
+            ->where('i.usuario_id', $this->currentUserId())
+            ->countAllResults() > 0;
+    }
+
     private function submittedTipoServicioData(): array
     {
         $submittedData = [];
@@ -169,125 +203,152 @@ class Servicios extends BaseController
             ->with('tipoServicioSuccess', 'El servicio se eliminó correctamente.');
     }
 
-    public function gestionar(): string
-    {
-        $db = db_connect();
-        $filas = $db
-            ->table('servicios s')
-            ->select([
-                's.id AS servicio_id',
-                's.nombre AS servicio_nombre',
-                's.unidad_medida_std',
-                's.proveedor',
-                's.categoria',
-                'isv.id AS asociacion_id',
-                'isv.estado AS estado_servicio',
-                'isv.titular_inmueble',
-                'isv.nro_medidor',
-                'isv.nro_cuenta_contrato',
-                'isv.cod_pago_electronico',
-                'isv.domicilio_facturacion',
-                'i.id AS inmueble_id',
-                'i.alias_nombre',
-                'i.tipo',
-                'i.estado AS estado_inmueble',
-                'd.calle',
-                'd.numero',
-                'd.piso_dpto',
-                'd.ciudad',
-            ])
-            ->join(
-                'inmueble_servicios isv',
-                "isv.servicio_id = s.id AND LOWER(TRIM(isv.estado)) != 'inactivo'",
-                'left',
-                false,
-            )
-            ->join('inmuebles i', 'i.id = isv.inmueble_id', 'left')
-            ->join('direcciones d', 'd.id = i.direccion_id', 'left')
-            ->orderBy('COALESCE(isv.updated_at, isv.created_at, s.updated_at, s.created_at)', 'DESC', false)
-            ->orderBy('isv.id', 'DESC')
-            ->orderBy('s.updated_at', 'DESC')
-            ->orderBy('s.created_at', 'DESC')
-            ->orderBy('s.id', 'DESC')
-            ->get()
-            ->getResultArray();
+    
+public function gestionar(): string
+{
+    $db = db_connect();
+    $usuarioId = $this->currentUserId();
 
-        $servicios = [];
-        $asociaciones = 0;
-        $inmueblesAsociados = [];
+    // 1. Obtener el catálogo completo de servicios.
+    $filasServicios = $db
+        ->table('servicios')
+        ->select([
+            'id',
+            'nombre',
+            'unidad_medida_std',
+            'proveedor',
+            'categoria',
+        ])
+        ->orderBy('nombre', 'ASC')
+        ->get()
+        ->getResultArray();
 
-        foreach ($filas as $fila) {
-            $servicioId = (int) $fila['servicio_id'];
+    // 2. Preparar el catálogo indexado por ID.
+    $servicios = [];
 
-            if (! isset($servicios[$servicioId])) {
-                $servicios[$servicioId] = [
-                    'id'                 => $servicioId,
-                    'nombre'             => $fila['servicio_nombre'],
-                    'unidad_medida_std'  => $fila['unidad_medida_std'],
-                    'proveedor'          => $fila['proveedor'],
-                    'categoria'          => $fila['categoria'],
-                    'inmuebles'          => [],
-                ];
-            }
+    foreach ($filasServicios as $fila) {
+        $servicioId = (int) $fila['id'];
 
-            if ($fila['asociacion_id'] === null) {
-                continue;
-            }
-
-            $asociaciones++;
-            $inmueblesAsociados[$servicioId][] = (int) $fila['inmueble_id'];
-            $servicios[$servicioId]['inmuebles'][] = [
-                'id'                    => (int) $fila['inmueble_id'],
-                'alias_nombre'          => $fila['alias_nombre'],
-                'tipo'                  => $fila['tipo'],
-                'estado_inmueble'       => $fila['estado_inmueble'],
-                'estado_servicio'       => $fila['estado_servicio'],
-                'nro_medidor'           => $fila['nro_medidor'],
-                'titular_inmueble'      => $fila['titular_inmueble'],
-                'nro_cuenta_contrato' => $fila['nro_cuenta_contrato'],
-                'cod_pago_electronico' => $fila['cod_pago_electronico'],
-                'domicilio_facturacion' => $fila['domicilio_facturacion'],
-                'asociacion_id'         => (int) $fila['asociacion_id'],
-                'calle'                 => $fila['calle'],
-                'numero'                => $fila['numero'],
-                'piso_dpto'             => $fila['piso_dpto'],
-                'ciudad'                => $fila['ciudad'],
-            ];
-        }
-
-        foreach ($servicios as &$servicio) {
-            $servicio['inmueble_ids'] = $inmueblesAsociados[$servicio['id']] ?? [];
-        }
-        unset($servicio);
-
-        $servicios = array_values($servicios);
-        $inmuebles = $db
-            ->table('inmuebles i')
-            ->select(['i.id', 'i.alias_nombre', 'i.tipo', 'i.estado', 'd.calle', 'd.numero', 'd.piso_dpto', 'd.ciudad'])
-            ->join('direcciones d', 'd.id = i.direccion_id')
-            ->orderBy('i.alias_nombre', 'ASC')
-            ->get()
-            ->getResultArray();
-
-        return view('servicios/index', [
-            'servicios'  => $servicios,
-            'inmuebles'  => $inmuebles,
-            'formData'   => session()->getFlashdata('formData') ?? [],
-            'errors'     => session()->getFlashdata('errors') ?? [],
-            'serviceLocked' => session()->getFlashdata('serviceLocked') ?? false,
-            'editAssociationId' => session()->getFlashdata('editAssociationId'),
-            'success'    => session()->getFlashdata('success'),
-            'error'      => session()->getFlashdata('error'),
-            'resumen'    => [
-                'total'                 => count($servicios),
-                'asociaciones'          => $asociaciones,
-                'sin_inmuebles'         => count(array_filter(
-                    $servicios,
-                    static fn (array $servicio): bool => $servicio['inmuebles'] === [],
-                )),
-            ],
-        ]);
+        $servicios[$servicioId] = [
+            'id'                => $servicioId,
+            'nombre'            => $fila['nombre'],
+            'unidad_medida_std' => $fila['unidad_medida_std'],
+            'proveedor'         => $fila['proveedor'],
+            'categoria'         => $fila['categoria'],
+            'inmuebles'         => [],
+            'inmueble_ids'      => [],
+        ];
     }
+
+    // 3. Obtener solamente las asociaciones de inmuebles propios.
+    $filasAsociaciones = $db
+        ->table('inmueble_servicios isv')
+        ->join('inmuebles i', 'i.id = isv.inmueble_id')
+        ->join('direcciones d', 'd.id = i.direccion_id')
+        ->where('i.usuario_id', $usuarioId)
+        ->where("LOWER(TRIM(isv.estado)) !=", 'inactivo')
+        ->select([
+            'isv.id AS asociacion_id',
+            'isv.servicio_id',
+            'isv.estado AS estado_servicio',
+            'isv.titular_inmueble',
+            'isv.nro_medidor',
+            'isv.nro_cuenta_contrato',
+            'isv.cod_pago_electronico',
+            'isv.domicilio_facturacion',
+            'i.id AS inmueble_id',
+            'i.alias_nombre',
+            'i.tipo',
+            'i.estado AS estado_inmueble',
+            'd.calle',
+            'd.numero',
+            'd.piso_dpto',
+            'd.ciudad',
+        ])
+        ->orderBy('COALESCE(isv.updated_at, isv.created_at)', 'DESC', false)
+        ->orderBy('isv.id', 'DESC')
+        ->get()
+        ->getResultArray();
+
+    // 4. Incorporar las asociaciones a cada servicio.
+    $asociaciones = 0;
+
+    foreach ($filasAsociaciones as $fila) {
+        $servicioId = (int) $fila['servicio_id'];
+
+        // Protección ante asociaciones cuyo servicio no esté en el catálogo.
+        if (! isset($servicios[$servicioId])) {
+            continue;
+        }
+
+        $asociaciones++;
+
+        $inmuebleId = (int) $fila['inmueble_id'];
+
+        $servicios[$servicioId]['inmueble_ids'][] = $inmuebleId;
+
+        $servicios[$servicioId]['inmuebles'][] = [
+            'id'                    => $inmuebleId,
+            'alias_nombre'          => $fila['alias_nombre'],
+            'tipo'                  => $fila['tipo'],
+            'estado_inmueble'       => $fila['estado_inmueble'],
+            'estado_servicio'       => $fila['estado_servicio'],
+            'nro_medidor'           => $fila['nro_medidor'],
+            'titular_inmueble'      => $fila['titular_inmueble'],
+            'nro_cuenta_contrato'   => $fila['nro_cuenta_contrato'],
+            'cod_pago_electronico'  => $fila['cod_pago_electronico'],
+            'domicilio_facturacion' => $fila['domicilio_facturacion'],
+            'asociacion_id'         => (int) $fila['asociacion_id'],
+            'calle'                 => $fila['calle'],
+            'numero'                => $fila['numero'],
+            'piso_dpto'             => $fila['piso_dpto'],
+            'ciudad'                => $fila['ciudad'],
+        ];
+    }
+
+    // 5. Convertir el catálogo indexado en un array convencional.
+    $servicios = array_values($servicios);
+
+    // 6. Obtener los inmuebles del propietario autenticado.
+    $inmuebles = $db
+        ->table('inmuebles i')
+        ->select([
+            'i.id',
+            'i.alias_nombre',
+            'i.tipo',
+            'i.estado',
+            'd.calle',
+            'd.numero',
+            'd.piso_dpto',
+            'd.ciudad',
+        ])
+        ->join('direcciones d', 'd.id = i.direccion_id')
+        ->where('i.usuario_id', $usuarioId)
+        ->orderBy('i.alias_nombre', 'ASC')
+        ->get()
+        ->getResultArray();
+
+    // 7. Renderizar la vista.
+    return view('servicios/index', [
+        'servicios'         => $servicios,
+        'inmuebles'         => $inmuebles,
+        'formData'          => session()->getFlashdata('formData') ?? [],
+        'errors'            => session()->getFlashdata('errors') ?? [],
+        'serviceLocked'     => session()->getFlashdata('serviceLocked') ?? false,
+        'editAssociationId' => session()->getFlashdata('editAssociationId'),
+        'success'           => session()->getFlashdata('success'),
+        'error'             => session()->getFlashdata('error'),
+        'resumen'           => [
+            'total'         => count($servicios),
+            'asociaciones'  => $asociaciones,
+            'sin_inmuebles' => count(array_filter(
+                $servicios,
+                static fn (array $servicio): bool => $servicio['inmuebles'] === [],
+            )),
+        ],
+    ]);
+}
+
 
     public function asociar(): RedirectResponse
     {
@@ -332,20 +393,20 @@ class Servicios extends BaseController
         $servicioId = (int) $submittedData['servicio_id'];
         $inmuebleId = (int) $submittedData['inmueble_id'];
         $servicioExiste = $db->table('servicios')->where('id', $servicioId)->countAllResults() > 0;
-        $inmuebleExiste = $db->table('inmuebles')->where('id', $inmuebleId)->countAllResults() > 0;
+        $inmuebleExiste = $db->table('inmuebles')->where('id', $inmuebleId)->where('usuario_id', $this->currentUserId())->countAllResults() > 0;
 
         if (! $servicioExiste || ! $inmuebleExiste) {
             return redirect()->to(site_url('servicios'))
                 ->withInput()
                 ->with('formData', $submittedData)
                 ->with('serviceLocked', $serviceLocked)
-                ->with('error', 'El servicio o el inmueble seleccionado ya no existe.');
+                ->with('error', 'El servicio o el inmueble seleccionado ya no existe o no te pertenece.');
         }
 
         $asociacionExiste = $db->table('inmueble_servicios')
             ->where('servicio_id', $servicioId)
             ->where('inmueble_id', $inmuebleId)
-            ->where("LOWER(TRIM(estado)) !=", 'inactivo', false)
+            ->where("LOWER(TRIM(estado)) != 'inactivo'", null, false)
             ->countAllResults() > 0;
 
         if ($asociacionExiste) {
@@ -391,9 +452,9 @@ class Servicios extends BaseController
     {
         $modelo = new InmuebleServicioModel();
         $asociacion = $modelo->find($id);
-        if ($asociacion === null) {
+        if ($asociacion === null || ! $this->userOwnsAssociation($id)) {
             return redirect()->to(site_url('servicios'))
-                ->with('error', 'No se encontró la asociación que intentás modificar.');
+                ->with('error', 'No se encontró la asociación que intentás modificar o no tenés permisos sobre ella.');
         }
 
         $fields = [
@@ -459,9 +520,9 @@ class Servicios extends BaseController
     public function darDeBajaAsociacion(int $id): RedirectResponse
     {
         $modelo = new InmuebleServicioModel();
-        if ($modelo->find($id) === null) {
+        if ($modelo->find($id) === null || ! $this->userOwnsAssociation($id)) {
             return redirect()->to(site_url('servicios'))
-                ->with('error', 'No se encontró la asociación que intentás dar de baja.');
+                ->with('error', 'No se encontró la asociación que intentás dar de baja o no tenés permisos sobre ella.');
         }
 
         $db = db_connect();

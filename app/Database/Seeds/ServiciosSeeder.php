@@ -12,32 +12,50 @@ class ServiciosSeeder extends Seeder
             [
                 'nombre'            => 'Electricidad',
                 'unidad_medida_std' => 'kWh',
-                'proveedor'         => 'Energia del Centro',
+                'proveedor'         => 'EDERSA',
                 'categoria'         => 'Electricidad',
             ],
             [
                 'nombre'            => 'Agua corriente',
                 'unidad_medida_std' => 'm3',
-                'proveedor'         => 'Aguas de Cordoba',
+                'proveedor'         => 'Aguas Rionegrinas S.A.',
                 'categoria'         => 'Agua',
             ],
             [
                 'nombre'            => 'Gas natural',
                 'unidad_medida_std' => 'm3',
-                'proveedor'         => 'Gas Centro',
+                'proveedor'         => 'Camuzzi Gas del Sur',
                 'categoria'         => 'Gas',
             ],
             [
                 'nombre'            => 'Internet hogar',
                 'unidad_medida_std' => 'Mbps',
-                'proveedor'         => 'Conecta Net',
+                'proveedor'         => 'Río Net',
                 'categoria'         => 'Internet',
             ],
             [
-                'nombre'            => 'Expensas',
-                'unidad_medida_std' => 'ARS',
-                'proveedor'         => 'Administracion del Consorcio',
-                'categoria'         => 'Expensas',
+                'nombre'            => 'Internet hogar',
+                'unidad_medida_std' => 'Mbps',
+                'proveedor'         => 'AgilNet',
+                'categoria'         => 'Internet',
+            ],
+            [
+                'nombre'            => 'Internet hogar',
+                'unidad_medida_std' => 'Mbps',
+                'proveedor'         => 'Fastnet',
+                'categoria'         => 'Internet',
+            ],
+            [
+                'nombre'            => 'Internet hogar',
+                'unidad_medida_std' => 'Mbps',
+                'proveedor'         => 'Zielo Internet',
+                'categoria'         => 'Internet',
+            ],
+            [
+                'nombre'            => 'Internet hogar',
+                'unidad_medida_std' => 'Mbps',
+                'proveedor'         => 'R.N. Online',
+                'categoria'         => 'Internet',
             ],
         ];
 
@@ -57,3 +75,4 @@ class ServiciosSeeder extends Seeder
         }
     }
 }
+
