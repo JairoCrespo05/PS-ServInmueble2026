@@ -8,6 +8,21 @@ $routes->get('/', 'Init::login');
 $routes->get('/sing_up', 'Init::singUp');
 
 $routes->get('/home', 'Home::home', ['filter' => 'auth']);
+$routes->get('/usuarios', 'AdminController::users', [
+    'filter' => ['auth', 'role:' . \App\Models\RolModel::ROLE_ADMINISTRATOR],
+]);
+$routes->get('/usuarios/(:num)/editar', 'AdminController::editUser/$1', [
+    'filter' => ['auth', 'role:' . \App\Models\RolModel::ROLE_ADMINISTRATOR],
+]);
+$routes->post('/usuarios/(:num)', 'AdminController::updateUser/$1', [
+    'filter' => ['auth', 'role:' . \App\Models\RolModel::ROLE_ADMINISTRATOR],
+]);
+$routes->post('/usuarios/(:num)/baja', 'AdminController::deactivateUser/$1', [
+    'filter' => ['auth', 'role:' . \App\Models\RolModel::ROLE_ADMINISTRATOR],
+]);
+$routes->get('/usuarios/(:num)/inmuebles', 'AdminController::userProperties/$1', [
+    'filter' => ['auth', 'role:' . \App\Models\RolModel::ROLE_ADMINISTRATOR],
+]);
 
 $routes->post('/login', 'AuthController::login');
 
@@ -18,3 +33,61 @@ $routes->post('/logout', 'AuthController::logout', ['filter' => 'auth']);
 $routes->post('/admin/solicitudes/(:num)/aprobar', 'AdminController::approveUser/$1', [
     'filter' => ['auth', 'role:' . \App\Models\RolModel::ROLE_ADMINISTRATOR],
 ]);
+$routes->post('/admin/solicitudes/(:num)/rechazar', 'AdminController::rejectUser/$1', [
+    'filter' => ['auth', 'role:' . \App\Models\RolModel::ROLE_ADMINISTRATOR],
+]);
+$routes->post('/admin/solicitudes/(:num)/reabrir', 'AdminController::reopenUserRequest/$1', [
+    'filter' => ['auth', 'role:' . \App\Models\RolModel::ROLE_ADMINISTRATOR],
+]);
+
+
+// ==========================================
+// INMUEBLES - PROPIETARIO
+// ==========================================
+$routes->group('inmuebles', [
+    'filter' => [
+        'auth',
+        'role:' . \App\Models\RolModel::ROLE_OWNER
+    ]
+], static function ($routes) {
+    $routes->get('/', 'Inmuebles::index');
+    $routes->post('/', 'Inmuebles::create');
+    $routes->post('(:num)', 'Inmuebles::update/$1');
+    $routes->post('(:num)/baja', 'Inmuebles::deactivate/$1');
+});
+
+
+// ==========================================
+// SERVICIOS ASOCIADOS - PROPIETARIO
+// ==========================================
+$routes->group('servicios', [
+    'filter' => [
+        'auth',
+        'role:' . \App\Models\RolModel::ROLE_OWNER
+    ]
+], static function ($routes) {
+    // Endpoint JSON con los tipos de servicios
+    $routes->get('/', 'Servicios::index');
+
+    // Gestión de servicios asociados a inmuebles
+    $routes->get('asociaciones', 'Servicios::gestionar');
+    $routes->post('asociar', 'Servicios::asociar');
+    $routes->post('asociaciones/(:num)', 'Servicios::actualizarAsociacion/$1');
+    $routes->post('asociaciones/(:num)/baja', 'Servicios::darDeBajaAsociacion/$1');
+});
+
+
+// ==========================================
+// CATÁLOGO DE TIPOS DE SERVICIOS - ADMIN
+// ==========================================
+$routes->group('tipos-servicio', [
+    'filter' => [
+        'auth',
+        'role:' . \App\Models\RolModel::ROLE_ADMINISTRATOR
+    ]
+], static function ($routes) {
+    $routes->get('/', 'Servicios::gestionarTipos');
+    $routes->post('/', 'Servicios::crearTipo');
+    $routes->post('(:num)', 'Servicios::actualizarTipo/$1');
+    $routes->post('(:num)/baja', 'Servicios::darDeBajaTipo/$1');
+});

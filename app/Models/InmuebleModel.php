@@ -8,6 +8,15 @@ class InmuebleModel extends Model
 {
     protected $table         = 'inmuebles';
     protected $primaryKey    = 'id';
-    protected $allowedFields = ['alias_nombre', 'tipo', 'superficie', 'estado', 'direccion_id'];
+
+    protected $allowedFields = [
+        'alias_nombre',
+        'tipo',
+        'superficie',
+        'estado',
+        'direccion_id',
+        'usuario_id'
+    ];
+
     protected $useTimestamps = true;
 }

@@ -28,10 +28,17 @@ class AuthFilter implements FilterInterface
             return redirect()->to(base_url());
         }
 
+        if (! $identity['activo']) {
+            session()->destroy();
+
+            return redirect()->to(base_url());
+        }
+
         session()->set([
-            'user_email' => $identity['email'],
-            'user_name'  => trim($identity['nombre'] . ' ' . $identity['apellido']),
-            'user_role'  => $identity['role'],
+            'user_email'          => $identity['email'],
+            'user_name'           => trim($identity['nombre'] . ' ' . $identity['apellido']),
+            'user_role'           => $identity['role'],
+            'user_request_status' => $identity['estado_solicitud'],
         ]);
     }
 

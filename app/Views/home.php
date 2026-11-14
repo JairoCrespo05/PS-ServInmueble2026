@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ServiInmueble 2026 — Home / Resumen General</title>
+  <title><?= $isAdministrator ? 'Administración - ServiInmueble' : 'ServiInmueble 2026 — Home / Resumen General' ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
@@ -11,163 +11,50 @@
 </head>
 <body>
 
-  <!-- ================= SIDEBAR PERSISTENTE ================= -->
-  <aside class="sidebar" id="sidebar">
-    <div>
-      <!-- Header Brand & Collapse Button -->
-      <div class="sidebar-header">
-        <a href="#" class="brand-group">
-          <div class="brand-logo-badge">SI</div>
-          <span class="brand-title">ServiInmueble</span>
-        </a>
-        <button class="btn-toggle-sidebar" id="btnToggleSidebar" title="Colapsar o expandir barra lateral">
-          <svg class="icon" viewBox="0 0 24 24" id="collapseArrow">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
-        <button class="expand-mini-btn" id="btnMiniExpand" title="Expandir menú">
-          <svg class="icon" viewBox="0 0 24 24">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Navigation Content -->
-      <div class="sidebar-content">
-        <div class="nav-section-title">Gestión Patrimonial</div>
-        <ul class="nav-list">
-          <li>
-            <a href="#" class="nav-link active" title="Inicio / Resumen">
-              <svg class="icon" viewBox="0 0 24 24">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-              </svg>
-              <span class="nav-text">Inicio / Resumen</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-link" title="Inmuebles (ABMC)">
-              <svg class="icon" viewBox="0 0 24 24">
-                <path d="M3 21h18"></path>
-                <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path>
-                <path d="M9 9h1"></path>
-                <path d="M14 9h1"></path>
-                <path d="M9 13h1"></path>
-                <path d="M14 13h1"></path>
-                <path d="M9 17h1"></path>
-                <path d="M14 17h1"></path>
-              </svg>
-              <span class="nav-text">Inmuebles (ABMC)</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-link" title="Servicios Asociados">
-              <svg class="icon" viewBox="0 0 24 24">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-              </svg>
-              <span class="nav-text">Servicios Asociados</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-link" title="Facturas y Pagos">
-              <svg class="icon" viewBox="0 0 24 24">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-                <polyline points="10 9 9 9 8 9"></polyline>
-              </svg>
-              <span class="nav-text">Facturas y Pagos</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-link" title="Informes (US-09)">
-              <svg class="icon" viewBox="0 0 24 24">
-                <line x1="18" y1="20" x2="18" y2="10"></line>
-                <line x1="12" y1="20" x2="12" y2="4"></line>
-                <line x1="6" y1="20" x2="6" y2="14"></line>
-              </svg>
-              <span class="nav-text">Informes (US-09)</span>
-            </a>
-          </li>
-          <?php if ($isAdministrator): ?>
-            <li>
-              <a href="#gestion-usuarios" class="nav-link" title="Gestión de usuarios">
-                <svg class="icon" viewBox="0 0 24 24">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                <span class="nav-text">Gestión de usuarios</span>
-              </a>
-            </li>
-          <?php endif ?>
-        </ul>
-
-      </div>
-    </div>
-
-    <!-- Sidebar Footer -->
-    <div class="sidebar-footer">
-      <ul class="nav-list">
-        <li>
-          <form method="post" action="<?= base_url('logout') ?>">
-            <?= csrf_field() ?>
-            <button type="submit" class="nav-link logout-button" title="Cerrar Sesión">
-            <svg class="icon" viewBox="0 0 24 24">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            <span class="nav-text">Cerrar Sesión</span>
-            </button>
-          </form>
-        </li>
-      </ul>
-    </div>
-  </aside>
+  <?= view('partials/sidebar', ['activeNav' => 'home', 'isAdministrator' => $isAdministrator]) ?>
 
   <!-- ================= CONTENEDOR PRINCIPAL ================= -->
   <div class="main-wrapper" id="mainWrapper">
     
     <!-- TOPBAR -->
     <header class="topbar">
-      <div class="topbar-left">
-        <div class="search-box">
-          <svg class="icon" style="color: var(--color-text-muted);" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input type="text" id="globalSearch" placeholder="Buscar inmueble, servicio, número de factura..." autocomplete="off">
+      <?php if (! $isAdministrator): ?>
+        <div class="topbar-left">
+          <div class="search-box">
+            <svg class="icon" style="color: var(--color-text-muted);" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="globalSearch" placeholder="Buscar inmueble, servicio, número de factura..." autocomplete="off">
+          </div>
         </div>
-      </div>
+      <?php endif ?>
 
       <div class="topbar-right">
-        <!-- Selector de Inmueble Contextual -->
-        <div class="property-picker">
-          <svg class="icon" style="color: var(--color-primary-medium);" viewBox="0 0 24 24">
-            <path d="M3 21h18"></path>
-            <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path>
-          </svg>
-          <select id="propertySelect" aria-label="Seleccionar inmueble activo">
-            <option value="all">Todos los Inmuebles (Cartera Global)</option>
-            <option value="1" selected>Torre Bella Vista (Unidad 402)</option>
-            <option value="2">Complejo Las Acacias (Local 12)</option>
-            <option value="3">Residencial Del Valle (Casa 7)</option>
-          </select>
-        </div>
+        <?php if (! $isAdministrator): ?>
+          <!-- Selector de Inmueble Contextual -->
+          <div class="property-picker">
+            <svg class="icon" style="color: var(--color-primary-medium);" viewBox="0 0 24 24">
+              <path d="M3 21h18"></path>
+              <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path>
+            </svg>
+            <select id="propertySelect" aria-label="Seleccionar inmueble activo">
+              <option value="all">Todos los Inmuebles (Cartera Global)</option>
+              <option value="1" selected>Torre Bella Vista (Unidad 402)</option>
+              <option value="2">Complejo Las Acacias (Local 12)</option>
+              <option value="3">Residencial Del Valle (Casa 7)</option>
+            </select>
+          </div>
 
-        <!-- Notificaciones -->
-        <button class="icon-btn" title="Notificaciones" aria-label="Notificaciones">
-          <svg class="icon" viewBox="0 0 24 24">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-          </svg>
-          <span class="notification-dot"></span>
-        </button>
+          <!-- Notificaciones -->
+          <button class="icon-btn" title="Notificaciones" aria-label="Notificaciones">
+            <svg class="icon" viewBox="0 0 24 24">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span class="notification-dot"></span>
+          </button>
+        <?php endif ?>
 
         <!-- Perfil Usuario -->
         <div class="user-profile">
@@ -182,6 +69,33 @@
 
     <!-- ÁREA DE CONTENIDO -->
     <main class="content-area">
+
+      <?php if ($isAdministrator): ?>
+        <section class="page-header">
+          <div>
+            <div class="welcome-badge">Administración</div>
+            <h1 class="page-title">Administración del sistema</h1>
+            <p class="page-subtitle">Desde acá podés gestionar las cuentas y el catálogo de tipos de servicios.</p>
+          </div>
+        </section>
+
+        <section class="admin-shortcuts" aria-label="Funciones administrativas">
+          <article class="card admin-shortcut">
+            <div>
+              <h2 class="card-title">Gestión de usuarios</h2>
+              <p class="page-subtitle">Consultá las cuentas registradas y revisá solicitudes pendientes.</p>
+            </div>
+            <a class="btn btn-primary" href="<?= site_url('usuarios') ?>">Abrir usuarios</a>
+          </article>
+          <article class="card admin-shortcut">
+            <div>
+              <h2 class="card-title">Tipos de servicios</h2>
+              <p class="page-subtitle">Mantené el catálogo de servicios disponible para los propietarios.</p>
+            </div>
+            <a class="btn btn-secondary" href="<?= site_url('tipos-servicio') ?>">Abrir catálogo</a>
+          </article>
+        </section>
+      <?php else: ?>
 
       <!-- Header de la Pantalla -->
       <section class="page-header">
@@ -539,111 +453,6 @@
 
       </section>
 
-      <?php if ($isAdministrator): ?>
-        <section class="user-management" id="gestion-usuarios" aria-labelledby="userManagementTitle">
-          <div class="page-header">
-            <div>
-              <div class="welcome-badge">Administración</div>
-              <h2 class="page-title" id="userManagementTitle">Gestión de usuarios</h2>
-              <p class="page-subtitle">Revisá las solicitudes pendientes y consultá el listado general de cuentas.</p>
-            </div>
-          </div>
-
-          <?php if (! empty($adminMessage)): ?>
-            <div class="access-alert <?= esc($adminMessage['type'], 'attr') ?>" role="status">
-              <?= esc($adminMessage['text']) ?>
-            </div>
-          <?php endif ?>
-
-          <section class="card" aria-labelledby="pendingUsersTitle">
-            <div class="card-header">
-              <div class="card-title-group">
-                <h3 class="card-title" id="pendingUsersTitle">Solicitudes pendientes</h3>
-                <span class="badge-subtle"><?= count($pendingUsers) ?></span>
-              </div>
-            </div>
-            <div class="table-container">
-              <table class="data-table" id="pending-users-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Nombre y apellido</th>
-                    <th scope="col">Correo electrónico</th>
-                    <th scope="col">Teléfono</th>
-                    <th scope="col">Fecha de registro</th>
-                    <th scope="col">Rol y acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <?php if ($pendingUsers === []): ?>
-                    <tr>
-                      <td colspan="5">No hay solicitudes pendientes.</td>
-                    </tr>
-                  <?php else: ?>
-                    <?php foreach ($pendingUsers as $pendingUser): ?>
-                      <tr>
-                        <td><?= esc(trim($pendingUser['nombre'] . ' ' . $pendingUser['apellido'])) ?></td>
-                        <td><?= esc($pendingUser['email']) ?></td>
-                        <td><?= esc($pendingUser['telefono'] ?: 'No informado') ?></td>
-                        <td><?= esc($pendingUser['created_at'] ?? 'Sin fecha') ?></td>
-                        <td>
-                          <form class="approval-form" method="post" action="<?= base_url('admin/solicitudes/' . (int) $pendingUser['id'] . '/aprobar') ?>">
-                            <?= csrf_field() ?>
-                            <label for="approval-role-<?= (int) $pendingUser['id'] ?>">Rol al aprobar</label>
-                            <select id="approval-role-<?= (int) $pendingUser['id'] ?>" name="role" required>
-                              <option value="Propietario">Propietario</option>
-                              <option value="Administrador">Administrador</option>
-                            </select>
-                            <button type="submit" class="btn btn-primary">Aprobar</button>
-                          </form>
-                        </td>
-                      </tr>
-                    <?php endforeach ?>
-                  <?php endif ?>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section class="card" aria-labelledby="allUsersTitle">
-            <div class="card-header">
-              <div class="card-title-group">
-                <h3 class="card-title" id="allUsersTitle">Listado general de usuarios</h3>
-                <span class="badge-subtle"><?= count($allUsers) ?></span>
-              </div>
-            </div>
-            <p class="page-subtitle">Incluye todas las cuentas, también las que siguen pendientes de aprobación.</p>
-            <div class="table-container">
-              <table class="data-table" id="all-users-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Nombre y apellido</th>
-                    <th scope="col">Correo electrónico</th>
-                    <th scope="col">Teléfono</th>
-                    <th scope="col">Rol</th>
-                    <th scope="col">Fecha de registro</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <?php if ($allUsers === []): ?>
-                    <tr>
-                      <td colspan="5">Todavía no hay usuarios registrados.</td>
-                    </tr>
-                  <?php else: ?>
-                    <?php foreach ($allUsers as $listedUser): ?>
-                      <tr>
-                        <td><?= esc(trim($listedUser['nombre'] . ' ' . $listedUser['apellido'])) ?></td>
-                        <td><?= esc($listedUser['email']) ?></td>
-                        <td><?= esc($listedUser['telefono'] ?: 'No informado') ?></td>
-                        <td><?= esc($listedUser['role'] ?? 'Sin rol asignado') ?></td>
-                        <td><?= esc($listedUser['created_at'] ?? 'Sin fecha') ?></td>
-                      </tr>
-                    <?php endforeach ?>
-                  <?php endif ?>
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </section>
       <?php endif ?>
 
     </main>

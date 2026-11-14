@@ -62,11 +62,21 @@ class CreateServiInmuebleSchema extends Migration
             'tipo'         => ['type' => 'VARCHAR', 'constraint' => 100],
             'superficie'   => ['type' => 'DECIMAL', 'constraint' => '10,2'],
             'estado'       => ['type' => 'VARCHAR', 'constraint' => 30],
+            'usuario_id'   => ['type' => 'INT'],
             'direccion_id' => ['type' => 'INT'],
             'created_at'   => ['type' => 'DATETIME', 'null' => true],
             'updated_at'   => ['type' => 'DATETIME', 'null' => true],
-        ]);
+         ]);
         $this->forge->addUniqueKey('direccion_id');
+        $this->forge->addKey('usuario_id');
+        $this->forge->addForeignKey(
+            'usuario_id',
+            'usuarios',
+            'id',
+            'CASCADE',
+            'RESTRICT'
+        );
+
         $this->forge->addForeignKey('direccion_id', 'direcciones', 'id', '', 'RESTRICT');
         $this->forge->createTable('inmuebles', true);
 

@@ -37,28 +37,17 @@ final class UserApprovalTest extends CIUnitTestCase
         $identity = $users->findAccessIdentityById($userId);
         $this->assertNotNull($identity);
         $this->assertSame(RolModel::ROLE_PENDING, $identity['role']);
+        $this->assertSame(UserModel::REQUEST_PENDING, $identity['estado_solicitud']);
         $this->assertSame(UserModel::APPROVAL_SUCCESS, $users->approvePendingUser($userId, RolModel::ROLE_OWNER));
         $identity = $users->findAccessIdentityById($userId);
         $this->assertNotNull($identity);
         $this->assertSame(RolModel::ROLE_OWNER, $identity['role']);
+        $this->assertSame(UserModel::REQUEST_APPROVED, $identity['estado_solicitud']);
         $this->assertSame(
             UserModel::APPROVAL_NOT_PENDING,
             $users->approvePendingUser($userId, RolModel::ROLE_OWNER)
         );
         $this->assertSame([], $users->findPendingApprovals());
-    }
-
-    public function testApprovalRejectsRolesOutsideAdministratorAndOwner(): void
-    {
-        $user = $this->registerTestUser('invalid-approval-role@example.test');
-
-        $this->assertSame(
-            UserModel::APPROVAL_INVALID_ROLE,
-            (new UserModel())->approvePendingUser($user['userId'], RolModel::ROLE_PENDING)
-        );
-        $identity = (new UserModel())->findAccessIdentityById($user['userId']);
-        $this->assertNotNull($identity);
-        $this->assertSame(RolModel::ROLE_PENDING, $identity['role']);
     }
 
     public function testInvalidCredentialsUseTheSameFailureStatus(): void
@@ -113,6 +102,7 @@ final class UserApprovalTest extends CIUnitTestCase
                 'confirm_password' => 'GoodPass1!',
                 'terms'            => '1',
                 'role'             => RolModel::ROLE_ADMINISTRATOR,
+                'estado_solicitud' => UserModel::REQUEST_APPROVED,
                 'csrf_test_name'   => $tokenMatches[1],
             ]);
 
@@ -123,6 +113,7 @@ final class UserApprovalTest extends CIUnitTestCase
         $identity = (new UserModel())->findAccessIdentityById((int) $user['id']);
         $this->assertNotNull($identity);
         $this->assertSame(RolModel::ROLE_PENDING, $identity['role']);
+        $this->assertSame(UserModel::REQUEST_PENDING, $identity['estado_solicitud']);
         $this->assertSame((int) $user['id'], session()->get('user_id'));
     }
 
@@ -205,7 +196,7 @@ final class UserApprovalTest extends CIUnitTestCase
         $this->assertSame(403, $response->getStatusCode());
     }
 
-    public function testAdministratorHomeShowsSharedHomeAndSeparateUserLists(): void
+    public function testAdministratorHomeShowsOnlyAdministrativeFunctionsAndUsersHaveSeparateGetPage(): void
     {
         $administrator = $this->registerTestUser('administrator@example.test');
         $pendingUser = $this->registerTestUser('waiting@example.test');
@@ -219,6 +210,9 @@ final class UserApprovalTest extends CIUnitTestCase
         $this->db->table('rol_usuario')
             ->where('usuario_id', $administrator['userId'])
             ->update(['rol_id' => $administratorRoleId]);
+        $this->db->table('usuarios')
+            ->where('id', $administrator['userId'])
+            ->update(['estado_solicitud' => UserModel::REQUEST_APPROVED]);
         $this->assertSame(
             UserModel::APPROVAL_SUCCESS,
             (new UserModel())->approvePendingUser($owner['userId'], RolModel::ROLE_OWNER)
@@ -228,12 +222,21 @@ final class UserApprovalTest extends CIUnitTestCase
         $body = $response->response()->getBody();
 
         $response->assertOK();
-        $response->assertSee('Resumen y Control Operativo');
+        $response->assertSee('Administración del sistema');
         $response->assertSee('Gestión de usuarios');
-        $response->assertSee('Solicitudes pendientes');
-        $response->assertSee('Listado general de usuarios');
-        $this->assertSame(1, preg_match('/<table[^>]*id="pending-users-table"[^>]*>(.*?)<\/table>/s', $body, $pendingTable));
-        $this->assertSame(1, preg_match('/<table[^>]*id="all-users-table"[^>]*>(.*?)<\/table>/s', $body, $allUsersTable));
+        $response->assertSee('Tipos de servicios');
+        $response->assertDontSee('Inmuebles (ABMC)');
+        $response->assertDontSee('Facturación y Vencimientos Recientes');
+        $response->assertDontSee('Torre Bella Vista');
+        $response->assertDontSee('Listado general de usuarios');
+
+        $usersResponse = $this->withSession(['user_id' => $administrator['userId']])->get('usuarios');
+        $usersBody = $usersResponse->response()->getBody();
+        $usersResponse->assertOK();
+        $usersResponse->assertSee('Solicitudes pendientes');
+        $usersResponse->assertSee('Listado general de usuarios');
+        $this->assertSame(1, preg_match('/<table[^>]*id="pending-users-table"[^>]*>(.*?)<\/table>/s', $usersBody, $pendingTable));
+        $this->assertSame(1, preg_match('/<table[^>]*id="all-users-table"[^>]*>(.*?)<\/table>/s', $usersBody, $allUsersTable));
         $this->assertStringContainsString('waiting@example.test', $pendingTable[1]);
         $this->assertStringContainsString('11 5555-0101', $pendingTable[1]);
         $this->assertStringNotContainsString('administrator@example.test', $pendingTable[1]);
@@ -255,11 +258,13 @@ final class UserApprovalTest extends CIUnitTestCase
         $this->db->table('rol_usuario')
             ->where('usuario_id', $administrator['userId'])
             ->update(['rol_id' => $administratorRoleId]);
+        $this->db->table('usuarios')
+            ->where('id', $administrator['userId'])
+            ->update(['estado_solicitud' => UserModel::REQUEST_APPROVED]);
 
-        $adminHome = $this->withSession(['user_id' => $administrator['userId']])->get('home');
-        $adminHome->assertSee('value="Propietario"');
-        $adminHome->assertSee('value="Administrador"');
-        preg_match('/name="csrf_test_name" value="([^"]+)"/', $adminHome->response()->getBody(), $tokenMatches);
+        $userList = $this->withSession(['user_id' => $administrator['userId']])->get('usuarios');
+        $userList->assertSee('value="Administrador"');
+        preg_match('/name="csrf_test_name" value="([^"]+)"/', $userList->response()->getBody(), $tokenMatches);
         $this->assertNotEmpty($tokenMatches[1] ?? null);
 
         $response = $this->withSession(['user_id' => $administrator['userId']])
@@ -272,10 +277,170 @@ final class UserApprovalTest extends CIUnitTestCase
                 ]
             );
 
-        $response->assertRedirectTo(base_url('home'));
+        $response->assertRedirectTo(site_url('usuarios'));
         $identity = (new UserModel())->findAccessIdentityById($pendingUser['userId']);
         $this->assertNotNull($identity);
         $this->assertSame(RolModel::ROLE_ADMINISTRATOR, $identity['role']);
+        $this->assertSame(UserModel::REQUEST_APPROVED, $identity['estado_solicitud']);
+    }
+
+    public function testOwnerCannotOpenAdministratorUserList(): void
+    {
+        $owner = $this->registerTestUser('owner-cannot-list@example.test');
+        (new UserModel())->approvePendingUser($owner['userId'], RolModel::ROLE_OWNER);
+
+        $response = $this->withSession(['user_id' => $owner['userId']])->get('usuarios');
+
+        $response->assertStatus(403);
+    }
+
+    public function testRejectedRequestCanBeReopenedAndThenApprovedAsAdministrator(): void
+    {
+        $user = $this->registerTestUser('rejected@example.test');
+        $users = new UserModel();
+
+        $this->assertSame(UserModel::REQUEST_REJECTION_SUCCESS, $users->rejectPendingUser($user['userId']));
+        $identity = $users->findAccessIdentityById($user['userId']);
+        $this->assertNotNull($identity);
+        $this->assertSame(UserModel::REQUEST_REJECTED, $identity['estado_solicitud']);
+        $this->assertSame(RolModel::ROLE_PENDING, $identity['role']);
+        $this->assertSame([], $users->findPendingApprovals());
+
+        $rejectedHome = $this->withSession(['user_id' => $user['userId']])->get('home');
+        $rejectedHome->assertOK();
+        $rejectedHome->assertSee('Tu solicitud no fue aprobada');
+        $rejectedHome->assertDontSee('Inmuebles (ABMC)');
+
+        $this->assertSame(UserModel::REQUEST_REOPEN_SUCCESS, $users->reopenRejectedRequest($user['userId']));
+        $this->assertSame(1, count($users->findPendingApprovals()));
+        $this->assertSame(
+            UserModel::APPROVAL_SUCCESS,
+            $users->approvePendingUser($user['userId'], RolModel::ROLE_ADMINISTRATOR)
+        );
+
+        $identity = $users->findAccessIdentityById($user['userId']);
+        $this->assertNotNull($identity);
+        $this->assertSame(RolModel::ROLE_ADMINISTRATOR, $identity['role']);
+        $this->assertSame(UserModel::REQUEST_APPROVED, $identity['estado_solicitud']);
+    }
+
+    public function testAdministratorRejectsAndReopensRequestsThroughProtectedPostRoutes(): void
+    {
+        $administrator = $this->registerTestUser('reject-admin@example.test');
+        $pendingUser = $this->registerTestUser('reject-user@example.test');
+        $this->assignRole($administrator['userId'], RolModel::ROLE_ADMINISTRATOR);
+
+        $userList = $this->withSession(['user_id' => $administrator['userId']])->get('usuarios');
+        preg_match('/name="csrf_test_name" value="([^"]+)"/', $userList->response()->getBody(), $tokenMatches);
+        $this->assertNotEmpty($tokenMatches[1] ?? null);
+
+        $rejected = $this->withSession(['user_id' => $administrator['userId']])
+            ->withHeaders(['Cookie' => 'csrf_cookie_name=' . $tokenMatches[1]])
+            ->post('admin/solicitudes/' . $pendingUser['userId'] . '/rechazar', [
+                'csrf_test_name' => $tokenMatches[1],
+            ]);
+        $rejected->assertRedirectTo(site_url('usuarios'));
+
+        $identity = (new UserModel())->findAccessIdentityById($pendingUser['userId']);
+        $this->assertNotNull($identity);
+        $this->assertSame(UserModel::REQUEST_REJECTED, $identity['estado_solicitud']);
+
+        $userList = $this->withSession(['user_id' => $administrator['userId']])->get('usuarios');
+        preg_match('/name="csrf_test_name" value="([^"]+)"/', $userList->response()->getBody(), $tokenMatches);
+        $this->assertNotEmpty($tokenMatches[1] ?? null);
+        $reopened = $this->withSession(['user_id' => $administrator['userId']])
+            ->withHeaders(['Cookie' => 'csrf_cookie_name=' . $tokenMatches[1]])
+            ->post('admin/solicitudes/' . $pendingUser['userId'] . '/reabrir', [
+                'csrf_test_name' => $tokenMatches[1],
+            ]);
+        $reopened->assertRedirectTo(site_url('usuarios'));
+
+        $identity = (new UserModel())->findAccessIdentityById($pendingUser['userId']);
+        $this->assertNotNull($identity);
+        $this->assertSame(UserModel::REQUEST_PENDING, $identity['estado_solicitud']);
+    }
+
+    public function testAdministratorCanModifyApprovedUserDataAndRole(): void
+    {
+        $administrator = $this->registerTestUser('profile-admin@example.test');
+        $owner = $this->registerTestUser('profile-owner@example.test');
+        $this->assignRole($administrator['userId'], RolModel::ROLE_ADMINISTRATOR);
+        $this->assertSame(
+            UserModel::APPROVAL_SUCCESS,
+            (new UserModel())->approvePendingUser($owner['userId'], RolModel::ROLE_OWNER)
+        );
+
+        $response = $this->withSession(['user_id' => $administrator['userId']])->get(
+            'usuarios/' . $owner['userId'] . '/editar'
+        );
+        $response->assertOK();
+        $response->assertSee('name="role"');
+        preg_match('/name="csrf_test_name" value="([^"]+)"/', $response->response()->getBody(), $tokenMatches);
+        $this->assertNotEmpty($tokenMatches[1] ?? null);
+
+        $updated = $this->withSession(['user_id' => $administrator['userId']])
+            ->withHeaders(['Cookie' => 'csrf_cookie_name=' . $tokenMatches[1]])
+            ->post('usuarios/' . $owner['userId'], [
+                'nombre'          => 'Propietaria',
+                'apellido'        => 'Actualizada',
+                'email'           => 'profile-owner-updated@example.test',
+                'telefono'        => '11 5555-0102',
+                'role'            => RolModel::ROLE_ADMINISTRATOR,
+                'csrf_test_name'  => $tokenMatches[1],
+            ]);
+
+        $updated->assertRedirectTo(site_url('usuarios'));
+        $identity = (new UserModel())->findAccessIdentityById($owner['userId']);
+        $this->assertNotNull($identity);
+        $this->assertSame('Propietaria', $identity['nombre']);
+        $this->assertSame('profile-owner-updated@example.test', $identity['email']);
+        $this->assertSame(RolModel::ROLE_ADMINISTRATOR, $identity['role']);
+    }
+
+    public function testSoftDeletingUserPreservesAssociatedPropertiesAndBlocksAccess(): void
+    {
+        $administrator = $this->registerTestUser('property-admin@example.test');
+        $owner = $this->registerTestUser('property-owner@example.test');
+        $this->assignRole($administrator['userId'], RolModel::ROLE_ADMINISTRATOR);
+        $this->assertSame(
+            UserModel::APPROVAL_SUCCESS,
+            (new UserModel())->approvePendingUser($owner['userId'], RolModel::ROLE_OWNER)
+        );
+
+        $this->db->table('direcciones')->insert([
+            'calle'  => 'Calle Ficticia',
+            'numero' => '123',
+            'ciudad' => 'Ciudad Prueba',
+        ]);
+        $addressId = (int) $this->db->insertID();
+        $this->db->table('inmuebles')->insert([
+            'alias_nombre' => 'Casa de prueba',
+            'tipo'         => 'Casa',
+            'superficie'   => 80,
+            'estado'       => 'Activo',
+            'usuario_id'   => $owner['userId'],
+            'direccion_id' => $addressId,
+        ]);
+
+        $users = new UserModel();
+        $this->assertSame(
+            UserModel::USER_DEACTIVATION_SUCCESS,
+            $users->deactivateUser($owner['userId'], $administrator['userId'])
+        );
+        $identity = $users->findAccessIdentityById($owner['userId']);
+        $this->assertNotNull($identity);
+        $this->assertFalse($identity['activo']);
+        $this->assertCount(1, $users->findPropertiesForUser($owner['userId']));
+        $propertyPage = $this->withSession(['user_id' => $administrator['userId']])
+            ->get('usuarios/' . $owner['userId'] . '/inmuebles');
+        $propertyPage->assertOK();
+        $propertyPage->assertSee('Casa de prueba');
+        $this->assertSame(
+            UserModel::LOGIN_INVALID_CREDENTIALS,
+            $users->authenticate('property-owner@example.test', 'Passw0rd!')['status']
+        );
+        $blockedHome = $this->withSession(['user_id' => $owner['userId']])->get('home');
+        $blockedHome->assertRedirectTo(base_url());
     }
 
     public function testMutatingRouteRejectsMissingCsrfToken(): void
@@ -301,5 +466,18 @@ final class UserApprovalTest extends CIUnitTestCase
         $this->assertSame(UserModel::REGISTRATION_SUCCESS, $result['status']);
 
         return $result;
+    }
+
+    private function assignRole(int $userId, string $roleName): void
+    {
+        $roleId = (new RolModel())->getIdByName($roleName);
+        $this->assertNotNull($roleId);
+
+        $this->db->table('rol_usuario')
+            ->where('usuario_id', $userId)
+            ->update(['rol_id' => $roleId]);
+        $this->db->table('usuarios')
+            ->where('id', $userId)
+            ->update(['estado_solicitud' => UserModel::REQUEST_APPROVED]);
     }
 }

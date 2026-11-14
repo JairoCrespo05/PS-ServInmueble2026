@@ -3,7 +3,6 @@
 namespace App\Controllers;
 
 use App\Models\RolModel;
-use App\Models\UserModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class Home extends BaseController
@@ -15,6 +14,7 @@ class Home extends BaseController
             'email'    => session()->get('user_email'),
             'nombre'   => session()->get('user_name'),
             'role'     => session()->get('user_role'),
+            'requestStatus' => session()->get('user_request_status'),
         ];
 
         if ($user['role'] === RolModel::ROLE_PENDING) {
@@ -22,14 +22,9 @@ class Home extends BaseController
         }
 
         if ($user['role'] === RolModel::ROLE_ADMINISTRATOR) {
-            $users = new UserModel();
-
             return view('home.php', [
                 'user'            => $user,
                 'isAdministrator' => true,
-                'pendingUsers'    => $users->findPendingApprovals(),
-                'allUsers'        => $users->findAllUserSummaries(),
-                'adminMessage'    => session()->getFlashdata('adminMessage'),
             ]);
         }
 

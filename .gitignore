@@ -20,6 +20,9 @@
 /writable/uploads/*
 !/writable/uploads/index.html
 
+# CodeIgniter DebugBar
+writable/debugbar/*.json
+
 # Archivos del sistema operativo
 .DS_Store
 Thumbs.db
