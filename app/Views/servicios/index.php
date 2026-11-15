@@ -37,6 +37,8 @@ $editandoAsociacion = $editAssociationId !== null;
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/servicios.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
+
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'servicios', 'isAdministrator' => false]) ?>
@@ -45,6 +47,15 @@ $editandoAsociacion = $editAssociationId !== null;
     <header class="topbar">
       <div class="top-brand"><span class="icon">domain</span>ServiInmueble</div>
       <span class="top-context">Gestion patrimonial&nbsp; / &nbsp;Servicios asociados</span>
+
+      <!-- Perfil Usuario -->
+        <div class="user-profile">
+          <div class="user-avatar"><?= esc(strtoupper(substr(session()->get('user_name') ?? 'U', 0, 1))) ?></div>
+          <div class="user-info">
+          <div class="user-name"><?= esc(session()->get('user_name') ?? '') ?></div>
+            <div class="user-role"><?= esc(session()->get('user_role') ?? '') ?></div>
+          </div>
+        </div>
     </header>
 
     <main class="page">

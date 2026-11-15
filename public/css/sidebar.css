@@ -26,6 +26,8 @@ aside.sidebar {
   color: #fff;
   box-shadow: 4px 0 16px rgb(16 42 67 / 12%);
   transition: width var(--sidebar-transition) ease;
+
+  
 }
 
 aside.sidebar.collapsed {
@@ -41,10 +43,36 @@ aside.sidebar.collapsed {
   border-bottom: 1px solid rgb(255 255 255 / 10%);
 }
 
+/* Encabezado cuando el sidebar está contraído */
 aside.sidebar.collapsed .sidebar-header {
-  justify-content: center;
-  padding: 0 12px;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 4px;
 }
+
+/* Grupo del logo */
+aside.sidebar.collapsed .brand-group {
+    flex: 0 0 auto;
+    gap: 0;
+}
+
+/* Logo */
+aside.sidebar.collapsed .brand-logo-badge {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    font-size: 12px;
+}
+
+/* Botón de expansión */
+aside.sidebar.collapsed .expand-mini-btn {
+    display: flex;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    padding: 4px;
+}
+
 
 .brand-group {
   display: flex;
@@ -112,9 +140,6 @@ aside.sidebar.collapsed .btn-toggle-sidebar {
   padding: 6px;
 }
 
-aside.sidebar.collapsed .expand-mini-btn {
-  display: flex;
-}
 
 .sidebar-content {
   flex: 1;
@@ -240,8 +265,9 @@ aside.sidebar.collapsed ~ .workspace {
 
   aside.sidebar .sidebar-header {
     justify-content: center;
-    padding: 0 12px;
-  }
+    gap: 4px;
+    padding: 0 4px;
+}
 
   aside.sidebar .expand-mini-btn {
     display: flex;

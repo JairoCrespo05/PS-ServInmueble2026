@@ -182,6 +182,7 @@ class AuthController extends BaseController
             'user_id'    => $user['id'],
             'user_email' => $user['email'],
             'user_name'  => trim($user['nombre'] . ' ' . $user['apellido']),
+            'user_role' => $user['role'],
         ]);
     }
 
