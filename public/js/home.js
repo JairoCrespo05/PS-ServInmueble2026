@@ -61,13 +61,6 @@
       }
 
       // 4. Interacción de botones de acción
-      const btnNewInvoice = document.getElementById('btnNewInvoice');
-      if (btnNewInvoice) {
-        btnNewInvoice.addEventListener('click', function() {
-          alert('Acceso al formulario de registro de factura (US-07)');
-        });
-      }
-
       const btnExport = document.getElementById('btnExportSummary');
       if (btnExport) {
         btnExport.addEventListener('click', function() {
