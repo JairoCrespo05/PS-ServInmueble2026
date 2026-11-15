@@ -32,6 +32,7 @@ php spark migrate:rollback
 La migración crea las tablas que todavía no existan:
 
 - `direcciones` e `inmuebles`, con una relación uno a uno.
+- `usuarios` e `inmuebles`, con una relación uno a muchos mediante `inmuebles.usuario_id`; el vínculo puede quedar vacío mientras un inmueble no tenga propietario asignado.
 - `servicios` y `inmueble_servicios`, que registran los servicios contratados por cada inmueble y sus datos de cuenta/medidor.
 - `facturas`, vinculadas al registro de servicio del inmueble y con sus datos de vencimiento y pago.
 

@@ -443,6 +443,42 @@ final class UserApprovalTest extends CIUnitTestCase
         $blockedHome->assertRedirectTo(base_url());
     }
 
+    public function testUnassignedPropertyCanBeLinkedToAnOwnerAndListed(): void
+    {
+        $owner = $this->registerTestUser('unassigned-property-owner@example.test');
+        $this->assertSame(
+            UserModel::APPROVAL_SUCCESS,
+            (new UserModel())->approvePendingUser($owner['userId'], RolModel::ROLE_OWNER)
+        );
+
+        $this->db->table('direcciones')->insert([
+            'calle'  => 'Calle Ficticia',
+            'numero' => '456',
+            'ciudad' => 'Ciudad Prueba',
+        ]);
+        $addressId = (int) $this->db->insertID();
+        $this->db->table('inmuebles')->insert([
+            'alias_nombre' => 'Inmueble sin asignar',
+            'tipo'         => 'Casa',
+            'superficie'   => 90,
+            'estado'       => 'Activo',
+            'usuario_id'   => null,
+            'direccion_id' => $addressId,
+        ]);
+        $propertyId = (int) $this->db->insertID();
+
+        $users = new UserModel();
+        $this->assertCount(0, $users->findPropertiesForUser($owner['userId']));
+
+        $this->db->table('inmuebles')
+            ->where('id', $propertyId)
+            ->update(['usuario_id' => $owner['userId']]);
+
+        $properties = $users->findPropertiesForUser($owner['userId']);
+        $this->assertCount(1, $properties);
+        $this->assertSame('Inmueble sin asignar', $properties[0]['alias_nombre']);
+    }
+
     public function testMutatingRouteRejectsMissingCsrfToken(): void
     {
         $this->expectException(SecurityException::class);

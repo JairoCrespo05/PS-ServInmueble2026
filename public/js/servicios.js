@@ -18,8 +18,10 @@ function filterServices() {
   emptyState.classList.toggle("visible", visibleCount === 0);
 }
 
-searchInput.addEventListener("input", filterServices);
-categoryFilter.addEventListener("change", filterServices);
+if (searchInput && categoryFilter && emptyState) {
+  searchInput.addEventListener("input", filterServices);
+  categoryFilter.addEventListener("change", filterServices);
+}
 
 document.querySelectorAll("[data-toggle-associations]").forEach((button) => {
   button.addEventListener("click", () => {

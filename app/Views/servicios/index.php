@@ -52,11 +52,11 @@ $editandoAsociacion = $editAssociationId !== null;
         <div>
           <p class="eyebrow">Patrimonio inmobiliario / Servicios</p>
           <h1>Servicios asociados</h1>
-          <p class="subtitle">Consulte los servicios disponibles y los inmuebles vinculados a cada uno.</p>
+          <p class="subtitle">Consulte los servicios asociados a sus inmuebles.</p>
         </div>
         <div class="service-actions">
           <a class="button secondary" href="<?= site_url('inmuebles') ?>"><span class="icon">apartment</span>Ver inmuebles</a>
-          <?php if ($servicios !== [] && $inmuebles !== []): ?>
+          <?php if ($catalogoServicios !== [] && $inmuebles !== []): ?>
             <button class="button" id="open-associate" type="button"><span class="icon">add_link</span>Asociar servicio</button>
           <?php endif ?>
         </div>
@@ -67,7 +67,7 @@ $editandoAsociacion = $editAssociationId !== null;
 
       <section class="summary" aria-label="Resumen de servicios">
         <article class="stat">
-          <div><span class="stat-label">Servicios registrados</span><strong class="stat-value"><?= esc($resumen['total']) ?></strong><span class="stat-note">Tipos de servicio disponibles</span></div>
+          <div><span class="stat-label">Servicios asociados</span><strong class="stat-value"><?= esc($resumen['total']) ?></strong><span class="stat-note">Tipos vinculados a tus inmuebles</span></div>
           <span class="stat-icon icon">power</span>
         </article>
         <article class="stat">
@@ -75,11 +75,12 @@ $editandoAsociacion = $editAssociationId !== null;
           <span class="stat-icon icon">link</span>
         </article>
         <article class="stat">
-          <div><span class="stat-label">Sin inmuebles asociados</span><strong class="stat-value"><?= esc($resumen['sin_inmuebles']) ?></strong><span class="stat-note">Servicios aun no vinculados</span></div>
-          <span class="stat-icon icon">link_off</span>
+          <div><span class="stat-label">Inmuebles con servicios</span><strong class="stat-value"><?= esc($resumen['inmuebles']) ?></strong><span class="stat-note">Inmuebles propios con al menos un servicio</span></div>
+          <span class="stat-icon icon">apartment</span>
         </article>
       </section>
 
+      <?php if ($servicios !== []): ?>
       <section class="filters" aria-label="Buscar y filtrar servicios">
         <div class="field">
           <label for="search-service">Buscar servicio o inmueble</label>
@@ -217,6 +218,17 @@ $editandoAsociacion = $editAssociationId !== null;
         <?php endforeach ?>
       </section>
       <div class="empty" id="empty-state">No se encontraron servicios con esos filtros.</div>
+      <?php else: ?>
+        <div class="empty visible" id="empty-state" role="status">
+          <?php if ($catalogoServicios !== [] && $inmuebles !== []): ?>
+            Todavia no tenes servicios asociados a tus inmuebles. Usa "Asociar servicio" para comenzar.
+          <?php elseif ($catalogoServicios === []): ?>
+            No hay tipos de servicio disponibles para asociar.
+          <?php else: ?>
+            Primero agregá un inmueble para poder asociarle servicios.
+          <?php endif ?>
+        </div>
+      <?php endif ?>
     </main>
   </div>
 
@@ -238,7 +250,7 @@ $editandoAsociacion = $editAssociationId !== null;
             <label for="associate-service">Servicio<?= $editandoAsociacion ? ' (no modificable)' : '' ?></label>
             <select id="associate-service" required<?= $serviceLocked || $editandoAsociacion ? ' disabled' : '' ?>>
               <option value="">Selecciona un servicio</option>
-              <?php foreach ($servicios as $servicio): ?>
+              <?php foreach ($catalogoServicios as $servicio): ?>
                 <option value="<?= esc($servicio['id'], 'attr') ?>" data-associated-ids="<?= esc(json_encode($servicio['inmueble_ids']), 'attr') ?>"<?= (string) ($formData['servicio_id'] ?? '') === (string) $servicio['id'] ? ' selected' : '' ?>><?= esc($servicio['nombre'] . ' ÔÇö ' . $servicio['proveedor']) ?></option>
               <?php endforeach ?>
             </select>
