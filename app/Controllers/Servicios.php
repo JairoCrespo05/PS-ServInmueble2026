@@ -9,6 +9,16 @@ use CodeIgniter\HTTP\RedirectResponse;
 
 class Servicios extends BaseController
 {
+    private const UNIDADES_POR_CATEGORIA = [
+        'Agua'        => 'm3',
+        'Electricidad' => 'kWh',
+        'Gas'         => 'm3',
+        'Internet'    => 'Mes',
+        'Telefonía'   => 'Mes',
+        'Televisión'  => 'Mes',
+        'Expensas'    => 'Mes',
+    ];
+
     private function currentUserId(): int
     {
         $userId = session()->get('user_id');
@@ -55,13 +65,15 @@ class Servicios extends BaseController
         return $submittedData;
     }
 
-    private function validateTipoServicioData(array $submittedData): bool
+    private function validateTipoServicioData(array $submittedData, bool $esAlta = false): bool
     {
         return $this->validateData($submittedData, [
             'nombre'            => 'required|max_length[100]',
-            'unidad_medida_std' => 'required|max_length[30]',
+            'unidad_medida_std' => $esAlta ? 'max_length[30]' : 'required|max_length[30]',
             'proveedor'         => 'required|max_length[150]',
-            'categoria'         => 'required|max_length[100]',
+            'categoria'         => $esAlta
+                ? 'required|in_list[' . implode(',', array_keys(self::UNIDADES_POR_CATEGORIA)) . ']'
+                : 'required|max_length[100]',
         ], [
             'nombre' => [
                 'required' => 'Ingresá el nombre del servicio.',
@@ -74,6 +86,7 @@ class Servicios extends BaseController
             ],
             'categoria' => [
                 'required' => 'Ingresá la categoría.',
+                'in_list'  => 'Seleccioná una categoría válida.',
             ],
         ]);
     }
@@ -97,6 +110,7 @@ class Servicios extends BaseController
 
         return view('servicios/tipos', [
             'servicios' => $servicios,
+            'unidadesPorCategoria' => self::UNIDADES_POR_CATEGORIA,
             'formData'  => session()->getFlashdata('tipoServicioFormData') ?? [],
             'errors'    => session()->getFlashdata('tipoServicioErrors') ?? [],
             'editId'    => session()->getFlashdata('tipoServicioEditId'),
@@ -108,8 +122,9 @@ class Servicios extends BaseController
     public function crearTipo(): RedirectResponse
     {
         $submittedData = $this->submittedTipoServicioData();
+        $submittedData['unidad_medida_std'] = self::UNIDADES_POR_CATEGORIA[$submittedData['categoria']] ?? '';
 
-        if (! $this->validateTipoServicioData($submittedData)) {
+        if (! $this->validateTipoServicioData($submittedData, true)) {
             return redirect()->to(site_url('tipos-servicio'))
                 ->withInput()
                 ->with('tipoServicioErrors', $this->validator->getErrors())

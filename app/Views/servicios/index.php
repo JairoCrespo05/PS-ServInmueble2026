@@ -251,7 +251,7 @@ $editandoAsociacion = $editAssociationId !== null;
             <select id="associate-service" required<?= $serviceLocked || $editandoAsociacion ? ' disabled' : '' ?>>
               <option value="">Selecciona un servicio</option>
               <?php foreach ($catalogoServicios as $servicio): ?>
-                <option value="<?= esc($servicio['id'], 'attr') ?>" data-associated-ids="<?= esc(json_encode($servicio['inmueble_ids']), 'attr') ?>"<?= (string) ($formData['servicio_id'] ?? '') === (string) $servicio['id'] ? ' selected' : '' ?>><?= esc($servicio['nombre'] . ' ÔÇö ' . $servicio['proveedor']) ?></option>
+                <option value="<?= esc($servicio['id'], 'attr') ?>" data-associated-ids="<?= esc(json_encode($servicio['inmueble_ids']), 'attr') ?>"<?= (string) ($formData['servicio_id'] ?? '') === (string) $servicio['id'] ? ' selected' : '' ?>><?= esc($servicio['nombre']) ?> &mdash; <?= esc($servicio['proveedor']) ?></option>
               <?php endforeach ?>
             </select>
             <input id="associate-service-id" type="hidden" name="servicio_id" value="<?= esc($formData['servicio_id'] ?? '', 'attr') ?>">
@@ -271,7 +271,7 @@ $editandoAsociacion = $editAssociationId !== null;
                       . ', ' . $inmueble['ciudad'],
                   );
                 ?>
-                <option value="<?= esc($inmueble['id'], 'attr') ?>"<?= (string) ($formData['inmueble_id'] ?? '') === (string) $inmueble['id'] ? ' selected' : '' ?>><?= esc($inmueble['alias_nombre'] . ' ÔÇö ' . $direccion . ' (' . $inmueble['estado'] . ')') ?></option>
+                <option value="<?= esc($inmueble['id'], 'attr') ?>"<?= (string) ($formData['inmueble_id'] ?? '') === (string) $inmueble['id'] ? ' selected' : '' ?>><?= esc($inmueble['alias_nombre']) ?> &mdash; <?= esc($direccion . ' (' . $inmueble['estado'] . ')') ?></option>
               <?php endforeach ?>
             </select>
             <?php if (isset($errors['inmueble_id'])): ?><span class="field-error"><?= esc($errors['inmueble_id']) ?></span><?php endif ?>

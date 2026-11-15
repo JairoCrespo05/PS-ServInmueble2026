@@ -51,10 +51,12 @@
     .modal-head p { margin: 5px 0 0; color: var(--muted); font-size: 10px; }
     .close-modal { display: grid; width: 32px; height: 32px; place-items: center; border: 0; border-radius: 7px; background: var(--soft); color: var(--navy); }
     .form-body { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 18px 20px; }
-    .form-field { display: grid; gap: 5px; min-width: 0; }
+    .form-field { display: grid; align-content: start; gap: 5px; min-width: 0; }
     .form-field.full { grid-column: 1 / -1; }
     .form-field label { color: var(--muted); font-size: 10px; font-weight: 600; }
-    .form-field input { min-height: 38px; border: 1px solid var(--line); border-radius: 7px; padding: 0 10px; color: #263d4d; font-size: 11px; }
+    .form-field input, .form-field select { min-height: 38px; border: 1px solid var(--line); border-radius: 7px; padding: 0 10px; color: #263d4d; font-size: 11px; }
+    .form-field[hidden] { display: none; }
+    .form-field small { color: var(--muted); font-size: 10px; }
     .field-error { color: #b42318; font-size: 10px; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line); padding: 13px 20px; }
     @media (max-width: 1100px) { .page { padding: 20px; } }

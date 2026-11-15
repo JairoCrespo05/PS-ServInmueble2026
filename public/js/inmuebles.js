@@ -30,20 +30,21 @@ function renderTable() {
     : "Mostrando 0 propiedades";
 
   pagination.replaceChildren();
-  const addPageButton = (label, page, disabled = false, current = false) => {
+  const addPageButton = (label, page, disabled = false, current = false, accessibleLabel = "") => {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = label;
     button.disabled = disabled;
+    if (accessibleLabel) button.setAttribute("aria-label", accessibleLabel);
     if (current) button.setAttribute("aria-current", "page");
     button.addEventListener("click", () => { currentPage = page; renderTable(); });
     pagination.append(button);
   };
-  addPageButton("ÔÇ╣", Math.max(1, currentPage - 1), currentPage === 1);
+  addPageButton("\u2190", Math.max(1, currentPage - 1), currentPage === 1, false, "Página anterior");
   for (let page = 1; page <= pageCount; page += 1) {
     addPageButton(String(page), page, false, page === currentPage);
   }
-  addPageButton("ÔÇ║", Math.min(pageCount, currentPage + 1), currentPage === pageCount);
+  addPageButton("\u2192", Math.min(pageCount, currentPage + 1), currentPage === pageCount, false, "Página siguiente");
 }
 
 [searchInput, typeFilter, statusFilter].forEach((control) => control.addEventListener("input", () => {

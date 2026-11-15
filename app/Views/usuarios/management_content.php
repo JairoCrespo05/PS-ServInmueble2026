@@ -69,7 +69,7 @@ foreach ($allUsers as $listedUser) {
       </span>
     </div>
     <strong><?= $userStats['administrators'] ?></strong>
-    <span class="user-stat-note">Cuentas con acceso administrativo</span>
+    <span class="user-stat-note">Acceso total al sistema</span>
   </article>
   <article class="user-stat-card">
     <div class="user-stat-heading">

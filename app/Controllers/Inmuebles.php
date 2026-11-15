@@ -31,7 +31,7 @@ class Inmuebles extends BaseController
         return [
             'alias_nombre' => 'required|max_length[150]',
             'tipo'         => 'required|max_length[100]|in_list[Casa,Departamento,Local comercial,Oficina,Galpón,local comercial,casa,departamento,oficina,galpón]',
-            'superficie'   => 'required|decimal|greater_than[0]|less_than_equal_to[99999999.99]',
+            'superficie'   => 'required|decimal|greater_than_equal_to[50]|less_than_equal_to[99999999.99]',
             'estado'       => 'required|in_list[Activo,Inactivo,Ocupado,Disponible,En Mantenimiento,ocupado,disponible,en mantenimiento]',
             'calle'        => 'required|max_length[150]',
             'numero'       => 'required|max_length[20]',
@@ -58,6 +58,9 @@ class Inmuebles extends BaseController
             'tipo' => [
                 'required' => 'Ingresá el tipo de inmueble.',
                 'in_list'  => 'Elegí un tipo válido: casa, departamento, local comercial, oficina o galpón.',
+            ],
+            'superficie' => [
+                'greater_than_equal_to' => 'La superficie debe ser de al menos 50 m².',
             ],
         ]);
     }
