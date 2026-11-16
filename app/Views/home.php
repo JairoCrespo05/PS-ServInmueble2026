@@ -58,10 +58,10 @@
 
         <!-- Perfil Usuario -->
         <div class="user-profile">
-          <div class="user-avatar"><?= esc(strtoupper(substr($user['nombre'] ?? 'U', 0, 1))) ?></div>
+          <div class="user-avatar"><?= esc(strtoupper(substr(session()->get('user_name') ?? 'U', 0, 1))) ?></div>
           <div class="user-info">
-          <div class="user-name"><?= esc($user['nombre'] ?? '') ?></div>
-            <div class="user-role"><?= esc($user['role'] ?? '') ?></div>
+          <div class="user-name"><?= esc(session()->get('user_name') ?? '') ?></div>
+            <div class="user-role"><?= esc(session()->get('user_role') ?? '') ?></div>
           </div>
         </div>
       </div>

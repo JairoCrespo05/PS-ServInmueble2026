@@ -24,10 +24,12 @@ $canChangeRole = $user['activo']
     <header class="topbar">
       <div class="topbar-left"></div>
       <div class="topbar-right">
+        <!-- Perfil Usuario -->
         <div class="user-profile">
+          <div class="user-avatar"><?= esc(strtoupper(substr(session()->get('user_name') ?? 'U', 0, 1))) ?></div>
           <div class="user-info">
-            <div class="user-name"><?= esc($admin['nombre'] ?? '') ?></div>
-            <div class="user-role"><?= esc($admin['role'] ?? '') ?></div>
+          <div class="user-name"><?= esc(session()->get('user_name') ?? '') ?></div>
+            <div class="user-role"><?= esc(session()->get('user_role') ?? '') ?></div>
           </div>
         </div>
       </div>

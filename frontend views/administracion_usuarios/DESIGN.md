@@ -158,9 +158,8 @@ spacing:
   space-xl: 2.5rem
 ---
 
-## Brand & Style
-
-This design system expresses rigorous organization, institutional trust, and friction-free operational control. Tailored for property, utility, and billing management, the UI abandons superficial decoration in favor of high-legibility typographic structure, calibrated data density, and clear visual hierarchies. 
+## Brand & Style22:
+This design system expresses rigorous organization, institutional trust, and friction-free operational control. Tailored for property, utility, and billing management, the UI abandons superficial decoration in favor of high-legibility typographic structure, calibrated data density, and clear visual hierarchies.
 
 The aesthetic is Modern Corporate with a minimalist architectural discipline:
 - **Tone**: Systematic, authoritative, calm, and dependable.
