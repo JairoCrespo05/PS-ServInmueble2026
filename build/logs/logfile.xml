@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites>
-  <testsuite name="CLI Arguments" tests="2" assertions="3" errors="0" failures="0" skipped="0" time="0.039781">
-    <testsuite name="HealthTest" file="/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/tests/unit/HealthTest.php" tests="2" assertions="3" errors="0" failures="0" skipped="0" time="0.039781">
-      <testcase name="testIsDefinedAppPath" file="/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/tests/unit/HealthTest.php" line="12" class="HealthTest" classname="HealthTest" assertions="1" time="0.022002"/>
-      <testcase name="testBaseUrlHasBeenSet" file="/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/tests/unit/HealthTest.php" line="17" class="HealthTest" classname="HealthTest" assertions="2" time="0.017778"/>
-    </testsuite>
-  </testsuite>
-</testsuites>
