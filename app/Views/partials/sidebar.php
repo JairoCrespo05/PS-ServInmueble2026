@@ -70,7 +70,7 @@ $isAdministrator = $isAdministrator ?? false;
                 <path d="M9 17h1"></path>
                 <path d="M14 17h1"></path>
               </svg>
-              <span class="nav-text">Inmuebles (ABMC)</span>
+              <span class="nav-text">Inmuebles </span>
             </a>
           </li>
           <li>
