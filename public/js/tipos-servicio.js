@@ -4,23 +4,39 @@
       const title = document.getElementById("modal-title");
       const nameInput = document.getElementById("service-name");
       const categoryInput = document.getElementById("service-category");
+      const editCategoryInput = document.getElementById("edit-service-category");
+      const createCategoryField = document.getElementById("create-category-field");
+      const editCategoryField = document.getElementById("edit-category-field");
       const unitInput = document.getElementById("service-unit");
+      const unitHelp = document.getElementById("unit-help");
       const providerInput = document.getElementById("service-provider");
       const createAction = form.dataset.createAction;
 
       function openModal(service = null) {
         form.reset();
+        const editing = service !== null;
+        createCategoryField.hidden = editing;
+        editCategoryField.hidden = !editing;
+        categoryInput.disabled = editing;
+        editCategoryInput.disabled = !editing;
+        unitInput.readOnly = !editing;
+        unitHelp.hidden = editing;
         form.action = service ? `${createAction}/${service.id}` : createAction;
         title.textContent = service ? "Modificar servicio" : "Nuevo servicio";
         form.querySelector('[type="submit"]').textContent = service ? "Guardar cambios" : "Registrar servicio";
         nameInput.value = service?.name ?? "";
-        categoryInput.value = service?.category ?? "";
+        categoryInput.value = "";
+        editCategoryInput.value = service?.category ?? "";
         unitInput.value = service?.unit ?? "";
         providerInput.value = service?.provider ?? "";
         modal.classList.add("open");
         modal.removeAttribute("aria-hidden");
         nameInput.focus();
       }
+
+      categoryInput.addEventListener("change", () => {
+        unitInput.value = categoryInput.selectedOptions[0]?.dataset.unit ?? "";
+      });
 
       function closeModal() {
         modal.classList.remove("open");

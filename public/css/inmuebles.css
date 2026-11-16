@@ -95,7 +95,7 @@ tbody tr:hover { background: #fbfdff; }
 .close-modal { display: grid; width: 32px; height: 32px; place-items: center; border: 0; border-radius: 7px; background: var(--soft); color: var(--navy); }
 .form-body { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 18px 20px; }
 .form-section-title { grid-column: 1 / -1; margin: 2px 0 -3px; color: var(--blue); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
-.form-field { display: grid; gap: 5px; }
+.form-field { display: grid; align-content: start; gap: 5px; }
 .form-field.full { grid-column: 1 / -1; }
 .form-field label { color: var(--muted); font-size: 10px; font-weight: 600; }
 .form-field input, .form-field select { min-height: 38px; border: 1px solid var(--line); border-radius: 7px; padding: 0 10px; background: white; color: #263d4d; font-size: 11px; }

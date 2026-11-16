@@ -62,7 +62,7 @@ class CreateServiInmuebleSchema extends Migration
             'tipo'         => ['type' => 'VARCHAR', 'constraint' => 100],
             'superficie'   => ['type' => 'DECIMAL', 'constraint' => '10,2'],
             'estado'       => ['type' => 'VARCHAR', 'constraint' => 30],
-            'usuario_id'   => ['type' => 'INT'],
+            'usuario_id'   => ['type' => 'INT', 'null' => true],
             'direccion_id' => ['type' => 'INT'],
             'created_at'   => ['type' => 'DATETIME', 'null' => true],
             'updated_at'   => ['type' => 'DATETIME', 'null' => true],

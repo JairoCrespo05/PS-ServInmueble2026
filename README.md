@@ -32,7 +32,25 @@ php spark migrate:rollback
 La migración crea las tablas que todavía no existan:
 
 - `direcciones` e `inmuebles`, con una relación uno a uno.
+- `usuarios` e `inmuebles`, con una relación uno a muchos mediante `inmuebles.usuario_id`; el vínculo puede quedar vacío mientras un inmueble no tenga propietario asignado.
 - `servicios` y `inmueble_servicios`, que registran los servicios contratados por cada inmueble y sus datos de cuenta/medidor.
 - `facturas`, vinculadas al registro de servicio del inmueble y con sus datos de vencimiento y pago.
 
 Los modelos CRUD están disponibles en `App\Models`: `DireccionModel`, `InmuebleModel`, `ServicioModel`, `InmuebleServicioModel` y `FacturaModel`.
+
+Al registrar o modificar un inmueble, su superficie debe ser de al menos
+50 m². Esta validación no modifica registros existentes.
+
+### Alta de tipos de servicio
+
+En el catálogo del administrador, la categoría seleccionada determina la unidad:
+Agua y Gas usan `m3`, Electricidad usa `kWh`, e Internet, Telefonía,
+Televisión y Expensas usan `Mes`. El servidor calcula la unidad al registrar
+el servicio, sin confiar en el valor enviado por el navegador. La edición de
+servicios existentes conserva su comportamiento anterior.
+
+Estas equivalencias reflejan el trigger `bi_servicios_unidad_medida` presente
+en la base local. Ese trigger y la restricción de categorías no están incluidos
+en las migraciones actuales: si se modifican, también deben actualizarse las
+equivalencias de la aplicación para evitar diferencias entre lo mostrado y lo
+guardado.

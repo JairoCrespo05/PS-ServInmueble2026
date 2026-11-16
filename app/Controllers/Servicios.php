@@ -9,6 +9,16 @@ use CodeIgniter\HTTP\RedirectResponse;
 
 class Servicios extends BaseController
 {
+    private const UNIDADES_POR_CATEGORIA = [
+        'Agua'        => 'm3',
+        'Electricidad' => 'kWh',
+        'Gas'         => 'm3',
+        'Internet'    => 'Mes',
+        'Telefonía'   => 'Mes',
+        'Televisión'  => 'Mes',
+        'Expensas'    => 'Mes',
+    ];
+
     private function currentUserId(): int
     {
         $userId = session()->get('user_id');
@@ -55,13 +65,15 @@ class Servicios extends BaseController
         return $submittedData;
     }
 
-    private function validateTipoServicioData(array $submittedData): bool
+    private function validateTipoServicioData(array $submittedData, bool $esAlta = false): bool
     {
         return $this->validateData($submittedData, [
             'nombre'            => 'required|max_length[100]',
-            'unidad_medida_std' => 'required|max_length[30]',
+            'unidad_medida_std' => $esAlta ? 'max_length[30]' : 'required|max_length[30]',
             'proveedor'         => 'required|max_length[150]',
-            'categoria'         => 'required|max_length[100]',
+            'categoria'         => $esAlta
+                ? 'required|in_list[' . implode(',', array_keys(self::UNIDADES_POR_CATEGORIA)) . ']'
+                : 'required|max_length[100]',
         ], [
             'nombre' => [
                 'required' => 'Ingresá el nombre del servicio.',
@@ -74,6 +86,7 @@ class Servicios extends BaseController
             ],
             'categoria' => [
                 'required' => 'Ingresá la categoría.',
+                'in_list'  => 'Seleccioná una categoría válida.',
             ],
         ]);
     }
@@ -97,6 +110,7 @@ class Servicios extends BaseController
 
         return view('servicios/tipos', [
             'servicios' => $servicios,
+            'unidadesPorCategoria' => self::UNIDADES_POR_CATEGORIA,
             'formData'  => session()->getFlashdata('tipoServicioFormData') ?? [],
             'errors'    => session()->getFlashdata('tipoServicioErrors') ?? [],
             'editId'    => session()->getFlashdata('tipoServicioEditId'),
@@ -108,8 +122,9 @@ class Servicios extends BaseController
     public function crearTipo(): RedirectResponse
     {
         $submittedData = $this->submittedTipoServicioData();
+        $submittedData['unidad_medida_std'] = self::UNIDADES_POR_CATEGORIA[$submittedData['categoria']] ?? '';
 
-        if (! $this->validateTipoServicioData($submittedData)) {
+        if (! $this->validateTipoServicioData($submittedData, true)) {
             return redirect()->to(site_url('tipos-servicio'))
                 ->withInput()
                 ->with('tipoServicioErrors', $this->validator->getErrors())
@@ -272,6 +287,7 @@ public function gestionar(): string
 
     // 4. Incorporar las asociaciones a cada servicio.
     $asociaciones = 0;
+    $inmueblesConServicios = [];
 
     foreach ($filasAsociaciones as $fila) {
         $servicioId = (int) $fila['servicio_id'];
@@ -284,6 +300,7 @@ public function gestionar(): string
         $asociaciones++;
 
         $inmuebleId = (int) $fila['inmueble_id'];
+        $inmueblesConServicios[$inmuebleId] = true;
 
         $servicios[$servicioId]['inmueble_ids'][] = $inmuebleId;
 
@@ -306,8 +323,12 @@ public function gestionar(): string
         ];
     }
 
-    // 5. Convertir el catálogo indexado en un array convencional.
-    $servicios = array_values($servicios);
+    // 5. Mantener el catálogo para el formulario, pero listar solo servicios con asociaciones.
+    $catalogoServicios = array_values($servicios);
+    $servicios = array_values(array_filter(
+        $catalogoServicios,
+        static fn (array $servicio): bool => $servicio['inmuebles'] !== [],
+    ));
 
     // 6. Obtener los inmuebles del propietario autenticado.
     $inmuebles = $db
@@ -331,6 +352,7 @@ public function gestionar(): string
     // 7. Renderizar la vista.
     return view('servicios/index', [
         'servicios'         => $servicios,
+        'catalogoServicios' => $catalogoServicios,
         'inmuebles'         => $inmuebles,
         'formData'          => session()->getFlashdata('formData') ?? [],
         'errors'            => session()->getFlashdata('errors') ?? [],
@@ -341,10 +363,7 @@ public function gestionar(): string
         'resumen'           => [
             'total'         => count($servicios),
             'asociaciones'  => $asociaciones,
-            'sin_inmuebles' => count(array_filter(
-                $servicios,
-                static fn (array $servicio): bool => $servicio['inmuebles'] === [],
-            )),
+            'inmuebles'     => count($inmueblesConServicios),
         ],
     ]);
 }
@@ -382,7 +401,7 @@ public function gestionar(): string
         ];
 
         if (! $this->validateData($submittedData, $rules)) {
-            return redirect()->to(site_url('servicios'))
+            return redirect()->to(site_url('servicios/asociaciones'))
                 ->withInput()
                 ->with('errors', $this->validator->getErrors())
                 ->with('formData', $submittedData)
@@ -396,7 +415,7 @@ public function gestionar(): string
         $inmuebleExiste = $db->table('inmuebles')->where('id', $inmuebleId)->where('usuario_id', $this->currentUserId())->countAllResults() > 0;
 
         if (! $servicioExiste || ! $inmuebleExiste) {
-            return redirect()->to(site_url('servicios'))
+            return redirect()->to(site_url('servicios/asociaciones'))
                 ->withInput()
                 ->with('formData', $submittedData)
                 ->with('serviceLocked', $serviceLocked)
@@ -410,7 +429,7 @@ public function gestionar(): string
             ->countAllResults() > 0;
 
         if ($asociacionExiste) {
-            return redirect()->to(site_url('servicios'))
+            return redirect()->to(site_url('servicios/asociaciones'))
                 ->withInput()
                 ->with('formData', $submittedData)
                 ->with('serviceLocked', $serviceLocked)
@@ -437,14 +456,14 @@ public function gestionar(): string
                 'inmueble' => $inmuebleId,
             ]);
 
-            return redirect()->to(site_url('servicios'))
+            return redirect()->to(site_url('servicios/asociaciones'))
                 ->withInput()
                 ->with('formData', $submittedData)
                 ->with('serviceLocked', $serviceLocked)
                 ->with('error', 'No se pudo guardar la asociación. Revisá los datos e intentá nuevamente.');
         }
 
-        return redirect()->to(site_url('servicios'))
+        return redirect()->to(site_url('servicios/asociaciones'))
             ->with('success', 'El servicio se asoció correctamente al inmueble.');
     }
 
@@ -453,7 +472,7 @@ public function gestionar(): string
         $modelo = new InmuebleServicioModel();
         $asociacion = $modelo->find($id);
         if ($asociacion === null || ! $this->userOwnsAssociation($id)) {
-            return redirect()->to(site_url('servicios'))
+            return redirect()->to(site_url('servicios/asociaciones'))
                 ->with('error', 'No se encontró la asociación que intentás modificar o no tenés permisos sobre ella.');
         }
 
@@ -484,7 +503,7 @@ public function gestionar(): string
         ];
 
         if (! $this->validateData($submittedData, $rules)) {
-            return redirect()->to(site_url('servicios'))
+            return redirect()->to(site_url('servicios/asociaciones'))
                 ->withInput()
                 ->with('errors', $this->validator->getErrors())
                 ->with('formData', $submittedData)
@@ -506,14 +525,14 @@ public function gestionar(): string
         if (! $db->transStatus()) {
             log_message('error', 'No se pudo actualizar la asociación de servicio {id}.', ['id' => $id]);
 
-            return redirect()->to(site_url('servicios'))
+            return redirect()->to(site_url('servicios/asociaciones'))
                 ->withInput()
                 ->with('formData', $submittedData)
                 ->with('editAssociationId', $id)
                 ->with('error', 'No se pudo actualizar la asociación. Revisá los datos e intentá nuevamente.');
         }
 
-        return redirect()->to(site_url('servicios'))
+        return redirect()->to(site_url('servicios/asociaciones'))
             ->with('success', 'Los datos de la asociación se actualizaron correctamente.');
     }
 
@@ -521,7 +540,7 @@ public function gestionar(): string
     {
         $modelo = new InmuebleServicioModel();
         if ($modelo->find($id) === null || ! $this->userOwnsAssociation($id)) {
-            return redirect()->to(site_url('servicios'))
+            return redirect()->to(site_url('servicios/asociaciones'))
                 ->with('error', 'No se encontró la asociación que intentás dar de baja o no tenés permisos sobre ella.');
         }
 
@@ -533,11 +552,11 @@ public function gestionar(): string
         if (! $db->transStatus()) {
             log_message('error', 'No se pudo dar de baja la asociación de servicio {id}.', ['id' => $id]);
 
-            return redirect()->to(site_url('servicios'))
+            return redirect()->to(site_url('servicios/asociaciones'))
                 ->with('error', 'No se pudo dar de baja la asociación. Intentá nuevamente.');
         }
 
-        return redirect()->to(site_url('servicios'))
+        return redirect()->to(site_url('servicios/asociaciones'))
             ->with('success', 'La asociación se dio de baja y se conservó su historial.');
     }
 }

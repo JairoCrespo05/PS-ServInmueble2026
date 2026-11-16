@@ -198,14 +198,25 @@ $formatError = static fn (string $field): string => isset($errors[$field])
             <input id="service-name" name="nombre" maxlength="100" required value="<?= esc($formData['nombre'] ?? '') ?>">
             <?= $formatError('nombre') ?>
           </div>
-          <div class="form-field">
+          <div class="form-field" id="create-category-field"<?= $editId ? ' hidden' : '' ?>>
             <label for="service-category">Categoria</label>
-            <input id="service-category" name="categoria" maxlength="100" required value="<?= esc($formData['categoria'] ?? '') ?>">
-            <?= $formatError('categoria') ?>
+            <select id="service-category" name="categoria" required<?= $editId ? ' disabled' : '' ?>>
+              <option value="">Seleccioná una categoría</option>
+              <?php foreach ($unidadesPorCategoria as $categoria => $unidad): ?>
+                <option value="<?= esc($categoria, 'attr') ?>" data-unit="<?= esc($unidad, 'attr') ?>"<?= ($formData['categoria'] ?? '') === $categoria ? ' selected' : '' ?>><?= esc($categoria) ?></option>
+              <?php endforeach ?>
+            </select>
+            <?= $editId ? '' : $formatError('categoria') ?>
+          </div>
+          <div class="form-field" id="edit-category-field"<?= $editId ? '' : ' hidden' ?>>
+            <label for="edit-service-category">Categoria</label>
+            <input id="edit-service-category" name="categoria" maxlength="100" required value="<?= esc($formData['categoria'] ?? '', 'attr') ?>"<?= $editId ? '' : ' disabled' ?>>
+            <?= $editId ? $formatError('categoria') : '' ?>
           </div>
           <div class="form-field">
             <label for="service-unit">Unidad de medida estandar</label>
-            <input id="service-unit" name="unidad_medida_std" maxlength="30" required value="<?= esc($formData['unidad_medida_std'] ?? '') ?>">
+            <input id="service-unit" name="unidad_medida_std" maxlength="30" required value="<?= esc($formData['unidad_medida_std'] ?? '', 'attr') ?>"<?= $editId ? '' : ' readonly' ?> aria-describedby="unit-help">
+            <small id="unit-help"<?= $editId ? ' hidden' : '' ?>>Se completa automáticamente al seleccionar una categoría.</small>
             <?= $formatError('unidad_medida_std') ?>
           </div>
           <div class="form-field full">
