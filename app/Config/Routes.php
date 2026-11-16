@@ -78,20 +78,6 @@ $routes->group('servicios', [
 
 
 // ==========================================
-// FACTURAS - PROPIETARIO
-// ==========================================
-$routes->group('facturas', [
-    'filter' => [
-        'auth',
-        'role:' . \App\Models\RolModel::ROLE_OWNER
-    ]
-], static function ($routes) {
-    $routes->get('/', 'Facturas::index');
-    $routes->post('/', 'Facturas::create');
-});
-
-
-// ==========================================
 // CATÁLOGO DE TIPOS DE SERVICIOS - ADMIN
 // ==========================================
 $routes->group('tipos-servicio', [
