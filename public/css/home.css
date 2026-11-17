@@ -971,6 +971,7 @@
     }
 
     .btn-warning-action {
+      display: inline-block;
       background: #F59E0B;
       color: #FFFFFF;
       font-size: 12px;
@@ -980,6 +981,7 @@
       border: none;
       cursor: pointer;
       white-space: nowrap;
+      text-decoration: none;
     }
 
     /* Table Styles */
@@ -1101,6 +1103,9 @@
     }
 
     .table-icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       background: transparent;
       border: none;
       color: var(--color-text-muted);
@@ -1108,6 +1113,7 @@
       padding: 4px;
       border-radius: var(--radius-sm);
       transition: all 0.15s ease;
+      text-decoration: none;
     }
 
     .table-icon-btn:hover {

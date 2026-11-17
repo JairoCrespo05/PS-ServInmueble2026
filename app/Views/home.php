@@ -1,3 +1,9 @@
+<?php
+$recentInvoiceProperties = [];
+foreach ($recentInvoices ?? [] as $invoice) {
+    $recentInvoiceProperties[(int) $invoice['inmueble_id']] = $invoice['alias_nombre'];
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -42,9 +48,9 @@
             </svg>
             <select id="propertySelect" aria-label="Seleccionar inmueble activo">
               <option value="all">Todos los Inmuebles (Cartera Global)</option>
-              <option value="1" selected>Torre Bella Vista (Unidad 402)</option>
-              <option value="2">Complejo Las Acacias (Local 12)</option>
-              <option value="3">Residencial Del Valle (Casa 7)</option>
+              <?php foreach ($recentInvoiceProperties as $propertyId => $propertyName): ?>
+                <option value="<?= esc((string) $propertyId, 'attr') ?>"><?= esc($propertyName) ?></option>
+              <?php endforeach ?>
             </select>
           </div>
 
@@ -254,26 +260,39 @@
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
-            + Cargar Factura (US-07)
+            Cargar Factura
           </a>
         </div>
       </section>
 
       <!-- Alerta de Vencimiento Próximo -->
-      <div class="banner-warning">
-        <div class="banner-content">
-          <svg class="icon" style="color: #D97706; width:22px; height:22px;" viewBox="0 0 24 24">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-            <line x1="12" y1="9" x2="12" y2="13"></line>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-          </svg>
-          <div>
-            <div class="banner-title">Aviso de Próximo Vencimiento (US-12)</div>
-            <div class="banner-text">La factura de <strong>Edenor — Electricidad (Cta: 0839-291847)</strong> vence en 4 días hábiles ($ 38.450 ARS).</div>
+      <?php if ($upcomingInvoice !== null): ?>
+        <?php
+        $daysUntilDue = (int) $upcomingInvoice['dias_restantes'];
+        $dueMessage = $daysUntilDue === 0
+            ? 'vence hoy'
+            : 'vence en ' . $daysUntilDue . ' ' . ($daysUntilDue === 1 ? 'día' : 'días');
+        $upcomingInvoiceUrl = site_url('facturas/' . $upcomingInvoice['factura_id'] . '#payment-title');
+        ?>
+        <div class="banner-warning">
+          <div class="banner-content">
+            <svg class="icon" style="color: #D97706; width:22px; height:22px;" viewBox="0 0 24 24">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <div>
+              <div class="banner-title">Aviso de Próximo Vencimiento</div>
+              <div class="banner-text">
+                La factura de <strong><?= esc($upcomingInvoice['alias_nombre'] . ' · ' . $upcomingInvoice['proveedor'] . ' — ' . $upcomingInvoice['servicio_nombre']) ?></strong>
+                <?= esc($dueMessage) ?> (<?= esc(date('d/m/Y', strtotime($upcomingInvoice['proximo_vencimiento']))) ?>).
+                Importe: <strong>$ <?= esc(number_format((float) $upcomingInvoice['monto_total'], 2, ',', '.')) ?> ARS</strong>.
+              </div>
+            </div>
           </div>
+          <a class="btn-warning-action" id="upcomingInvoiceAction" href="<?= esc($upcomingInvoiceUrl, 'attr') ?>">Pagar Ahora</a>
         </div>
-        <button class="btn-warning-action" onclick="alert('Redirigiendo a registro de pago / comprobante...')">Pagar Ahora</button>
-      </div>
+      <?php endif ?>
 
       <!-- Tarjetas de Métricas Principales (KPIs) -->
       <section class="kpi-grid">
@@ -345,7 +364,7 @@
           <div class="card-header">
             <div class="card-title-group">
               <h2 class="card-title">Facturación y Vencimientos Recientes</h2>
-              <span class="badge-subtle">Mayo 2026</span>
+              <span class="badge-subtle"><?= count($recentInvoices) ?> <?= count($recentInvoices) === 1 ? 'factura' : 'facturas' ?></span>
             </div>
             <a href="<?= site_url('facturas') ?>" class="card-action-link" id="linkViewAllInvoices">Ver todas las facturas →</a>
           </div>
@@ -363,118 +382,60 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>
-                    <div class="property-cell">
-                      <span class="property-name">Torre Bella Vista (402)</span>
-                      <span class="service-tag">
-                        <svg class="icon" style="width:12px;height:12px;color:var(--color-status-warning);" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                        Edenor • 325 kWh
-                      </span>
-                    </div>
-                  </td>
-                  <td>May 2026</td>
-                  <td><strong>18/05/2026</strong></td>
-                  <td><strong>$ 38.450</strong> ARS</td>
-                  <td>
-                    <span class="status-badge pending">
-                      <span class="dot"></span> Pendiente
-                    </span>
-                  </td>
-                  <td style="text-align: right;">
-                    <div class="action-icons" style="justify-content: flex-end;">
-                      <button class="table-icon-btn" title="Ver detalle de factura">
-                        <svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                      </button>
-                      <button class="table-icon-btn" title="Cargar comprobante de pago">
-                        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td>
-                    <div class="property-cell">
-                      <span class="property-name">Torre Bella Vista (402)</span>
-                      <span class="service-tag">
-                        <svg class="icon" style="width:12px;height:12px;color:var(--color-status-info);" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
-                        AySA Agua • Bimestral
-                      </span>
-                    </div>
-                  </td>
-                  <td>May 2026</td>
-                  <td><strong>22/05/2026</strong></td>
-                  <td><strong>$ 12.900</strong> ARS</td>
-                  <td>
-                    <span class="status-badge pending">
-                      <span class="dot"></span> Pendiente
-                    </span>
-                  </td>
-                  <td style="text-align: right;">
-                    <div class="action-icons" style="justify-content: flex-end;">
-                      <button class="table-icon-btn" title="Ver detalle de factura">
-                        <svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                      </button>
-                      <button class="table-icon-btn" title="Cargar comprobante de pago">
-                        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td>
-                    <div class="property-cell">
-                      <span class="property-name">Complejo Las Acacias (Local 12)</span>
-                      <span class="service-tag">
-                        <svg class="icon" style="width:12px;height:12px;color:#0284C7;" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
-                        Expensas Ordinarias
-                      </span>
-                    </div>
-                  </td>
-                  <td>Abr 2026</td>
-                  <td>10/05/2026</td>
-                  <td>$ 52.800 ARS</td>
-                  <td>
-                    <span class="status-badge paid">
-                      <span class="dot"></span> Pagado
-                    </span>
-                  </td>
-                  <td style="text-align: right;">
-                    <div class="action-icons" style="justify-content: flex-end;">
-                      <button class="table-icon-btn" title="Descargar comprobante adjunto">
-                        <svg class="icon" viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td>
-                    <div class="property-cell">
-                      <span class="property-name">Residencial Del Valle (Casa 7)</span>
-                      <span class="service-tag">
-                        <svg class="icon" style="width:12px;height:12px;color:#EA580C;" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
-                        Metrogas • 48 m³
-                      </span>
-                    </div>
-                  </td>
-                  <td>Abr 2026</td>
-                  <td>06/05/2026</td>
-                  <td>$ 14.200 ARS</td>
-                  <td>
-                    <span class="status-badge paid">
-                      <span class="dot"></span> Pagado
-                    </span>
-                  </td>
-                  <td style="text-align: right;">
-                    <div class="action-icons" style="justify-content: flex-end;">
-                      <button class="table-icon-btn" title="Descargar comprobante adjunto">
-                        <svg class="icon" viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                      </button>
-                    </div>
-                  </td>
+                <?php if ($recentInvoices === []): ?>
+                  <tr>
+                    <td colspan="6">Todavía no hay facturas cargadas. <a href="<?= site_url('facturas/nueva') ?>">Cargar factura</a>.</td>
+                  </tr>
+                <?php else: ?>
+                  <?php foreach ($recentInvoices as $invoice): ?>
+                    <?php
+                    $status = trim((string) $invoice['estado_factura']);
+                    $statusClass = match (mb_strtolower($status)) {
+                        'pagada' => 'paid',
+                        'pendiente' => 'pending',
+                        default => '',
+                    };
+                    $invoiceUrl = site_url('facturas/' . $invoice['factura_id']);
+                    $consumption = $invoice['consumo_periodo'] === null
+                        ? ''
+                        : number_format((float) $invoice['consumo_periodo'], 3, ',', '.') . ' '
+                            . (string) ($invoice['unidad_medida_std'] ?? '');
+                    ?>
+                    <tr data-invoice-row data-property-id="<?= esc((string) $invoice['inmueble_id'], 'attr') ?>">
+                      <td>
+                        <div class="property-cell">
+                          <span class="property-name"><?= esc($invoice['alias_nombre']) ?></span>
+                          <span class="service-tag">
+                            <svg class="icon" style="width:12px;height:12px;color:var(--color-status-info);" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+                            <?= esc($invoice['proveedor'] . ' · ' . $invoice['servicio_nombre'] . ($consumption !== '' ? ' · ' . $consumption : '')) ?>
+                          </span>
+                        </div>
+                      </td>
+                      <td><?= esc(date('m/Y', strtotime($invoice['periodo_facturacion']))) ?></td>
+                      <td><strong><?= esc(date('d/m/Y', strtotime($invoice['fecha_primer_vencimiento']))) ?></strong></td>
+                      <td><strong>$ <?= esc(number_format((float) $invoice['monto_total'], 2, ',', '.')) ?></strong> ARS</td>
+                      <td>
+                        <span class="status-badge <?= esc($statusClass, 'attr') ?>">
+                          <span class="dot"></span> <?= esc($status) ?>
+                        </span>
+                      </td>
+                      <td style="text-align: right;">
+                        <div class="action-icons" style="justify-content: flex-end;">
+                          <a class="table-icon-btn" href="<?= esc($invoiceUrl, 'attr') ?>" title="Ver detalle de factura" aria-label="Ver detalle de factura">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                          </a>
+                          <?php if (mb_strtolower($status) === 'pendiente'): ?>
+                            <a class="table-icon-btn" href="<?= esc($invoiceUrl . '#payment-title', 'attr') ?>" title="Registrar pago" aria-label="Registrar pago">
+                              <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2-2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            </a>
+                          <?php endif ?>
+                        </div>
+                      </td>
+                    </tr>
+                  <?php endforeach ?>
+                <?php endif ?>
+                <tr id="invoiceFilterNoResults" hidden>
+                  <td colspan="6">No se encontraron facturas con esos filtros.</td>
                 </tr>
               </tbody>
             </table>

@@ -29,36 +29,26 @@
 
       // 2. Filtro de búsqueda en tabla en tiempo real (Client-side)
       const searchInput = document.getElementById('globalSearch');
-      const tableRows = document.querySelectorAll('#invoicesTable tbody tr');
-
-      if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-          const query = e.target.value.toLowerCase().trim();
-          tableRows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(query) ? '' : 'none';
-          });
-        });
-      }
-
-      // 3. Filtro interactivo por selector de Inmueble Contextual
+      const tableRows = Array.from(document.querySelectorAll('#invoicesTable tbody tr[data-invoice-row]'));
       const propertySelect = document.getElementById('propertySelect');
-      if (propertySelect) {
-        propertySelect.addEventListener('change', function(e) {
-          const val = e.target.value;
-          tableRows.forEach(row => {
-            if (val === 'all') {
-              row.style.display = '';
-            } else if (val === '1') {
-              row.style.display = row.textContent.includes('Torre Bella Vista') ? '' : 'none';
-            } else if (val === '2') {
-              row.style.display = row.textContent.includes('Complejo Las Acacias') ? '' : 'none';
-            } else if (val === '3') {
-              row.style.display = row.textContent.includes('Residencial Del Valle') ? '' : 'none';
-            }
-          });
+      const noInvoiceResults = document.getElementById('invoiceFilterNoResults');
+      function filterInvoiceRows() {
+        const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const propertyId = propertySelect ? propertySelect.value : 'all';
+        let visibleCount = 0;
+
+        tableRows.forEach(row => {
+          const matchesQuery = row.textContent.toLowerCase().includes(query);
+          const matchesProperty = propertyId === 'all' || row.dataset.propertyId === propertyId;
+          row.hidden = !matchesQuery || !matchesProperty;
+          if (!row.hidden) visibleCount++;
         });
+
+        if (noInvoiceResults) noInvoiceResults.hidden = visibleCount > 0 || tableRows.length === 0;
       }
+
+      if (searchInput) searchInput.addEventListener('input', filterInvoiceRows);
+      if (propertySelect) propertySelect.addEventListener('change', filterInvoiceRows);
 
       // 4. Interacción de botones de acción
       const btnExport = document.getElementById('btnExportSummary');

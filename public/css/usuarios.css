@@ -1,13 +1,13 @@
 .user-management {
-  --users-bg: #1d2225;
-  --users-surface: #171b1e;
-  --users-surface-raised: #22282c;
-  --users-border: rgba(226, 232, 240, 0.08);
-  --users-text: #e6e8ea;
-  --users-muted: #9aa3aa;
-  --users-blue: #75a9cc;
+  --users-bg: var(--color-bg-main);
+  --users-surface: var(--color-surface-card);
+  --users-surface-raised: var(--color-surface-hover);
+  --users-border: var(--color-surface-dim);
+  --users-text: var(--color-text-title);
+  --users-muted: var(--color-text-muted);
+  --users-blue: var(--color-primary-medium);
   --users-blue-strong: #2d628e;
-  --users-green: #63d8aa;
+  --users-green: #146c43;
   background: var(--users-bg);
   color: var(--users-text);
   gap: 20px;
@@ -54,13 +54,13 @@
 }
 
 .user-management .access-alert.success {
-  background: rgba(16, 185, 129, 0.12);
-  color: #82e6bd;
+  background: #ecfdf5;
+  color: #146c43;
 }
 
 .user-management .access-alert.error {
-  background: rgba(220, 38, 38, 0.12);
-  color: #ff9a9a;
+  background: #fef2f2;
+  color: #b42318;
 }
 
 .user-management .user-stats-grid {
@@ -214,7 +214,7 @@
   border: 1px solid transparent;
   border-radius: 8px;
   outline: 0;
-  background: #1b2023;
+  background: var(--users-surface-raised);
   color: var(--users-text);
   font: inherit;
   font-size: 13px;
@@ -225,12 +225,12 @@
 }
 
 .user-management .user-search-control input::placeholder {
-  color: #89939a;
+  color: var(--users-muted);
 }
 
 .user-management .user-select-control select {
   padding: 0 30px 0 12px;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 .user-management .user-search-control input:focus,
@@ -240,7 +240,7 @@
 .user-management .user-row-actions button:focus-visible,
 .user-management .user-approval-actions button:focus-visible {
   border-color: var(--users-blue);
-  outline: 2px solid rgba(117, 169, 204, 0.42);
+  outline: 2px solid rgba(45, 98, 142, 0.24);
   outline-offset: 2px;
 }
 
@@ -252,14 +252,14 @@
   justify-content: center;
   border: 1px solid transparent;
   border-radius: 8px;
-  background: #1b2023;
+  background: var(--users-surface-raised);
   color: var(--users-muted);
   cursor: pointer;
   transition: color 0.15s ease, background 0.15s ease;
 }
 
 .user-management .user-filter-reset:hover {
-  background: #30383d;
+  background: var(--color-surface-dim);
   color: var(--users-text);
 }
 
@@ -286,7 +286,7 @@
 
 .user-management .user-data-table thead {
   border-bottom: 1px solid var(--users-border);
-  background: #1f2427;
+  background: var(--users-surface-raised);
   color: var(--users-muted);
   font-size: 11px;
   letter-spacing: 0.055em;
@@ -303,7 +303,7 @@
 }
 
 .user-management .user-data-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--color-surface-hover);
 }
 
 .user-management .user-data-table tbody tr:last-child {
@@ -334,8 +334,8 @@
   flex: 0 0 38px;
   place-items: center;
   border-radius: 50%;
-  background: #123553;
-  color: #c1e3fb;
+  background: #e8f2fd;
+  color: var(--users-blue-strong);
   font-size: 12px;
   font-weight: 700;
 }
@@ -369,8 +369,8 @@
   max-width: 180px;
   padding: 4px 9px;
   border-radius: 6px;
-  background: #2b3033;
-  color: #d3d8dc;
+  background: #eef2f6;
+  color: var(--color-text-body);
   font-size: 11px;
   font-weight: 700;
   line-height: 1.3;
@@ -378,8 +378,8 @@
 }
 
 .user-management .user-role-badge.is-admin {
-  background: rgba(45, 98, 142, 0.26);
-  color: #86c8f2;
+  background: #e8f2fd;
+  color: var(--users-blue-strong);
 }
 
 .user-management .user-state-badge {
@@ -397,19 +397,19 @@
 }
 
 .user-management .user-state-badge.is-approved {
-  background: rgba(16, 185, 129, 0.16);
-  color: #66d8ae;
+  background: #ecfdf5;
+  color: #146c43;
 }
 
 .user-management .user-state-badge.is-pending {
-  background: rgba(217, 119, 6, 0.16);
-  color: #f0bc63;
+  background: #fffbeb;
+  color: #92400e;
 }
 
 .user-management .user-state-badge.is-rejected,
 .user-management .user-state-badge.is-inactive {
-  background: rgba(220, 38, 38, 0.14);
-  color: #f18c8c;
+  background: #fef2f2;
+  color: #b42318;
 }
 
 .user-management .user-row-actions {
@@ -451,19 +451,19 @@
 }
 
 .user-management .user-row-actions .btn-secondary {
-  background: #252b2f;
+  background: var(--users-surface);
   color: var(--users-text);
 }
 
 .user-management .user-row-actions .btn-secondary:hover {
-  background: #30383d;
+  background: var(--users-surface-raised);
 }
 
 .user-management .user-row-actions .btn-danger,
 .user-management .user-approval-actions .btn-danger {
-  border-color: rgba(248, 113, 113, 0.2);
-  background: rgba(220, 38, 38, 0.14);
-  color: #ff9a9a;
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b42318;
 }
 
 .user-management .user-row-actions form,
@@ -489,7 +489,7 @@
   gap: 16px;
   padding: 12px 20px;
   border-top: 1px solid var(--users-border);
-  background: #1f2427;
+  background: var(--users-surface-raised);
   color: var(--users-muted);
   font-size: 12px;
 }
@@ -537,11 +537,11 @@
   padding: 5px 8px;
   border: 1px solid var(--users-border);
   border-radius: 7px;
-  background: #22282c;
+  background: var(--users-surface);
   color: var(--users-text);
   font: inherit;
   font-size: 11px;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 .user-management .sr-only {

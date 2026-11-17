@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\FacturaModel;
 use App\Models\RolModel;
 use App\Models\UserModel;
 use CodeIgniter\Test\CIUnitTestCase;
@@ -15,6 +16,106 @@ final class InvoiceManagementTest extends CIUnitTestCase
     use FeatureTestTrait;
 
     protected $namespace = 'App';
+
+    public function testOwnerHomeShowsRecentInvoicesFromDatabaseOnly(): void
+    {
+        $ownerId = $this->createOwner('invoice-home-owner@example.test');
+        $otherOwnerId = $this->createOwner('invoice-home-other@example.test');
+        $associationId = $this->createServiceAssociation($ownerId, 'Casa del Panel');
+        $otherAssociationId = $this->createServiceAssociation($otherOwnerId, 'Casa ajena del Panel');
+        $paidInvoiceId = $this->createInvoice($associationId, '2026-10-01', 'Pagada', '800.00', [
+            'fecha_pago_realizado' => '2026-10-15',
+            'monto_abonado' => '800.00',
+            'medio_pago' => 'Transferencia',
+        ]);
+        $pendingInvoiceId = $this->createInvoice($associationId, '2026-11-01', 'Pendiente', '1234.50');
+        $this->createInvoice($otherAssociationId, '2026-11-01', 'Pendiente', '9900.00');
+
+        $home = $this->withSession(['user_id' => $ownerId])->get('home');
+
+        $home->assertStatus(200);
+        $home->assertSee('Casa del Panel');
+        $home->assertSee('Proveedor de Prueba');
+        $home->assertSee('Electricidad');
+        $home->assertSee('11/2026');
+        $home->assertSee('20/11/2026');
+        $home->assertSee('$ 1.234,50');
+        $home->assertSee('Pendiente');
+        $home->assertSee('Pagada');
+        $home->assertDontSee('Casa ajena del Panel');
+        $home->assertSee(site_url('facturas/' . $pendingInvoiceId) . '#payment-title');
+        $home->assertSee(site_url('facturas/' . $paidInvoiceId));
+
+        $body = $home->response()->getBody();
+        $this->assertLessThan(strpos($body, '10/2026'), strpos($body, '11/2026'));
+    }
+
+    public function testUpcomingInvoiceBannerShowsNearestPendingDueDateWithinSevenDays(): void
+    {
+        $ownerId = $this->createOwner('invoice-upcoming-owner@example.test');
+        $otherOwnerId = $this->createOwner('invoice-upcoming-other@example.test');
+        $associationId = $this->createServiceAssociation($ownerId, 'Casa con vencimientos');
+        $otherAssociationId = $this->createServiceAssociation($otherOwnerId, 'Casa ajena con vencimiento');
+        $today = new DateTimeImmutable('today');
+
+        $secondDueInvoiceId = $this->createInvoice($associationId, '2026-03-01');
+        $firstDueInvoiceId = $this->createInvoice($associationId, '2026-04-01');
+        $paidInvoiceId = $this->createInvoice($associationId, '2026-05-01', 'Pagada');
+        $overdueInvoiceId = $this->createInvoice($associationId, '2026-06-01');
+        $outsideWindowInvoiceId = $this->createInvoice($associationId, '2026-07-01');
+        $foreignInvoiceId = $this->createInvoice($otherAssociationId, '2026-08-01');
+
+        $this->setInvoiceDueDates($secondDueInvoiceId, $today->modify('-2 days'), $today->modify('+2 days'));
+        $this->setInvoiceDueDates($firstDueInvoiceId, $today->modify('+5 days'));
+        $this->setInvoiceDueDates($paidInvoiceId, $today->modify('+1 day'));
+        $this->setInvoiceDueDates($overdueInvoiceId, $today->modify('-1 day'));
+        $this->setInvoiceDueDates($outsideWindowInvoiceId, $today->modify('+8 days'));
+        $this->setInvoiceDueDates($foreignInvoiceId, $today->modify('+1 day'));
+
+        $nearestInvoice = (new FacturaModel())->findNearestUpcomingForOwner($ownerId);
+
+        $this->assertNotNull($nearestInvoice);
+        $this->assertSame($secondDueInvoiceId, (int) $nearestInvoice['factura_id']);
+        $this->assertSame($today->modify('+2 days')->format('Y-m-d'), $nearestInvoice['proximo_vencimiento']);
+        $this->assertSame(2, $nearestInvoice['dias_restantes']);
+
+        $home = $this->withSession(['user_id' => $ownerId])->get('home');
+        $home->assertStatus(200);
+        $home->assertSee('vence en 2 días');
+        $home->assertSee($today->modify('+2 days')->format('d/m/Y'));
+        $home->assertSee(
+            'id="upcomingInvoiceAction" href="' . site_url('facturas/' . $secondDueInvoiceId . '#payment-title') . '"'
+        );
+    }
+
+    public function testUpcomingInvoiceDueExactlyInSevenDaysIsIncluded(): void
+    {
+        $ownerId = $this->createOwner('invoice-seven-day-owner@example.test');
+        $associationId = $this->createServiceAssociation($ownerId, 'Casa vence en siete días');
+        $invoiceId = $this->createInvoice($associationId, '2026-03-01');
+        $dueDate = (new DateTimeImmutable('today'))->modify('+7 days');
+        $this->setInvoiceDueDates($invoiceId, $dueDate);
+
+        $home = $this->withSession(['user_id' => $ownerId])->get('home');
+
+        $home->assertStatus(200);
+        $home->assertSee('vence en 7 días');
+        $home->assertSee($dueDate->format('d/m/Y'));
+    }
+
+    public function testUpcomingInvoiceBannerIsHiddenWhenNoPendingInvoiceIsDueWithinSevenDays(): void
+    {
+        $ownerId = $this->createOwner('invoice-no-upcoming-owner@example.test');
+        $associationId = $this->createServiceAssociation($ownerId, 'Casa sin vencimiento próximo');
+        $invoiceId = $this->createInvoice($associationId, '2026-03-01');
+        $this->setInvoiceDueDates($invoiceId, (new DateTimeImmutable('today'))->modify('+8 days'));
+
+        $home = $this->withSession(['user_id' => $ownerId])->get('home');
+
+        $home->assertStatus(200);
+        $home->assertDontSee('Aviso de Próximo Vencimiento');
+        $home->assertDontSee('upcomingInvoiceAction');
+    }
 
     public function testInvoiceListAndDetailAreLimitedToCurrentOwner(): void
     {
@@ -268,6 +369,16 @@ final class InvoiceManagementTest extends CIUnitTestCase
         ]);
 
         return (int) $this->db->insertID();
+    }
+
+    private function setInvoiceDueDates(int $invoiceId, DateTimeImmutable $firstDueDate, ?DateTimeImmutable $secondDueDate = null): void
+    {
+        $this->db->table('facturas')
+            ->where('id', $invoiceId)
+            ->update([
+                'fecha_primer_vencimiento' => $firstDueDate->format('Y-m-d'),
+                'fecha_segundo_vencimiento' => $secondDueDate?->format('Y-m-d'),
+            ]);
     }
 
     private function postPayment(int $userId, int $invoiceId, array $data)

@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
-  <link rel="stylesheet" href="<?= base_url('css/usuarios.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/usuarios.css') ?>?v=2">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'usuarios', 'isAdministrator' => true]) ?>

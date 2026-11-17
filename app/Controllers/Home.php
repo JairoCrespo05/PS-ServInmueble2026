@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\AdminDashboardModel;
+use App\Models\FacturaModel;
 use App\Models\RolModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
@@ -31,9 +32,13 @@ class Home extends BaseController
         }
 
         if ($user['role'] === RolModel::ROLE_OWNER) {
+            $invoices = new FacturaModel();
+
             return view('home.php', [
                 'user'            => $user,
                 'isAdministrator' => false,
+                'recentInvoices'  => $invoices->findRecentForOwner((int) $user['id']),
+                'upcomingInvoice' => $invoices->findNearestUpcomingForOwner((int) $user['id']),
             ]);
         }
 
