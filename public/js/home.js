@@ -61,18 +61,53 @@
       }
 
       // 4. Interacción de botones de acción
-      const btnNewInvoice = document.getElementById('btnNewInvoice');
-      if (btnNewInvoice) {
-        btnNewInvoice.addEventListener('click', function() {
-          alert('Acceso al formulario de registro de factura (US-07)');
-        });
-      }
-
       const btnExport = document.getElementById('btnExportSummary');
       if (btnExport) {
         btnExport.addEventListener('click', function() {
           alert('Generando exportación de informe sumario consolidado (PDF/CSV)...');
         });
+      }
+
+      const propertySummaryTable = document.getElementById('adminPropertySummaryTable');
+      if (propertySummaryTable) {
+        const serviceTypeFilter = document.getElementById('adminSummaryServiceFilter');
+        const propertyStateFilter = document.getElementById('adminSummaryPropertyStateFilter');
+        const accountStateFilter = document.getElementById('adminSummaryAccountStateFilter');
+        const resetFilters = document.getElementById('adminSummaryResetFilters');
+        const resultCount = document.getElementById('adminSummaryResultCount');
+        const noResultsRow = document.getElementById('adminSummaryNoResults');
+        const rows = Array.from(propertySummaryTable.querySelectorAll('tbody tr[data-summary-row]'));
+
+        function applySummaryFilters() {
+          let visibleCount = 0;
+          rows.forEach(row => {
+            const matchesServiceType = !serviceTypeFilter.value
+              || Array.from(row.querySelectorAll('[data-service-category]'))
+                .some(service => service.dataset.serviceCategory === serviceTypeFilter.value);
+            const matchesPropertyState = !propertyStateFilter.value
+              || row.dataset.propertyState === propertyStateFilter.value;
+            const matchesAccountState = !accountStateFilter.value
+              || row.dataset.accountState === accountStateFilter.value;
+            const isVisible = matchesServiceType && matchesPropertyState && matchesAccountState;
+
+            row.hidden = !isVisible;
+            if (isVisible) visibleCount++;
+          });
+
+          noResultsRow.hidden = visibleCount > 0 || rows.length === 0;
+          resultCount.textContent = `Mostrando ${visibleCount} de ${rows.length} inmuebles`;
+        }
+
+        [serviceTypeFilter, propertyStateFilter, accountStateFilter].forEach(filter => {
+          filter.addEventListener('change', applySummaryFilters);
+        });
+        resetFilters.addEventListener('click', function() {
+          serviceTypeFilter.value = '';
+          propertyStateFilter.value = '';
+          accountStateFilter.value = '';
+          applySummaryFilters();
+        });
+        applySummaryFilters();
       }
 
       // Accesos rápidos

@@ -421,6 +421,20 @@ final class UserApprovalTest extends CIUnitTestCase
             'usuario_id'   => $owner['userId'],
             'direccion_id' => $addressId,
         ]);
+        $propertyId = (int) $this->db->insertID();
+        $this->db->table('servicios')->insert([
+            'nombre'            => 'Servicio histórico de prueba',
+            'unidad_medida_std' => 'kWh',
+            'proveedor'         => 'Proveedor de prueba',
+            'categoria'         => 'Electricidad',
+        ]);
+        $serviceId = (int) $this->db->insertID();
+        $this->db->table('inmueble_servicios')->insert([
+            'inmueble_id'      => $propertyId,
+            'servicio_id'      => $serviceId,
+            'titular_inmueble' => 'Titular de prueba',
+            'estado'           => 'Inactivo',
+        ]);
 
         $users = new UserModel();
         $this->assertSame(
@@ -435,12 +449,70 @@ final class UserApprovalTest extends CIUnitTestCase
             ->get('usuarios/' . $owner['userId'] . '/inmuebles');
         $propertyPage->assertOK();
         $propertyPage->assertSee('Casa de prueba');
+        $propertyPage->assertSee('Servicio histórico de prueba');
+        $propertyPage->assertSee('Inactivo');
         $this->assertSame(
             UserModel::LOGIN_INVALID_CREDENTIALS,
             $users->authenticate('property-owner@example.test', 'Passw0rd!')['status']
         );
         $blockedHome = $this->withSession(['user_id' => $owner['userId']])->get('home');
         $blockedHome->assertRedirectTo(base_url());
+    }
+
+    public function testAdministratorHomeSummarizesPropertiesUsersAndServicesIncludingDeactivatedUsers(): void
+    {
+        $administrator = $this->registerTestUser('summary-admin@example.test');
+        $owner = $this->registerTestUser('summary-owner@example.test');
+        $this->assignRole($administrator['userId'], RolModel::ROLE_ADMINISTRATOR);
+        $this->assertSame(
+            UserModel::APPROVAL_SUCCESS,
+            (new UserModel())->approvePendingUser($owner['userId'], RolModel::ROLE_OWNER)
+        );
+
+        $this->db->table('direcciones')->insert([
+            'calle'  => 'Calle del Resumen',
+            'numero' => '789',
+            'ciudad' => 'Ciudad Prueba',
+        ]);
+        $addressId = (int) $this->db->insertID();
+        $this->db->table('inmuebles')->insert([
+            'alias_nombre' => 'Inmueble del resumen',
+            'tipo'         => 'Casa',
+            'superficie'   => 80,
+            'estado'       => 'Inactivo',
+            'usuario_id'   => $owner['userId'],
+            'direccion_id' => $addressId,
+        ]);
+        $propertyId = (int) $this->db->insertID();
+        $this->db->table('servicios')->insert([
+            'nombre'            => 'Servicio del resumen',
+            'unidad_medida_std' => 'kWh',
+            'proveedor'         => 'Proveedor de prueba',
+            'categoria'         => 'Electricidad',
+        ]);
+        $serviceId = (int) $this->db->insertID();
+        $this->db->table('inmueble_servicios')->insert([
+            'inmueble_id'      => $propertyId,
+            'servicio_id'      => $serviceId,
+            'titular_inmueble' => 'Titular de prueba',
+            'estado'           => 'Inactivo',
+        ]);
+        $this->assertSame(
+            UserModel::USER_DEACTIVATION_SUCCESS,
+            (new UserModel())->deactivateUser($owner['userId'], $administrator['userId'])
+        );
+
+        $response = $this->withSession(['user_id' => $administrator['userId']])->get('home');
+        $response->assertOK();
+        $response->assertSee('Inmuebles, usuarios y servicios');
+        $response->assertSee('id="adminSummaryServiceFilter"', false);
+        $response->assertSee('id="adminSummaryPropertyStateFilter"', false);
+        $response->assertSee('id="adminSummaryAccountStateFilter"', false);
+        $response->assertSee('Inmueble del resumen');
+        $response->assertSee('Usuario De Prueba');
+        $response->assertSee('Baja');
+        $response->assertSee('Servicio del resumen');
+        $response->assertSee('Inactivo');
     }
 
     public function testUnassignedPropertyCanBeLinkedToAnOwnerAndListed(): void
