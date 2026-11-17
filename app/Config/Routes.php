@@ -83,11 +83,15 @@ $routes->group('servicios', [
 $routes->group('facturas', [
     'filter' => [
         'auth',
-        'role:' . \App\Models\RolModel::ROLE_OWNER
-    ]
+        'role:' . \App\Models\RolModel::ROLE_OWNER,
+    ],
 ], static function ($routes) {
     $routes->get('/', 'Facturas::index');
+    $routes->get('nueva', 'Facturas::new');
+    $routes->get('informe', 'Facturas::report');
+    $routes->get('(:num)', 'Facturas::show/$1');
     $routes->post('/', 'Facturas::create');
+    $routes->post('(:num)/pago', 'Facturas::registerPayment/$1');
 });
 
 
