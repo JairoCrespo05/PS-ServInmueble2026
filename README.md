@@ -38,6 +38,15 @@ La migración crea las tablas que todavía no existan:
 
 Los modelos CRUD están disponibles en `App\Models`: `DireccionModel`, `InmuebleModel`, `ServicioModel`, `InmuebleServicioModel` y `FacturaModel`.
 
+El módulo de facturas permite consultar el listado y el detalle, cargar nuevas facturas y ver el informe de pendientes y pagadas:
+
+- `/facturas`: listado de facturas del propietario autenticado.
+- `/facturas/nueva`: alta de factura; se registra inicialmente como `Pendiente`.
+- `/facturas/{id}`: detalle y registro de pago total.
+- `/facturas/informe`: totales y tablas de facturas pendientes y pagadas.
+
+El pago registra fecha, monto total y medio de pago; no admite pagos parciales ni adjuntos digitales en este alcance. La migración `AddInvoiceServicePeriodUniqueKey` evita duplicar una factura por servicio asociado y período.
+
 Al registrar o modificar un inmueble, su superficie debe ser de al menos
 50 m². Esta validación no modifica registros existentes.
 

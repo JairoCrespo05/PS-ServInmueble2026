@@ -249,13 +249,13 @@
             </svg>
             Exportar Informe
           </button>
-          <button class="btn btn-primary" id="btnNewInvoice">
+          <a class="btn btn-primary" id="btnNewInvoice" href="<?= site_url('facturas/nueva') ?>">
             <svg class="icon" viewBox="0 0 24 24">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
             + Cargar Factura (US-07)
-          </button>
+          </a>
         </div>
       </section>
 
@@ -347,7 +347,7 @@
               <h2 class="card-title">Facturación y Vencimientos Recientes</h2>
               <span class="badge-subtle">Mayo 2026</span>
             </div>
-            <a href="#" class="card-action-link" id="linkViewAllInvoices">Ver todas las facturas →</a>
+            <a href="<?= site_url('facturas') ?>" class="card-action-link" id="linkViewAllInvoices">Ver todas las facturas →</a>
           </div>
 
           <div class="table-container">
