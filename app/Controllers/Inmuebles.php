@@ -2,10 +2,14 @@
 
 namespace App\Controllers;
 
+use CodeIgniter\HTTP\Exceptions\HTTPException;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\ResponseInterface;
 
 class Inmuebles extends BaseController
 {
+    private const GEOREF_BASE_URL = 'https://apis.datos.gob.ar/georef/api/';
+
     private function currentUserId(): int
     {
         $userId = session()->get('user_id');
@@ -36,6 +40,7 @@ class Inmuebles extends BaseController
             'calle'        => 'required|max_length[150]',
             'numero'       => 'required|max_length[20]',
             'piso_dpto'    => 'permit_empty|max_length[50]',
+            'provincia'    => 'required|max_length[100]',
             'ciudad'       => 'required|max_length[100]',
         ];
     }
@@ -54,7 +59,7 @@ class Inmuebles extends BaseController
 
     private function validateInmuebleData(array $submittedData): bool
     {
-        return $this->validateData($submittedData, $this->inmuebleValidationRules(), [
+        if (! $this->validateData($submittedData, $this->inmuebleValidationRules(), [
             'tipo' => [
                 'required' => 'Ingresá el tipo de inmueble.',
                 'in_list'  => 'Elegí un tipo válido: casa, departamento, local comercial, oficina o galpón.',
@@ -62,7 +67,140 @@ class Inmuebles extends BaseController
             'superficie' => [
                 'greater_than_equal_to' => 'La superficie debe ser de al menos 50 m².',
             ],
+            'provincia' => [
+                'required' => 'Seleccioná una provincia.',
+            ],
+            'ciudad' => [
+                'required' => 'Seleccioná una ciudad o localidad.',
+            ],
+        ])) {
+            return false;
+        }
+
+        return $this->validateProvinceAndLocality($submittedData);
+    }
+
+    private function georefRequest(string $resource, array $query): ?array
+    {
+        $cacheKey = 'georef_' . hash('sha256', $resource . serialize($query));
+        $cached   = cache()->get($cacheKey);
+
+        if (is_array($cached)) {
+            return $cached;
+        }
+
+        try {
+            $response = \Config\Services::curlrequest([
+                'timeout'         => 8,
+                'connect_timeout' => 3,
+            ], null, null, false)->get(self::GEOREF_BASE_URL . $resource, [
+                'query' => $query,
+            ]);
+        } catch (HTTPException $exception) {
+            log_message('error', 'No se pudo consultar GeoRef: {message}', ['message' => $exception->getMessage()]);
+
+            return null;
+        }
+
+        if ($response->getStatusCode() !== 200) {
+            log_message('error', 'GeoRef respondió con estado HTTP {status}.', ['status' => $response->getStatusCode()]);
+
+            return null;
+        }
+
+        $data = json_decode($response->getBody(), true);
+        if (! is_array($data)) {
+            log_message('error', 'GeoRef respondió con un JSON inválido para el recurso {resource}.', ['resource' => $resource]);
+
+            return null;
+        }
+
+        cache()->save($cacheKey, $data, 86400);
+
+        return $data;
+    }
+
+    private function georefProvinces(): ?array
+    {
+        $data = $this->georefRequest('provincias', [
+            'campos' => 'id,nombre',
+            'orden'  => 'nombre',
+            'max'    => 100,
         ]);
+        $provinces = $data['provincias'] ?? null;
+
+        if (! is_array($provinces)) {
+            if ($data !== null) {
+                log_message('error', 'GeoRef respondió sin el listado de provincias esperado.');
+            }
+
+            return null;
+        }
+
+        return $provinces;
+    }
+
+    private function georefLocalities(string $provinceId): ?array
+    {
+        $data = $this->georefRequest('localidades', [
+            'campos'    => 'id,nombre',
+            'orden'     => 'nombre',
+            'provincia' => $provinceId,
+            'max'       => 5000,
+        ]);
+        $localities = $data['localidades'] ?? null;
+
+        if (! is_array($localities)) {
+            if ($data !== null) {
+                log_message('error', 'GeoRef respondió sin el listado de localidades esperado.');
+            }
+
+            return null;
+        }
+
+        return $localities;
+    }
+
+    private function validateProvinceAndLocality(array $submittedData): bool
+    {
+        $provinces = $this->georefProvinces();
+
+        if ($provinces === null) {
+            $this->validator->setError('provincia', 'No se pudo consultar GeoRef para validar la provincia. Intentá nuevamente.');
+
+            return false;
+        }
+
+        $provinceId = null;
+        foreach ($provinces as $province) {
+            if (($province['nombre'] ?? null) === trim($submittedData['provincia'])) {
+                $provinceId = $province['id'] ?? null;
+                break;
+            }
+        }
+
+        if (! is_string($provinceId)) {
+            $this->validator->setError('provincia', 'Seleccioná una provincia válida del listado.');
+
+            return false;
+        }
+
+        $localities = $this->georefLocalities($provinceId);
+        if ($localities === null) {
+            $this->validator->setError('ciudad', 'No se pudo consultar GeoRef para validar la localidad. Intentá nuevamente.');
+
+            return false;
+        }
+
+        foreach ($localities as $locality) {
+            if (($locality['nombre'] ?? null) === trim($submittedData['ciudad'])) {
+                return true;
+            }
+        }
+
+        $this->validator->setError('ciudad', 'Seleccioná una localidad perteneciente a la provincia elegida.');
+
+        return false;
     }
 
     private function normalizedInmuebleData(array $formData): array
@@ -125,6 +263,7 @@ class Inmuebles extends BaseController
                 'd.calle',
                 'd.numero',
                 'd.piso_dpto',
+                'd.provincia',
                 'd.ciudad',
                 'd.created_at AS direccion_created_at',
                 'd.updated_at AS direccion_updated_at',
@@ -147,6 +286,7 @@ class Inmuebles extends BaseController
                 'd.calle',
                 'd.numero',
                 'd.piso_dpto',
+                'd.provincia',
                 'd.ciudad',
                 'd.created_at',
                 'd.updated_at',
@@ -201,6 +341,71 @@ class Inmuebles extends BaseController
         ]);
     }
 
+    public function geoProvinces(): ResponseInterface
+    {
+        $provinces = $this->georefProvinces();
+
+        if ($provinces === null) {
+            return $this->response->setStatusCode(502)->setJSON([
+                'error' => 'No se pudo cargar el catálogo de provincias. Revisá la conexión e intentá nuevamente.',
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'provincias' => array_map(
+                static fn (array $province): array => [
+                    'id'     => (string) ($province['id'] ?? ''),
+                    'nombre' => (string) ($province['nombre'] ?? ''),
+                ],
+                $provinces
+            ),
+        ]);
+    }
+
+    public function geoLocalities(string $provinceId): ResponseInterface
+    {
+        if (! preg_match('/^\d{2}$/', $provinceId)) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'error' => 'La provincia seleccionada no es válida.',
+            ]);
+        }
+
+        $provinces = $this->georefProvinces();
+        if ($provinces === null) {
+            return $this->response->setStatusCode(502)->setJSON([
+                'error' => 'No se pudo validar la provincia. Revisá la conexión e intentá nuevamente.',
+            ]);
+        }
+
+        $provinceExists = false;
+        foreach ($provinces as $province) {
+            if (($province['id'] ?? null) === $provinceId) {
+                $provinceExists = true;
+                break;
+            }
+        }
+
+        if (! $provinceExists) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'error' => 'La provincia seleccionada no pertenece a Argentina.',
+            ]);
+        }
+
+        $localities = $this->georefLocalities($provinceId);
+        if ($localities === null) {
+            return $this->response->setStatusCode(502)->setJSON([
+                'error' => 'No se pudo cargar el catálogo de localidades. Revisá la conexión e intentá nuevamente.',
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'localidades' => array_map(
+                static fn (array $locality): string => (string) ($locality['nombre'] ?? ''),
+                $localities
+            ),
+        ]);
+    }
+
     public function create(): RedirectResponse
     {
         $submittedData = $this->submittedInmuebleData();
@@ -220,10 +425,11 @@ class Inmuebles extends BaseController
 
         $db->transStart();
         $db->table('direcciones')->insert([
-            'calle'     => trim($formData['calle']),
-            'numero'    => trim($formData['numero']),
-            'piso_dpto' => trim($formData['piso_dpto'] ?? '') ?: null,
-            'ciudad'    => trim($formData['ciudad']),
+            'calle'      => trim($formData['calle']),
+            'numero'     => trim($formData['numero']),
+            'piso_dpto'  => trim($formData['piso_dpto'] ?? '') ?: null,
+            'provincia'  => trim($formData['provincia']),
+            'ciudad'     => trim($formData['ciudad']),
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -285,10 +491,11 @@ class Inmuebles extends BaseController
         $db->table('direcciones')
             ->where('id', $inmueble['direccion_id'])
             ->update([
-                'calle'     => trim($formData['calle']),
-                'numero'    => trim($formData['numero']),
-                'piso_dpto' => trim($formData['piso_dpto'] ?? '') ?: null,
-                'ciudad'    => trim($formData['ciudad']),
+                'calle'      => trim($formData['calle']),
+                'numero'     => trim($formData['numero']),
+                'piso_dpto'  => trim($formData['piso_dpto'] ?? '') ?: null,
+                'provincia'  => trim($formData['provincia']),
+                'ciudad'     => trim($formData['ciudad']),
                 'updated_at' => $now,
             ]);
         $db->table('inmuebles')

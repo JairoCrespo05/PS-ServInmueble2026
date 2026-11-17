@@ -132,7 +132,8 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
                   $claseEstado = $esEstadoActivo($inmueble['estado']) ? '' : ' inactive';
                   $direccion = trim($inmueble['calle'] . ' ' . $inmueble['numero']
                       . ($inmueble['piso_dpto'] ? ', ' . $inmueble['piso_dpto'] : '')
-                      . ', ' . $inmueble['ciudad']);
+                      . ', ' . $inmueble['ciudad']
+                      . ($inmueble['provincia'] ? ', ' . $inmueble['provincia'] : ''));
                   $searchText = mb_strtolower($inmueble['alias_nombre'] . ' ' . $direccion . ' ' . $inmueble['tipo']);
                   $detalleInmueble = [
                       'id'                    => $inmueble['id'],
@@ -144,6 +145,7 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
                       'calle'                 => $inmueble['calle'],
                       'numero'                => $inmueble['numero'],
                       'piso_dpto'             => $inmueble['piso_dpto'],
+                      'provincia'             => $inmueble['provincia'],
                       'ciudad'                => $inmueble['ciudad'],
                       'inmueble_created_at'   => $inmueble['inmueble_created_at'],
                       'inmueble_updated_at'   => $inmueble['inmueble_updated_at'],
@@ -189,6 +191,7 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
                         data-calle="<?= esc($inmueble['calle'], 'attr') ?>"
                         data-numero="<?= esc($inmueble['numero'], 'attr') ?>"
                         data-piso="<?= esc($inmueble['piso_dpto'] ?? '', 'attr') ?>"
+                        data-provincia="<?= esc($inmueble['provincia'] ?? '', 'attr') ?>"
                         data-ciudad="<?= esc($inmueble['ciudad'], 'attr') ?>"
                       ><span class="icon" aria-hidden="true">edit</span><span class="visually-hidden">Modificar inmueble</span></button>
                       <?php if (mb_strtolower(trim($inmueble['estado'])) !== 'inactivo'): ?>
@@ -221,7 +224,15 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
         <div><h2 id="modal-title"><?= $editId ? 'Modificar inmueble' : 'Registrar nuevo inmueble' ?></h2><p>Completar los datos de la propiedad y su direccion.</p></div>
         <button class="close-modal" id="close-create" type="button" aria-label="Cerrar"><span class="icon">close</span></button>
       </div>
-      <form method="post" action="<?= $editId ? site_url('inmuebles/' . $editId) : site_url('inmuebles') ?>" data-create-action="<?= esc(site_url('inmuebles'), 'attr') ?>">
+      <form
+        method="post"
+        action="<?= $editId ? site_url('inmuebles/' . $editId) : site_url('inmuebles') ?>"
+        data-create-action="<?= esc(site_url('inmuebles'), 'attr') ?>"
+        data-provinces-url="<?= esc(site_url('inmuebles/geo/provincias'), 'attr') ?>"
+        data-localities-url="<?= esc(site_url('inmuebles/geo/provincias'), 'attr') ?>"
+        data-initial-province="<?= esc($formData['provincia'] ?? '', 'attr') ?>"
+        data-initial-city="<?= esc($formData['ciudad'] ?? '', 'attr') ?>"
+      >
         <?= csrf_field() ?>
         <div class="form-body">
           <?php if (isset($errors['database'])): ?><div class="field-error form-field full" role="alert"><?= esc($errors['database']) ?></div><?php endif ?>
@@ -265,9 +276,22 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
             <?php if (isset($errors['piso_dpto'])): ?><span class="field-error"><?= esc($errors['piso_dpto']) ?></span><?php endif ?>
           </div>
           <div class="form-field">
+            <label for="provincia">Provincia</label>
+            <select id="provincia" name="provincia" required aria-describedby="location-status">
+              <option value="">Cargando provincias...</option>
+            </select>
+            <?php if (isset($errors['provincia'])): ?><span class="field-error"><?= esc($errors['provincia']) ?></span><?php endif ?>
+          </div>
+          <div class="form-field">
             <label for="ciudad">Ciudad / localidad</label>
-            <input id="ciudad" name="ciudad" maxlength="100" required value="<?= esc($formData['ciudad'] ?? '', 'attr') ?>">
+            <select id="ciudad" name="ciudad" required disabled aria-describedby="location-status">
+              <option value="">Primero seleccioná una provincia</option>
+            </select>
             <?php if (isset($errors['ciudad'])): ?><span class="field-error"><?= esc($errors['ciudad']) ?></span><?php endif ?>
+          </div>
+          <div class="form-field full">
+            <span id="location-status" role="status" aria-live="polite"></span>
+            <button class="button" id="retry-location-catalog" type="button" hidden>Reintentar carga del catálogo</button>
           </div>
         </div>
         <div class="modal-actions"><button class="button" id="cancel-create" type="button">Cancelar</button><button class="button primary" id="save-property" type="submit"><?= $editId ? 'Guardar cambios' : 'Guardar inmueble' ?></button></div>
@@ -296,6 +320,6 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
   </div>
 
   <script src="<?= base_url('js/sidebar.js') ?>"></script>
-  <script src="<?= base_url('js/inmuebles.js') ?>?v=2"></script>
+  <script src="<?= base_url('js/inmuebles.js') ?>?v=3"></script>
 </body>
 </html>

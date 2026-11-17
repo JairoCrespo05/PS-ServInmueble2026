@@ -51,6 +51,8 @@ $routes->group('inmuebles', [
     ]
 ], static function ($routes) {
     $routes->get('/', 'Inmuebles::index');
+    $routes->get('geo/provincias', 'Inmuebles::geoProvinces');
+    $routes->get('geo/provincias/(:segment)/localidades', 'Inmuebles::geoLocalities/$1');
     $routes->post('/', 'Inmuebles::create');
     $routes->post('(:num)', 'Inmuebles::update/$1');
     $routes->post('(:num)/baja', 'Inmuebles::deactivate/$1');

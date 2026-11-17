@@ -70,6 +70,7 @@
                       <?= esc(trim($property['calle'] . ' ' . $property['numero'])) ?>
                       <?= esc($property['piso_dpto'] ?? '') ?>
                       · <?= esc($property['ciudad']) ?>
+                      <?= ! empty($property['provincia']) ? ', ' . esc($property['provincia']) : '' ?>
                     </td>
                     <td>
                       <?php $propertyServices = $servicesByProperty[(int) $property['id']] ?? []; ?>
