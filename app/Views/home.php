@@ -7,7 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/admin-home.css') ?>">
 </head>
 <body>
 
@@ -94,6 +96,136 @@
             </div>
             <a class="btn btn-secondary" href="<?= site_url('tipos-servicio') ?>">Abrir catálogo</a>
           </article>
+        </section>
+
+        <?php
+        $summaryServiceTypes = [];
+        $summaryPropertyStates = [];
+        $summaryAccountStates = [];
+        foreach ($propertySummary as $summaryProperty) {
+            $propertyState = trim((string) $summaryProperty['estado']);
+            $accountState = trim((string) $summaryProperty['usuario_estado']);
+            $summaryPropertyStates[mb_strtolower($propertyState)] = $propertyState;
+            $summaryAccountStates[mb_strtolower($accountState)] = $accountState;
+
+            foreach ($summaryProperty['servicios'] as $summaryService) {
+                $serviceType = trim((string) ($summaryService['categoria'] ?? ''));
+                if ($serviceType !== '') {
+                    $summaryServiceTypes[mb_strtolower($serviceType)] = $serviceType;
+                }
+            }
+        }
+        asort($summaryServiceTypes, SORT_NATURAL | SORT_FLAG_CASE);
+        asort($summaryPropertyStates, SORT_NATURAL | SORT_FLAG_CASE);
+        asort($summaryAccountStates, SORT_NATURAL | SORT_FLAG_CASE);
+        ?>
+
+        <section class="card" aria-labelledby="systemPropertySummaryTitle">
+          <div class="card-header">
+            <div class="card-title-group">
+              <div>
+                <h2 class="card-title" id="systemPropertySummaryTitle">Inmuebles, usuarios y servicios</h2>
+                <p class="page-subtitle">Relaciones registradas en el sistema, incluidas las bajas lógicas.</p>
+              </div>
+              <span class="badge-subtle"><?= count($propertySummary ?? []) ?> inmuebles</span>
+            </div>
+          </div>
+          <div class="admin-summary-filter-panel">
+            <div class="admin-summary-filter-heading">
+              <div>
+                <h3>Filtros</h3>
+                <p>Combiná criterios para acotar el listado.</p>
+              </div>
+              <span class="admin-summary-result-count" id="adminSummaryResultCount" aria-live="polite"></span>
+            </div>
+            <div class="admin-summary-filters" role="group" aria-label="Filtros del listado de inmuebles">
+              <label>
+                <span>Tipo de servicio</span>
+                <select id="adminSummaryServiceFilter">
+                  <option value="">Todos</option>
+                  <?php foreach ($summaryServiceTypes as $value => $label): ?>
+                    <option value="<?= esc($value, 'attr') ?>"><?= esc($label) ?></option>
+                  <?php endforeach ?>
+                </select>
+              </label>
+              <label>
+                <span>Estado de inmueble</span>
+                <select id="adminSummaryPropertyStateFilter">
+                  <option value="">Todos</option>
+                  <?php foreach ($summaryPropertyStates as $value => $label): ?>
+                    <option value="<?= esc($value, 'attr') ?>"><?= esc($label) ?></option>
+                  <?php endforeach ?>
+                </select>
+              </label>
+              <label>
+                <span>Estado de cuenta</span>
+                <select id="adminSummaryAccountStateFilter">
+                  <option value="">Todos</option>
+                  <?php foreach ($summaryAccountStates as $value => $label): ?>
+                    <option value="<?= esc($value, 'attr') ?>"><?= esc($label) ?></option>
+                  <?php endforeach ?>
+                </select>
+              </label>
+              <button type="button" class="admin-summary-reset" id="adminSummaryResetFilters">Limpiar filtros</button>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="adminPropertySummaryTable">
+              <thead>
+                <tr>
+                  <th scope="col">Inmueble</th>
+                  <th scope="col">Estado del inmueble</th>
+                  <th scope="col">Usuario asociado</th>
+                  <th scope="col">Estado de cuenta</th>
+                  <th scope="col">Servicios relacionados</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php if (($propertySummary ?? []) === []): ?>
+                  <tr><td colspan="5">Todavía no hay inmuebles registrados.</td></tr>
+                <?php else: ?>
+                  <?php foreach ($propertySummary as $property): ?>
+                    <tr
+                      data-summary-row
+                      data-property-state="<?= esc(mb_strtolower(trim((string) $property['estado'])), 'attr') ?>"
+                      data-account-state="<?= esc(mb_strtolower(trim((string) $property['usuario_estado'])), 'attr') ?>"
+                    >
+                      <td>
+                        <strong><?= esc($property['alias_nombre']) ?></strong>
+                        <br><small><?= esc($property['tipo']) ?></small>
+                      </td>
+                      <td><?= esc($property['estado']) ?></td>
+                      <td>
+                        <?= esc($property['usuario_nombre']) ?>
+                        <?php if ($property['usuario_rol'] !== null): ?>
+                          <br><small><?= esc($property['usuario_rol']) ?></small>
+                        <?php endif ?>
+                      </td>
+                      <td><?= esc($property['usuario_estado']) ?></td>
+                      <td>
+                        <?php if ($property['servicios'] === []): ?>
+                          Sin servicios asociados.
+                        <?php else: ?>
+                          <ul>
+                            <?php foreach ($property['servicios'] as $service): ?>
+                              <li data-service-category="<?= esc(mb_strtolower(trim((string) ($service['categoria'] ?? ''))), 'attr') ?>">
+                                <?= esc($service['nombre']) ?>
+                                <?php if ($service['categoria'] !== null): ?>· <?= esc($service['categoria']) ?><?php endif ?>
+                                — <?= esc($service['estado']) ?>
+                              </li>
+                            <?php endforeach ?>
+                          </ul>
+                        <?php endif ?>
+                      </td>
+                    </tr>
+                  <?php endforeach ?>
+                <?php endif ?>
+                <tr id="adminSummaryNoResults" hidden>
+                  <td colspan="5">No se encontraron inmuebles con esos filtros.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
       <?php else: ?>
 

@@ -261,7 +261,22 @@ class AdminController extends BaseController
                 'role'   => session()->get('user_role'),
             ],
             'properties' => $users->findPropertiesForUser($userId),
+            'servicesByProperty' => $this->servicesByProperty($users->findServicesForUserProperties($userId)),
         ]);
+    }
+
+    /**
+     * @param list<array<string, mixed>> $services
+     * @return array<int, list<array<string, mixed>>>
+     */
+    private function servicesByProperty(array $services): array
+    {
+        $servicesByProperty = [];
+        foreach ($services as $service) {
+            $servicesByProperty[(int) $service['inmueble_id']][] = $service;
+        }
+
+        return $servicesByProperty;
     }
 
     /**

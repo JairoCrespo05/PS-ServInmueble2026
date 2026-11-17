@@ -32,7 +32,10 @@
         <div>
           <div class="welcome-badge">Inmuebles asociados</div>
           <h1 class="page-title"><?= esc(trim($user['nombre'] . ' ' . $user['apellido'])) ?></h1>
-          <p class="page-subtitle"><?= esc($user['email']) ?> · <?= count($properties) ?> inmueble(s)</p>
+          <p class="page-subtitle">
+            <?= esc($user['email']) ?> · <?= count($properties) ?> inmueble(s)
+            <?php if (! $user['activo']): ?> · Cuenta dada de baja<?php endif ?>
+          </p>
         </div>
         <a class="btn btn-secondary" href="<?= site_url('usuarios') ?>">Volver al listado</a>
       </section>
@@ -50,11 +53,12 @@
                 <th scope="col">Superficie</th>
                 <th scope="col">Estado</th>
                 <th scope="col">Domicilio</th>
+                <th scope="col">Servicios relacionados</th>
               </tr>
             </thead>
             <tbody>
               <?php if ($properties === []): ?>
-                <tr><td colspan="5">Este usuario todavía no tiene inmuebles asociados.</td></tr>
+                <tr><td colspan="6">Este usuario todavía no tiene inmuebles asociados.</td></tr>
               <?php else: ?>
                 <?php foreach ($properties as $property): ?>
                   <tr>
@@ -66,6 +70,21 @@
                       <?= esc(trim($property['calle'] . ' ' . $property['numero'])) ?>
                       <?= esc($property['piso_dpto'] ?? '') ?>
                       · <?= esc($property['ciudad']) ?>
+                    </td>
+                    <td>
+                      <?php $propertyServices = $servicesByProperty[(int) $property['id']] ?? []; ?>
+                      <?php if ($propertyServices === []): ?>
+                        Sin servicios asociados.
+                      <?php else: ?>
+                        <ul>
+                          <?php foreach ($propertyServices as $service): ?>
+                            <li>
+                              <?= esc($service['servicio_nombre']) ?>
+                              — <?= esc($service['estado_asociacion']) ?>
+                            </li>
+                          <?php endforeach ?>
+                        </ul>
+                      <?php endif ?>
                     </td>
                   </tr>
                 <?php endforeach ?>

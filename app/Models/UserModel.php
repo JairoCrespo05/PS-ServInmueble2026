@@ -177,6 +177,22 @@ class UserModel extends Model
             ->getResultArray();
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function findServicesForUserProperties(int $userId): array
+    {
+        return $this->db->table('inmueble_servicios isv')
+            ->select('isv.id AS asociacion_id, isv.inmueble_id, isv.estado AS estado_asociacion, s.nombre AS servicio_nombre, s.categoria AS servicio_categoria, s.proveedor')
+            ->join('inmuebles i', 'i.id = isv.inmueble_id')
+            ->join('servicios s', 's.id = isv.servicio_id')
+            ->where('i.usuario_id', $userId)
+            ->orderBy('i.id', 'DESC')
+            ->orderBy('s.nombre', 'ASC')
+            ->get()
+            ->getResultArray();
+    }
+
     public function approvePendingUser(int $userId, string $targetRoleName): string
     {
         if (! in_array($targetRoleName, [RolModel::ROLE_OWNER, RolModel::ROLE_ADMINISTRATOR], true)) {

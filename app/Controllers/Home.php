@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\AdminDashboardModel;
 use App\Models\RolModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
@@ -25,6 +26,7 @@ class Home extends BaseController
             return view('home.php', [
                 'user'            => $user,
                 'isAdministrator' => true,
+                'propertySummary' => (new AdminDashboardModel())->findPropertyServiceSummary(),
             ]);
         }
 
