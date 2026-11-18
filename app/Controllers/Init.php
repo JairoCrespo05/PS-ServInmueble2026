@@ -4,6 +4,11 @@ namespace App\Controllers;
 
 class Init extends BaseController
 {
+    public function landing(): string
+    {
+        return view('landing.php');
+    }
+
     public function login(): string
     {
         return view('login.php', [

@@ -3,7 +3,9 @@
 use CodeIgniter\Router\RouteCollection;
 
 /** @var RouteCollection $routes */
-$routes->get('/', 'Init::login');
+$routes->get('/', 'Init::landing');
+
+$routes->get('/login', 'Init::login');
 
 $routes->get('/sing_up', 'Init::singUp');
 

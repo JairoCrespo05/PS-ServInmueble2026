@@ -2,27 +2,26 @@
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   color: #102a43;
-  font: 700 15px Manrope, sans-serif;
   white-space: nowrap;
 }
 
-.top-brand .icon {
-  display: inline-block;
-  width: auto;
-  height: auto;
-  font-family: "Material Symbols Outlined";
-  font-size: 22px;
-  font-style: normal;
-  font-weight: normal;
-  line-height: 1;
-  white-space: nowrap;
-  direction: ltr;
-  -webkit-font-feature-settings: "liga";
-  -webkit-font-smoothing: antialiased;
+.top-brand .brand-logo-badge {
+  display: flex;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #245b86, #102a43);
+  box-shadow: 0 6px 14px rgb(16 42 67 / 18%);
+  color: #fff;
 }
 
+.top-brand .brand-icon,
 .brand-logo-badge .brand-icon {
   font-family: "Material Symbols Outlined";
   font-size: 22px;
@@ -32,6 +31,24 @@
   direction: ltr;
   -webkit-font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
+}
+
+.top-brand .brand-title {
+  color: #102a43;
+  font-family: Manrope, sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.25px;
+  line-height: 1;
+}
+
+.top-brand .brand-title > span {
+  color: #245b86 !important;
+}
+
+.topbar > a {
+  color: inherit;
+  text-decoration: none;
 }
 
 @media (max-width: 760px) {
