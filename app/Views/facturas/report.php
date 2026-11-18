@@ -32,12 +32,13 @@ $renderRows = static function (array $invoices) use ($formatAmount, $formatDate,
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/servicios.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/facturas.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'informe-facturas', 'isAdministrator' => false]) ?>
   <div class="workspace">
     <header class="topbar">
-      <div class="top-brand"><span class="icon">domain</span>ServiInmueble</div>
+      <?= view('partials/brand') ?>
       <span class="top-context">Gestión patrimonial&nbsp; / &nbsp;Informe de facturación</span>
       <div class="user-profile">
         <div class="user-avatar"><?= esc(strtoupper(substr(session()->get('user_name') ?? 'U', 0, 1))) ?></div>

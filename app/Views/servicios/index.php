@@ -38,6 +38,7 @@ $editandoAsociacion = $editAssociationId !== null;
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/servicios.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
 
 </head>
 <body>
@@ -45,7 +46,7 @@ $editandoAsociacion = $editAssociationId !== null;
 
   <div class="workspace">
     <header class="topbar">
-      <div class="top-brand"><span class="icon">domain</span>ServiInmueble</div>
+      <?= view('partials/brand') ?>
       <span class="top-context">Gestion patrimonial&nbsp; / &nbsp;Servicios asociados</span>
 
       <!-- Perfil Usuario -->

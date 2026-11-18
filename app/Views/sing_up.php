@@ -29,21 +29,16 @@ $alertClass = $success !== null && $formError === null && ! $errors ? 'alert-suc
   <!-- Google Fonts: Manrope & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="<?= base_url('css/styles.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/styles.css') ?>?v=<?= filemtime(FCPATH . 'css/styles.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>?v=<?= filemtime(FCPATH . 'css/brand.css') ?>">
 </head>
 <body class="signup-page">
 
   <!-- TOPBAR PÚBLICA -->
   <header class="topbar">
-    <a href="#" class="brand-container">
-      <div class="brand-logo-icon">SI</div>
-      <div class="brand-text-block">
-        <span class="brand-title">ServiInmueble</span>
-        <span class="brand-subtitle">Gestión Inmobiliaria</span>
-      </div>
-    </a>
+    <?= view('partials/brand') ?>
 
     <nav class="topbar-nav">
       <a href="<?= base_url('') ?>" class="nav-link" id="navLinkLogin">Iniciar Sesión</a>
@@ -146,8 +141,8 @@ $alertClass = $success !== null && $formError === null && ! $errors ? 'alert-suc
       <section class="form-card">
         <div class="form-header">
           <div class="form-meta">
-            <span class="form-category">Alta de Usuario</span>
-            <span class="badge-code">SEC-4.2 // US-01</span>
+            <span class="form-category">Registrarse</span>
+            <span class="badge-code">Nuevo Usuario</span>
           </div>
           <h2 class="form-title">Crear Cuenta</h2>
           <p class="form-subtitle">Comenzá a gestionar tus propiedades y servicios de forma centralizada.</p>
@@ -261,7 +256,7 @@ $alertClass = $success !== null && $formError === null && ! $errors ? 'alert-suc
               <line x1="12" y1="8" x2="12.01" y2="8"></line>
             </svg>
             <div class="role-notice-text">
-              <strong>Solicitud de acceso:</strong> al registrarte, tu cuenta queda pendiente de aprobación. Cuando un administrador la apruebe, se habilitarán las funciones del rol <strong>Propietario</strong>.
+              <strong>Solicitud de acceso:</strong> al registrarte, tu cuenta queda <strong>pendiente de aprobación</strong>. Cuando se apruebe, se habilitarán el <strong> acceso al sistema.</strong>
             </div>
           </div>
 
@@ -274,10 +269,14 @@ $alertClass = $success !== null && $formError === null && ! $errors ? 'alert-suc
               </svg>
             </span>
             <span class="checkbox-label-text">
-              Acepto los <a href="#">Términos del Servicio</a> y la <a href="#">Política de Privacidad</a> de ServiInmueble.
+              Acepto los <a href="#termsModal" data-open-terms>Términos y Condiciones</a> y la <a href="#termsModal" data-open-terms>Política de Privacidad</a> de ServiInmueble.
             </span>
           </label>
-          <?= $fieldError('terms') ?>
+          <?php if (isset($errors['terms'])): ?>
+            <?= $fieldError('terms') ?>
+          <?php else: ?>
+            <div class="field-error" id="error-terms" role="alert" data-persistent hidden></div>
+          <?php endif; ?>
 
           <!-- Botón de Envío -->
           <button type="submit" class="btn-primary" id="btnSubmitRegister">
@@ -304,13 +303,51 @@ $alertClass = $success !== null && $formError === null && ! $errors ? 'alert-suc
       &copy; 2026 ServiInmueble Corp. Todos los derechos reservados. Arquitectura y Gestión Operativa.
     </div>
     <div class="footer-links">
-      <a href="#">Términos del Servicio</a>
-      <a href="#">Políticas de Privacidad</a>
+      <a href="#termsModal" data-open-terms>Términos y Condiciones</a>
+      <a href="#termsModal" data-open-terms>Política de Privacidad</a>
       <a href="#">Centro de Ayuda</a>
     </div>
   </footer>
 
+  <dialog class="terms-modal" id="termsModal" aria-labelledby="termsModalTitle">
+    <header class="terms-modal-header">
+      <div>
+        <p class="terms-modal-kicker">Documento informativo · Aplicación académica</p>
+        <h2 id="termsModalTitle">Términos y Condiciones</h2>
+      </div>
+      <button type="button" class="terms-modal-close" data-close-terms aria-label="Cerrar términos y condiciones">&times;</button>
+    </header>
+    <div class="terms-modal-body">
+      <p class="terms-modal-notice">
+        Este es un borrador informativo para un proyecto académico. No constituye un acuerdo legal ni reemplaza términos o una política de privacidad definitivos.
+      </p>
+
+      <section>
+        <h3>Sobre la aplicación</h3>
+        <p>ServiInmueble es un prototipo académico para explorar la gestión de inmuebles y servicios asociados. Sus funciones pueden cambiar durante el desarrollo y no está destinado a gestionar operaciones reales (por el momento).</p>
+      </section>
+
+      <section>
+        <h3>Registro y acceso</h3>
+        <p>Al registrarte, la solicitud queda pendiente de aprobación administrativa. Mientras esté pendiente, no se habilitan las funciones operativas. Si se aprueba, la cuenta recibe el rol Propietario.</p>
+      </section>
+
+      <section>
+        <h3>Datos y privacidad</h3>
+        <p>Como el proyecto no cuenta todavía con una política de privacidad definitiva, usá únicamente datos ficticios de prueba y evitá ingresar información personal, financiera o sensible.</p>
+      </section>
+
+      <section>
+        <h3>Uso académico</h3>
+        <p>La aplicación se ofrece con fines de aprendizaje y evaluación. Este texto no establece garantías de disponibilidad, conservación de datos ni condiciones para un servicio en producción.</p>
+      </section>
+    </div>
+    <footer class="terms-modal-footer">
+      <button type="button" class="btn-primary" data-close-terms>Entendido</button>
+    </footer>
+  </dialog>
+
   <!-- JAVASCRIPT VANILLA PURO (Sin librerías, sin dependencias) -->
-  <script src="<?= base_url('js/script.js') ?>"></script>
+  <script src="<?= base_url('js/script.js') ?>?v=<?= filemtime(FCPATH . 'js/script.js') ?>"></script>
 </body>
 </html>
