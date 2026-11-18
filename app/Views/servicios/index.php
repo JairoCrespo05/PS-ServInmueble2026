@@ -39,6 +39,7 @@ $editandoAsociacion = $editAssociationId !== null;
   <link rel="stylesheet" href="<?= base_url('css/servicios.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/radio-options.css') ?>?v=1">
 
 </head>
 <body>
@@ -294,15 +295,15 @@ $editandoAsociacion = $editAssociationId !== null;
             <input id="associate-holder" name="titular_inmueble" maxlength="150" required value="<?= esc($formData['titular_inmueble'] ?? '', 'attr') ?>">
             <?php if (isset($errors['titular_inmueble'])): ?><span class="field-error"><?= esc($errors['titular_inmueble']) ?></span><?php endif ?>
           </div>
-          <div class="form-field">
-            <label for="associate-status">Estado del servicio</label>
-            <select id="associate-status" name="estado" required>
+          <fieldset class="form-field radio-field">
+            <legend>Estado del servicio</legend>
+            <div class="radio-options">
               <?php foreach (['Activo', 'Inactivo', 'Suspendido'] as $estado): ?>
-                <option value="<?= esc($estado, 'attr') ?>"<?= ($formData['estado'] ?? 'Activo') === $estado ? ' selected' : '' ?>><?= esc($estado) ?></option>
+                <label class="radio-option"><input type="radio" name="estado" value="<?= esc($estado, 'attr') ?>" required<?= ($formData['estado'] ?? 'Activo') === $estado ? ' checked' : '' ?>> <span><?= esc($estado) ?></span></label>
               <?php endforeach ?>
-            </select>
+            </div>
             <?php if (isset($errors['estado'])): ?><span class="field-error"><?= esc($errors['estado']) ?></span><?php endif ?>
-          </div>
+          </fieldset>
           <div class="form-field">
             <label for="associate-meter">Numero de medidor <span>(opcional)</span></label>
             <input id="associate-meter" name="nro_medidor" maxlength="50" value="<?= esc($formData['nro_medidor'] ?? '', 'attr') ?>">

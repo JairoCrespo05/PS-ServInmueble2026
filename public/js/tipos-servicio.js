@@ -3,8 +3,9 @@
       const form = document.getElementById("service-form");
       const title = document.getElementById("modal-title");
       const nameInput = document.getElementById("service-name");
-      const categoryInput = document.getElementById("service-category");
+      const categoryInputs = [...document.querySelectorAll('#create-category-field input[name="categoria"]')];
       const editCategoryInput = document.getElementById("edit-service-category");
+      const editCategoryOptions = [...document.querySelectorAll('#edit-category-field input[name="categoria_sugerida"]')];
       const createCategoryField = document.getElementById("create-category-field");
       const editCategoryField = document.getElementById("edit-category-field");
       const unitInput = document.getElementById("service-unit");
@@ -17,7 +18,8 @@
         const editing = service !== null;
         createCategoryField.hidden = editing;
         editCategoryField.hidden = !editing;
-        categoryInput.disabled = editing;
+        createCategoryField.disabled = editing;
+        editCategoryField.disabled = !editing;
         editCategoryInput.disabled = !editing;
         unitInput.readOnly = !editing;
         unitHelp.hidden = editing;
@@ -25,8 +27,9 @@
         title.textContent = service ? "Modificar servicio" : "Nuevo servicio";
         form.querySelector('[type="submit"]').textContent = service ? "Guardar cambios" : "Registrar servicio";
         nameInput.value = service?.name ?? "";
-        categoryInput.value = "";
+        categoryInputs.forEach((option) => { option.checked = false; });
         editCategoryInput.value = service?.category ?? "";
+        editCategoryOptions.forEach((option) => { option.checked = option.value === editCategoryInput.value; });
         unitInput.value = service?.unit ?? "";
         providerInput.value = service?.provider ?? "";
         modal.classList.add("open");
@@ -34,8 +37,14 @@
         nameInput.focus();
       }
 
-      categoryInput.addEventListener("change", () => {
-        unitInput.value = categoryInput.selectedOptions[0]?.dataset.unit ?? "";
+      categoryInputs.forEach((option) => option.addEventListener("change", () => {
+        unitInput.value = option.dataset.unit;
+      }));
+      editCategoryOptions.forEach((option) => option.addEventListener("change", () => {
+        editCategoryInput.value = option.value;
+      }));
+      editCategoryInput.addEventListener("input", () => {
+        editCategoryOptions.forEach((option) => { option.checked = option.value === editCategoryInput.value; });
       });
 
       function closeModal() {

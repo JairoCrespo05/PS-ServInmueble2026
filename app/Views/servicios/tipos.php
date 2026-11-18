@@ -45,6 +45,7 @@ $formatError = static fn (string $field): string => isset($errors[$field])
   <link rel="stylesheet" href="<?= base_url('css/tipos-servicio.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/radio-options.css') ?>?v=1">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'tipos-servicio', 'isAdministrator' => true]) ?>
@@ -199,21 +200,26 @@ $formatError = static fn (string $field): string => isset($errors[$field])
             <input id="service-name" name="nombre" maxlength="100" required value="<?= esc($formData['nombre'] ?? '') ?>">
             <?= $formatError('nombre') ?>
           </div>
-          <div class="form-field" id="create-category-field"<?= $editId ? ' hidden' : '' ?>>
-            <label for="service-category">Categoria</label>
-            <select id="service-category" name="categoria" required<?= $editId ? ' disabled' : '' ?>>
-              <option value="">Seleccioná una categoría</option>
+          <fieldset class="form-field radio-field" id="create-category-field"<?= $editId ? ' hidden disabled' : '' ?>>
+            <legend>Categoría</legend>
+            <div class="radio-options">
               <?php foreach ($unidadesPorCategoria as $categoria => $unidad): ?>
-                <option value="<?= esc($categoria, 'attr') ?>" data-unit="<?= esc($unidad, 'attr') ?>"<?= ($formData['categoria'] ?? '') === $categoria ? ' selected' : '' ?>><?= esc($categoria) ?></option>
+                <label class="radio-option"><input type="radio" name="categoria" value="<?= esc($categoria, 'attr') ?>" data-unit="<?= esc($unidad, 'attr') ?>" required<?= ($formData['categoria'] ?? '') === $categoria ? ' checked' : '' ?>> <span><?= esc($categoria) ?></span></label>
               <?php endforeach ?>
-            </select>
+            </div>
             <?= $editId ? '' : $formatError('categoria') ?>
-          </div>
-          <div class="form-field" id="edit-category-field"<?= $editId ? '' : ' hidden' ?>>
-            <label for="edit-service-category">Categoria</label>
+          </fieldset>
+          <fieldset class="form-field radio-field" id="edit-category-field"<?= $editId ? '' : ' hidden disabled' ?>>
+            <legend>Categoría</legend>
+            <div class="radio-options">
+              <?php foreach ($unidadesPorCategoria as $categoria => $unidad): ?>
+                <label class="radio-option"><input type="radio" name="categoria_sugerida" value="<?= esc($categoria, 'attr') ?>"<?= ($formData['categoria'] ?? '') === $categoria ? ' checked' : '' ?>> <span><?= esc($categoria) ?></span></label>
+              <?php endforeach ?>
+            </div>
+            <label for="edit-service-category">O escribí otra categoría</label>
             <input id="edit-service-category" name="categoria" maxlength="100" required value="<?= esc($formData['categoria'] ?? '', 'attr') ?>"<?= $editId ? '' : ' disabled' ?>>
             <?= $editId ? $formatError('categoria') : '' ?>
-          </div>
+          </fieldset>
           <div class="form-field">
             <label for="service-unit">Unidad de medida estandar</label>
             <input id="service-unit" name="unidad_medida_std" maxlength="30" required value="<?= esc($formData['unidad_medida_std'] ?? '', 'attr') ?>"<?= $editId ? '' : ' readonly' ?> aria-describedby="unit-help">
@@ -234,6 +240,6 @@ $formatError = static fn (string $field): string => isset($errors[$field])
     </section>
   </div>
   <script src="<?= base_url('js/sidebar.js') ?>"></script>
-  <script src="<?= base_url('js/tipos-servicio.js') ?>"></script>
+  <script src="<?= base_url('js/tipos-servicio.js') ?>?v=1"></script>
 </body>
 </html>

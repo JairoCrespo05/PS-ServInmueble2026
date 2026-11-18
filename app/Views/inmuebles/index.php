@@ -7,6 +7,7 @@ $error       = session()->getFlashdata('error');
 $editId      = session()->getFlashdata('editId');
 $tipos       = array_values(array_unique(array_column($inmuebles, 'tipo')));
 $estados     = array_values(array_unique(array_column($inmuebles, 'estado')));
+$ciudades    = array_values(array_unique(array_column($inmuebles, 'ciudad')));
 $abrirModal  = $errors !== [];
 
 $esEstadoActivo = static fn ($estado): bool => in_array(mb_strtolower(trim((string) $estado)), ['activo', 'ocupado'], true);
@@ -23,6 +24,7 @@ $estadoOptions = array_values(array_filter($estadoOptions, static fn ($estado): 
 
 sort($tipos);
 sort($estados);
+sort($ciudades);
 
 $formatNumber = static fn ($value, int $decimals = 0): string => number_format((float) $value, $decimals, ',', '.');
 ?>
@@ -37,10 +39,10 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
-  <link rel="stylesheet" href="<?= base_url('css/inmuebles.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
-  <link rel="stylesheet" href="<?= base_url('css/inmuebles.css') ?>?v=2">
+  <link rel="stylesheet" href="<?= base_url('css/inmuebles.css') ?>?v=3">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/radio-options.css') ?>?v=1">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'inmuebles', 'isAdministrator' => false]) ?>
@@ -105,6 +107,10 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
           <div class="search-wrap"><span class="icon">search</span><input id="search-property" type="search" placeholder="Buscar por alias, calle o localidad..." autocomplete="off"></div>
         </div>
         <div class="field">
+          <label for="filter-city">Ciudad / localidad</label>
+          <select id="filter-city"><option value="">Todas las localidades</option><?php foreach ($ciudades as $ciudad): ?><option value="<?= esc(mb_strtolower($ciudad), 'attr') ?>"><?= esc($ciudad) ?></option><?php endforeach ?></select>
+        </div>
+        <div class="field">
           <label for="filter-type">Tipo</label>
           <select id="filter-type"><option value="">Todos los tipos</option><?php foreach ($tipos as $tipo): ?><option value="<?= esc(mb_strtolower($tipo), 'attr') ?>"><?= esc($tipo) ?></option><?php endforeach ?></select>
         </div>
@@ -112,16 +118,19 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
           <label for="filter-status">Estado</label>
           <select id="filter-status"><option value="">Todos los estados</option><?php foreach ($estados as $estado): ?><option value="<?= esc(mb_strtolower($estado), 'attr') ?>"><?= esc($estado) ?></option><?php endforeach ?></select>
         </div>
+        <div class="field">
+          <label for="filter-debt">Facturas pendientes</label>
+          <select id="filter-debt">
+            <option value="">Todas</option>
+            <option value="con">Con facturas pendientes</option>
+            <option value="sin">Sin facturas pendientes</option>
+          </select>
+        </div>
         <button class="filter-reset" id="reset-filters" type="button">Limpiar filtros</button>
       </section>
 
-      <section class="table-card" aria-label="Listado de inmuebles">
-        <div class="table-scroll">
-          <table>
-            <thead>
-              <tr><th>Propiedad / Alias</th><th>Direccion y localidad</th><th>Tipo</th><th>Superficie</th><th>Servicios asociados</th><th>Estado</th><th>Acciones</th></tr>
-            </thead>
-            <tbody id="property-rows">
+      <section class="property-list" aria-label="Listado de inmuebles">
+        <div class="property-grid">
               <?php foreach ($inmuebles as $inmueble): ?>
                 <?php
                   $serviciosActivos = array_filter(explode('|', (string) ($inmueble['nombres_servicios_activos'] ?? '')));
@@ -131,6 +140,7 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
                       default => 'storefront',
                   };
                   $claseEstado = $esEstadoActivo($inmueble['estado']) ? '' : ' inactive';
+                  $pendientes = $facturasPendientesPorInmueble[(int) $inmueble['id']] ?? 0;
                   $direccion = trim($inmueble['calle'] . ' ' . $inmueble['numero']
                       . ($inmueble['piso_dpto'] ? ', ' . $inmueble['piso_dpto'] : '')
                       . ', ' . $inmueble['ciudad']
@@ -155,20 +165,24 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
                       'servicios'             => $serviciosPorInmueble[$inmueble['id']] ?? [],
                   ];
                 ?>
-                <tr data-property-row data-search="<?= esc($searchText, 'attr') ?>" data-type="<?= esc(mb_strtolower($inmueble['tipo']), 'attr') ?>" data-status="<?= esc(mb_strtolower($inmueble['estado']), 'attr') ?>">
-                  <td><div class="property"><span class="property-icon icon"><?= esc($iconoTipo) ?></span><span><strong class="property-name"><?= esc($inmueble['alias_nombre']) ?></strong><span class="property-id">ID: INM-<?= esc(str_pad((string) $inmueble['id'], 4, '0', STR_PAD_LEFT)) ?></span></span></div></td>
-                  <td class="address"><?= esc($direccion) ?></td>
-                  <td><span class="type-tag"><?= esc($inmueble['tipo']) ?></span></td>
-                  <td><span class="area"><?= esc($formatNumber($inmueble['superficie'], 2)) ?> m²</span></td>
-                  <td class="services">
+                <article class="property-card" data-property-row data-search="<?= esc($searchText, 'attr') ?>" data-city="<?= esc(mb_strtolower($inmueble['ciudad']), 'attr') ?>" data-debt="<?= $pendientes > 0 ? 'con' : 'sin' ?>" data-type="<?= esc(mb_strtolower($inmueble['tipo']), 'attr') ?>" data-status="<?= esc(mb_strtolower($inmueble['estado']), 'attr') ?>">
+                  <div class="property-card-head">
+                    <div class="property"><span class="property-icon icon" aria-hidden="true"><?= esc($iconoTipo) ?></span><div data-export-value="<?= esc($inmueble['alias_nombre'] . ' - ID: INM-' . str_pad((string) $inmueble['id'], 4, '0', STR_PAD_LEFT), 'attr') ?>"><h2 class="property-name"><?= esc($inmueble['alias_nombre']) ?></h2><span class="property-id">ID: INM-<?= esc(str_pad((string) $inmueble['id'], 4, '0', STR_PAD_LEFT)) ?></span></div></div>
+                    <span class="status<?= esc($claseEstado, 'attr') ?>" data-export-status><?= esc($inmueble['estado']) ?></span>
+                  </div>
+                  <p class="address" data-export-value="<?= esc($direccion, 'attr') ?>"><?= esc($direccion) ?></p>
+                  <div class="property-card-meta">
+                    <span class="type-tag" data-export-value="<?= esc($inmueble['tipo'], 'attr') ?>"><?= esc($inmueble['tipo']) ?></span>
+                    <span class="area" data-export-value="<?= esc($formatNumber($inmueble['superficie'], 2) . ' m²', 'attr') ?>"><?= esc($formatNumber($inmueble['superficie'], 2)) ?> m²</span>
+                  </div>
+                  <div class="services" data-export-value="<?= esc($inmueble['servicios_activos'] . ' activos' . ($serviciosActivos === [] ? ' - Sin servicios activos' : ' - ' . implode(', ', array_slice($serviciosActivos, 0, 2)) . (count($serviciosActivos) > 2 ? ', +' . (count($serviciosActivos) - 2) : '')), 'attr') ?>">
                     <span class="services-count"><span class="icon" style="font-size:14px">power</span><?= esc($inmueble['servicios_activos']) ?> activos</span>
                     <span class="service-tags">
                       <?php foreach (array_slice($serviciosActivos, 0, 2) as $servicio): ?><span class="service-tag"><?= esc($servicio) ?></span><?php endforeach ?>
                       <?php if (count($serviciosActivos) > 2): ?><span class="service-tag">+<?= esc(count($serviciosActivos) - 2) ?></span><?php elseif ($serviciosActivos === []): ?><span class="service-tag">Sin servicios activos</span><?php endif ?>
                     </span>
-                  </td>
-                  <td><span class="status<?= esc($claseEstado, 'attr') ?>"><?= esc($inmueble['estado']) ?></span></td>
-                  <td>
+                  </div>
+                  <p class="property-debt"><?= $pendientes > 0 ? esc($pendientes) . ($pendientes === 1 ? ' factura pendiente' : ' facturas pendientes') : 'Sin facturas pendientes' ?></p>
                     <div class="row-actions">
                       <button
                         class="row-action"
@@ -202,16 +216,13 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
                         </form>
                       <?php endif ?>
                     </div>
-                  </td>
-                </tr>
+                </article>
               <?php endforeach ?>
-            </tbody>
-          </table>
-          <div class="empty" id="empty-state">No se encontraron inmuebles con esos filtros.</div>
         </div>
+        <div class="empty" id="empty-state"><?= $inmuebles === [] ? 'Todavía no registraste inmuebles.' : 'No se encontraron inmuebles con esos filtros.' ?></div>
         <footer class="table-footer">
-          <div><span id="result-summary"></span><span class="page-size">&nbsp; Filas por pagina:
-            <select id="page-size" aria-label="Filas por pagina"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select>
+          <div><span id="result-summary"></span><span class="page-size">&nbsp; Inmuebles por página:
+            <select id="page-size" aria-label="Inmuebles por página"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select>
           </span></div>
           <nav class="pagination" id="pagination" aria-label="Paginacion"></nav>
         </footer>
@@ -253,13 +264,15 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
             <input id="superficie" name="superficie" type="number" min="50" max="99999999.99" step="0.01" required value="<?= esc($formData['superficie'] ?? '', 'attr') ?>">
             <?php if (isset($errors['superficie'])): ?><span class="field-error"><?= esc($errors['superficie']) ?></span><?php endif ?>
           </div>
-          <div class="form-field">
-            <label for="estado">Estado</label>
-            <select id="estado" name="estado" required>
-              <?php foreach ($estadoOptions as $estado): ?><option value="<?= esc($estado, 'attr') ?>"<?= ($formData['estado'] ?? 'Activo') === $estado ? ' selected' : '' ?>><?= esc($estado) ?></option><?php endforeach ?>
-            </select>
+          <fieldset class="form-field radio-field">
+            <legend>Estado</legend>
+            <div class="radio-options">
+              <?php foreach ($estadoOptions as $estado): ?>
+                <label class="radio-option"><input type="radio" name="estado" value="<?= esc($estado, 'attr') ?>" required<?= ($formData['estado'] ?? 'Activo') === $estado ? ' checked' : '' ?>> <span><?= esc($estado) ?></span></label>
+              <?php endforeach ?>
+            </div>
             <?php if (isset($errors['estado'])): ?><span class="field-error"><?= esc($errors['estado']) ?></span><?php endif ?>
-          </div>
+          </fieldset>
           <p class="form-section-title">Direccion</p>
           <div class="form-field">
             <label for="calle">Calle</label>
@@ -321,6 +334,6 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
   </div>
 
   <script src="<?= base_url('js/sidebar.js') ?>"></script>
-  <script src="<?= base_url('js/inmuebles.js') ?>?v=3"></script>
+  <script src="<?= base_url('js/inmuebles.js') ?>?v=5"></script>
 </body>
 </html>

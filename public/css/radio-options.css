@@ -1,0 +1,13 @@
+.radio-field {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.radio-field[hidden] { display: none; }
+.radio-field legend { margin-bottom: 5px; padding: 0; color: var(--muted); font-size: 10px; font-weight: 600; }
+.radio-options { display: flex; flex-wrap: wrap; gap: 8px 12px; }
+.form-field .radio-option { display: inline-flex; align-items: center; gap: 5px; color: #263d4d; font-size: 11px; cursor: pointer; }
+.form-field .radio-option input[type="radio"] { width: 16px; height: 16px; min-height: 0; margin: 0; padding: 0; accent-color: #245b86; }
+.form-field .radio-option input[type="radio"]:focus-visible { outline: 2px solid #245b86; outline-offset: 2px; }

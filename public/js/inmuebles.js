@@ -2,6 +2,8 @@ const rows = [...document.querySelectorAll("[data-property-row]")];
 const searchInput = document.querySelector("#search-property");
 const typeFilter = document.querySelector("#filter-type");
 const statusFilter = document.querySelector("#filter-status");
+const cityFilter = document.querySelector("#filter-city");
+const debtFilter = document.querySelector("#filter-debt");
 const pageSize = document.querySelector("#page-size");
 const pagination = document.querySelector("#pagination");
 const resultSummary = document.querySelector("#result-summary");
@@ -12,10 +14,14 @@ function renderTable() {
   const query = searchInput.value.trim().toLocaleLowerCase("es");
   const type = typeFilter.value;
   const status = statusFilter.value;
+  const city = cityFilter.value;
+  const debt = debtFilter.value;
   const filtered = rows.filter((row) =>
     row.dataset.search.includes(query)
     && (!type || row.dataset.type === type)
     && (!status || row.dataset.status === status)
+    && (!city || row.dataset.city === city)
+    && (!debt || row.dataset.debt === debt)
   );
   const size = Number(pageSize.value);
   const pageCount = Math.max(1, Math.ceil(filtered.length / size));
@@ -47,7 +53,7 @@ function renderTable() {
   addPageButton("\u2192", Math.min(pageCount, currentPage + 1), currentPage === pageCount, false, "Página siguiente");
 }
 
-[searchInput, typeFilter, statusFilter].forEach((control) => control.addEventListener("input", () => {
+[searchInput, typeFilter, statusFilter, cityFilter, debtFilter].forEach((control) => control.addEventListener("input", () => {
   currentPage = 1;
   renderTable();
 }));
@@ -56,13 +62,18 @@ document.querySelector("#reset-filters").addEventListener("click", () => {
   searchInput.value = "";
   typeFilter.value = "";
   statusFilter.value = "";
+  cityFilter.value = "";
+  debtFilter.value = "";
   currentPage = 1;
   renderTable();
 });
 
 document.querySelector("#export-button").addEventListener("click", () => {
   const headers = ["Propiedad / Alias", "Direccion y localidad", "Tipo", "Superficie", "Servicios activos", "Estado"];
-  const data = rows.map((row) => [...row.cells].slice(0, 6).map((cell) => cell.innerText.trim()));
+  const data = rows.map((row) => [
+    ...[...row.querySelectorAll("[data-export-value]")].map((element) => element.dataset.exportValue),
+    row.querySelector("[data-export-status]").textContent.trim(),
+  ]);
   const csv = [headers, ...data].map((record) =>
     record.map((value) => `"${value.replaceAll('"', '""')}"`).join(";")
   ).join("\r\n");

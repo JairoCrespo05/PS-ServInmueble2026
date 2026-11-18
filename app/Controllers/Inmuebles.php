@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\FacturaModel;
 use CodeIgniter\HTTP\Exceptions\HTTPException;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -338,6 +339,7 @@ class Inmuebles extends BaseController
             'inmuebles'           => $inmuebles,
             'serviciosPorInmueble' => $serviciosPorInmueble,
             'resumen'             => $resumen,
+            'facturasPendientesPorInmueble' => (new FacturaModel())->countPendingByPropertyForOwner($usuarioId),
         ]);
     }
 

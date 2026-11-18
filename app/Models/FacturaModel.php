@@ -29,6 +29,29 @@ class FacturaModel extends Model
     protected $useTimestamps = true;
 
     /**
+     * @return array<int, int>
+     */
+    public function countPendingByPropertyForOwner(int $ownerId): array
+    {
+        $rows = $this->db->table('facturas f')
+            ->select('i.id AS inmueble_id, COUNT(f.id) AS pendientes')
+            ->join('inmueble_servicios isv', 'isv.id = f.inmueble_servicio_id')
+            ->join('inmuebles i', 'i.id = isv.inmueble_id')
+            ->where('i.usuario_id', $ownerId)
+            ->where('f.estado_factura', 'Pendiente')
+            ->groupBy('i.id')
+            ->get()
+            ->getResultArray();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[(int) $row['inmueble_id']] = (int) $row['pendientes'];
+        }
+
+        return $counts;
+    }
+
+    /**
      * @return list<array<string, mixed>>
      */
     public function findRecentForOwner(int $ownerId, int $limit = 5): array
