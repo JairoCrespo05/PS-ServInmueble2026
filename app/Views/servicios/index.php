@@ -199,7 +199,7 @@ $editandoAsociacion = $editAssociationId !== null;
                             };
                           ?>
                           <span class="tag<?= esc($estadoClase, 'attr') ?>">Vínculo: <?= esc($inmueble['estado_servicio'] ?? 'Desconocido') ?></span>
-                          <span class="tag">Inmueble: <?= esc($inmueble['estado_inmueble']) ?></span>
+                          <span class="tag">Inmueble: <?= esc($inmueble['estado_inmueble'] ?? 'Desconocido') ?><?= $inmueble['estado_actividad'] === 'Inactivo' ? ' (Dado de baja)' : '' ?></span>
                           <?php if ($inmueble['nro_medidor']): ?><span class="tag">Medidor: <?= esc($inmueble['nro_medidor']) ?></span><?php endif ?>
                         </div>
                       </div>
@@ -287,7 +287,7 @@ $editandoAsociacion = $editAssociationId !== null;
                       . ', ' . $inmueble['ciudad'],
                   );
                 ?>
-                <option value="<?= esc($inmueble['id'], 'attr') ?>"<?= (string) ($formData['inmueble_id'] ?? '') === (string) $inmueble['id'] ? ' selected' : '' ?>><?= esc($inmueble['alias_nombre']) ?> &mdash; <?= esc($direccion . ' (' . $inmueble['estado'] . ')') ?></option>
+                <option value="<?= esc($inmueble['id'], 'attr') ?>"<?= (string) ($formData['inmueble_id'] ?? '') === (string) $inmueble['id'] ? ' selected' : '' ?>><?= esc($inmueble['alias_nombre']) ?> &mdash; <?= esc($direccion . ' (' . ($inmueble['estado'] ?? 'Desconocido') . ($inmueble['estado_actividad'] === 'Inactivo' ? ', dado de baja' : '') . ')') ?></option>
               <?php endforeach ?>
             </select>
             <?php if (isset($errors['inmueble_id'])): ?><span class="field-error"><?= esc($errors['inmueble_id']) ?></span><?php endif ?>

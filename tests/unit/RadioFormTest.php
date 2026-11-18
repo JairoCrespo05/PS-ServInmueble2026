@@ -14,11 +14,23 @@ final class RadioFormTest extends CIUnitTestCase
         $xpath = $this->renderXPath('inmuebles/index', [
             'inmuebles' => [],
             'facturasPendientesPorInmueble' => [],
-            'resumen' => ['total' => 0, 'activos' => 0, 'superficie_total' => 0, 'servicios_activos' => 0],
+            'resumen' => ['total' => 0, 'disponibles' => 0, 'superficie_total' => 0, 'servicios_activos' => 0],
         ]);
 
         $this->assertSame(1, $xpath->query('//fieldset[legend="Estado"]//input[@type="radio" and @name="estado" and @value="Ocupado" and @checked]')->length);
+        $this->assertSame(3, $xpath->query('//fieldset[legend="Estado"]//input[@type="radio" and @name="estado"]')->length);
+        $this->assertSame(0, $xpath->query('//fieldset[legend="Estado"]//input[@value="Activo" or @value="Inactivo"]')->length);
         $this->assertSame(0, $xpath->query('//select[@name="estado"]')->length);
+    }
+
+    public function testNewPropertyDefaultsToDisponible(): void
+    {
+        $xpath = $this->renderXPath('inmuebles/index', [
+            'inmuebles' => [],
+            'facturasPendientesPorInmueble' => [],
+            'resumen' => ['total' => 0, 'disponibles' => 0, 'superficie_total' => 0, 'servicios_activos' => 0],
+        ]);
+        $this->assertSame(1, $xpath->query('//input[@name="estado" and @value="Disponible" and @checked]')->length);
     }
 
     public function testAssociationStatusRetainsSubmittedValue(): void

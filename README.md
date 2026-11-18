@@ -55,6 +55,32 @@ El pago registra fecha, monto total y medio de pago; no admite pagos parciales n
 Al registrar o modificar un inmueble, su superficie debe ser de al menos
 50 m². Esta validación no modifica registros existentes.
 
+### Estado de los inmuebles
+
+Los estados seleccionables son `Disponible`, `Ocupado` y `En Mantenimiento`;
+al registrar uno nuevo se propone `Disponible`. La columna `estado_actividad`
+separa la vigencia (`Activo` o `Inactivo`) de esa situación. La baja lógica
+cambia únicamente la actividad y conserva la situación y el historial. Para
+reactivar un inmueble dado de baja, al modificarlo se debe elegir o conservar
+una situación válida y confirmar la reactivación. Sus vínculos vigentes y
+activos pueden volver a admitir facturas nuevas.
+
+La migración `ConvertirEstadoActivoInmuebles` convierte los inmuebles con
+estado anterior `Activo` a `Disponible` y traslada las bajas a
+`estado_actividad = Inactivo`. Como su situación anterior se perdió, se guarda
+`Desconocido` solamente para esas bajas históricas; al reactivarlas es
+obligatorio elegir una de las tres situaciones. Si encuentra valores no
+reconocidos o incompatibles, se detiene para su revisión. No
+admite reversión automática, porque no puede distinguir los inmuebles que ya
+eran disponibles; antes de aplicarla, revise los registros y prepare una copia
+de seguridad. Después de convertirlos, el propietario debe corregir los que
+en realidad estén ocupados o en mantenimiento.
+Antes de ejecutar `php spark migrate`, revise las migraciones pendientes: el
+comando aplica todas las pendientes, no solo esta conversión.
+En MySQL/MariaDB, la nueva columna es obligatoria y tiene `Activo` por defecto.
+En SQLite queda nullable para evitar una reconstrucción de tabla que puede
+dañar las claves foráneas; la aplicación siempre la establece al crear.
+
 ### Estado operativo de un vínculo
 
 Cada vínculo entre inmueble y servicio tiene un estado operativo propio:

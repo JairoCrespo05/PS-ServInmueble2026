@@ -37,7 +37,7 @@ class Inmuebles extends BaseController
             'alias_nombre' => 'required|max_length[150]',
             'tipo'         => 'required|max_length[100]|in_list[Casa,Departamento,Local comercial,Oficina,Galpón,local comercial,casa,departamento,oficina,galpón]',
             'superficie'   => 'required|decimal|greater_than_equal_to[50]|less_than_equal_to[99999999.99]',
-            'estado'       => 'required|in_list[Activo,Inactivo,Ocupado,Disponible,En Mantenimiento,ocupado,disponible,en mantenimiento]',
+            'estado'       => 'required|in_list[Ocupado,Disponible,En Mantenimiento,ocupado,disponible,en mantenimiento]',
             'calle'        => 'required|max_length[150]',
             'numero'       => 'required|max_length[20]',
             'piso_dpto'    => 'permit_empty|max_length[50]',
@@ -67,6 +67,9 @@ class Inmuebles extends BaseController
             ],
             'superficie' => [
                 'greater_than_equal_to' => 'La superficie debe ser de al menos 50 m².',
+            ],
+            'estado' => [
+                'in_list' => 'Elegí Disponible, Ocupado o En Mantenimiento.',
             ],
             'provincia' => [
                 'required' => 'Seleccioná una provincia.',
@@ -240,9 +243,9 @@ class Inmuebles extends BaseController
         };
     }
 
-    private function isEstadoActivo(?string $estado): bool
+    private function isEstadoDisponible(?string $estado): bool
     {
-        return in_array(mb_strtolower(trim((string) $estado)), ['activo', 'ocupado'], true);
+        return mb_strtolower(trim((string) $estado)) === 'disponible';
     }
 
     public function index(): string
@@ -258,6 +261,7 @@ class Inmuebles extends BaseController
                 'i.tipo',
                 'i.superficie',
                 'i.estado',
+                'i.estado_actividad',
                 'i.created_at AS inmueble_created_at',
                 'i.updated_at AS inmueble_updated_at',
                 'i.direccion_id',
@@ -281,6 +285,7 @@ class Inmuebles extends BaseController
                 'i.tipo',
                 'i.superficie',
                 'i.estado',
+                'i.estado_actividad',
                 'i.created_at',
                 'i.updated_at',
                 'i.direccion_id',
@@ -331,7 +336,7 @@ class Inmuebles extends BaseController
 
         $resumen = [
             'total'             => count($inmuebles),
-            'activos'           => count(array_filter($inmuebles, fn (array $inmueble): bool => $this->isEstadoActivo($inmueble['estado']))),
+            'disponibles'       => count(array_filter($inmuebles, fn (array $inmueble): bool => $inmueble['estado_actividad'] === 'Activo' && $this->isEstadoDisponible($inmueble['estado']))),
             'superficie_total'  => array_sum(array_column($inmuebles, 'superficie')),
             'servicios_activos' => array_sum(array_column($inmuebles, 'servicios_activos')),
         ];
@@ -443,6 +448,7 @@ class Inmuebles extends BaseController
             'tipo'         => trim($formData['tipo']),
             'superficie'   => $formData['superficie'],
             'estado'       => $formData['estado'],
+            'estado_actividad' => 'Activo',
             'usuario_id'   => $usuarioId,
             'direccion_id' => $direccionId,
             'created_at'   => $now,
@@ -479,7 +485,15 @@ class Inmuebles extends BaseController
 
         $submittedData = $this->submittedInmuebleData();
 
-        if (! $this->validateInmuebleData($submittedData)) {
+        $reactivating = $inmueble['estado_actividad'] === 'Inactivo';
+        $submittedData['reactivar_inmueble'] = $this->request->getPost('reactivar_inmueble') === '1' ? '1' : '';
+        $valid = $this->validateInmuebleData($submittedData);
+        if ($reactivating && $submittedData['reactivar_inmueble'] !== '1') {
+            $this->validator->setError('reactivar_inmueble', 'Confirmá que querés reactivar el inmueble.');
+            $valid = false;
+        }
+
+        if (! $valid) {
             return redirect()->to(site_url('inmuebles'))
                 ->withInput()
                 ->with('errors', $this->validator->getErrors())
@@ -509,7 +523,7 @@ class Inmuebles extends BaseController
                 'superficie'   => $formData['superficie'],
                 'estado'       => $formData['estado'],
                 'updated_at'   => $now,
-            ]);
+            ] + ($reactivating ? ['estado_actividad' => 'Activo'] : []));
         $db->transComplete();
 
         if (! $db->transStatus()) {
@@ -545,7 +559,7 @@ class Inmuebles extends BaseController
         $db->table('inmuebles')
             ->where('id', $id)
             ->update([
-                'estado' => 'Inactivo',
+                'estado_actividad' => 'Inactivo',
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
         $db->transComplete();

@@ -29,7 +29,7 @@ class InmuebleServicioModel extends Model
         return $this->db->table('inmueble_servicios isv')
             ->join('inmuebles i', 'i.id = isv.inmueble_id')
             ->where('i.usuario_id', $ownerId)
-            ->where("LOWER(TRIM(i.estado)) != 'inactivo'", null, false)
+            ->where('i.estado_actividad', 'Activo')
             ->where("LOWER(TRIM(isv.estado)) != 'inactivo'", null, false)
             ->where('isv.estado_vinculacion', 'Activo');
     }

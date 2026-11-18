@@ -111,7 +111,7 @@ foreach ($recentInvoices ?? [] as $invoice) {
         $summaryPropertyStates = [];
         $summaryAccountStates = [];
         foreach ($propertySummary as $summaryProperty) {
-            $propertyState = trim((string) $summaryProperty['estado']);
+            $propertyState = $summaryProperty['estado_actividad'] === 'Inactivo' ? 'Dado de baja' : trim((string) $summaryProperty['estado']);
             $accountState = trim((string) $summaryProperty['usuario_estado']);
             $summaryPropertyStates[mb_strtolower($propertyState)] = $propertyState;
             $summaryAccountStates[mb_strtolower($accountState)] = $accountState;
@@ -195,14 +195,14 @@ foreach ($recentInvoices ?? [] as $invoice) {
                   <?php foreach ($propertySummary as $property): ?>
                     <tr
                       data-summary-row
-                      data-property-state="<?= esc(mb_strtolower(trim((string) $property['estado'])), 'attr') ?>"
+                      data-property-state="<?= esc(mb_strtolower($property['estado_actividad'] === 'Inactivo' ? 'Dado de baja' : trim((string) $property['estado'])), 'attr') ?>"
                       data-account-state="<?= esc(mb_strtolower(trim((string) $property['usuario_estado'])), 'attr') ?>"
                     >
                       <td>
                         <strong><?= esc($property['alias_nombre']) ?></strong>
                         <br><small><?= esc($property['tipo']) ?></small>
                       </td>
-                      <td><?= esc($property['estado']) ?></td>
+                      <td><?= esc($property['estado'] ?? 'Desconocido') ?><?= $property['estado_actividad'] === 'Inactivo' ? ' (Dado de baja)' : '' ?></td>
                       <td>
                         <?= esc($property['usuario_nombre']) ?>
                         <?php if ($property['usuario_rol'] !== null): ?>

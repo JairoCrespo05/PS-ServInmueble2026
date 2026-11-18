@@ -275,6 +275,7 @@ public function gestionar(): string
             'i.alias_nombre',
             'i.tipo',
             'i.estado AS estado_inmueble',
+            'i.estado_actividad',
             'd.calle',
             'd.numero',
             'd.piso_dpto',
@@ -309,6 +310,7 @@ public function gestionar(): string
             'alias_nombre'          => $fila['alias_nombre'],
             'tipo'                  => $fila['tipo'],
             'estado_inmueble'       => $fila['estado_inmueble'],
+            'estado_actividad'      => $fila['estado_actividad'],
             'estado_servicio'       => $fila['estado_servicio'],
             'nro_medidor'           => $fila['nro_medidor'],
             'titular_inmueble'      => $fila['titular_inmueble'],
@@ -338,6 +340,7 @@ public function gestionar(): string
             'i.alias_nombre',
             'i.tipo',
             'i.estado',
+            'i.estado_actividad',
             'd.calle',
             'd.numero',
             'd.piso_dpto',
@@ -412,7 +415,7 @@ public function gestionar(): string
         $servicioId = (int) $submittedData['servicio_id'];
         $inmuebleId = (int) $submittedData['inmueble_id'];
         $servicioExiste = $db->table('servicios')->where('id', $servicioId)->countAllResults() > 0;
-        $inmueble = $db->table('inmuebles')->select('estado')->where('id', $inmuebleId)->where('usuario_id', $this->currentUserId())->get()->getRowArray();
+        $inmueble = $db->table('inmuebles')->select('estado_actividad')->where('id', $inmuebleId)->where('usuario_id', $this->currentUserId())->get()->getRowArray();
 
         if (! $servicioExiste || $inmueble === null) {
             return redirect()->to(site_url('servicios/asociaciones'))
@@ -422,7 +425,7 @@ public function gestionar(): string
                 ->with('error', 'El servicio o el inmueble seleccionado ya no existe o no te pertenece.');
         }
 
-        if ($submittedData['estado_vinculacion'] === 'Activo' && mb_strtolower(trim($inmueble['estado'])) === 'inactivo') {
+        if ($submittedData['estado_vinculacion'] === 'Activo' && $inmueble['estado_actividad'] !== 'Activo') {
             return redirect()->to(site_url('servicios/asociaciones'))
                 ->withInput()
                 ->with('formData', $submittedData)
@@ -520,7 +523,7 @@ public function gestionar(): string
         }
 
         $inmueble = db_connect()->table('inmuebles')
-            ->select('estado')
+            ->select('estado_actividad')
             ->where('id', $asociacion['inmueble_id'])
             ->where('usuario_id', $this->currentUserId())
             ->get()
@@ -533,7 +536,7 @@ public function gestionar(): string
 
         if ($submittedData['estado_vinculacion'] === 'Activo'
             && $asociacion['estado_vinculacion'] !== 'Activo'
-            && mb_strtolower(trim($inmueble['estado'])) === 'inactivo') {
+            && $inmueble['estado_actividad'] !== 'Activo') {
             return redirect()->to(site_url('servicios/asociaciones'))
                 ->withInput()
                 ->with('formData', $submittedData)

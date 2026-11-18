@@ -169,7 +169,7 @@ class UserModel extends Model
     public function findPropertiesForUser(int $userId): array
     {
         return $this->db->table('inmuebles i')
-            ->select('i.id, i.alias_nombre, i.tipo, i.superficie, i.estado, d.calle, d.numero, d.piso_dpto, d.provincia, d.ciudad')
+            ->select('i.id, i.alias_nombre, i.tipo, i.superficie, i.estado, i.estado_actividad, d.calle, d.numero, d.piso_dpto, d.provincia, d.ciudad')
             ->join('direcciones d', 'd.id = i.direccion_id')
             ->where('i.usuario_id', $userId)
             ->orderBy('i.id', 'DESC')

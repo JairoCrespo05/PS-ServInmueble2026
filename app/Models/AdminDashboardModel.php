@@ -17,6 +17,7 @@ class AdminDashboardModel extends Model
                 'i.alias_nombre',
                 'i.tipo',
                 'i.estado AS estado_inmueble',
+                'i.estado_actividad',
                 'i.usuario_id',
                 'u.nombre AS usuario_nombre',
                 'u.apellido AS usuario_apellido',
@@ -49,6 +50,7 @@ class AdminDashboardModel extends Model
                     'alias_nombre' => $row['alias_nombre'],
                     'tipo' => $row['tipo'],
                     'estado' => $row['estado_inmueble'],
+                    'estado_actividad' => $row['estado_actividad'],
                     'usuario_nombre' => $hasOwner
                         ? trim((string) $row['usuario_nombre'] . ' ' . (string) $row['usuario_apellido'])
                         : 'Sin usuario asignado',

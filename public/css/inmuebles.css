@@ -34,6 +34,9 @@ h1 { margin-bottom: 5px; color: var(--navy); font: 700 clamp(24px, 2.4vw, 34px)/
 .button.primary:hover { background: var(--navy); }
 .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
 .stat { display: flex; min-height: 132px; align-items: center; justify-content: space-between; gap: 12px; border-radius: 14px; padding: 20px; background: var(--surface); box-shadow: 0 1px 4px rgb(16 42 67 / 5%); }
+.stat-filter { width: 100%; border: 1px solid transparent; text-align: left; }
+.stat-filter:hover, .stat-filter[aria-pressed="true"] { border-color: #9dceff; background: #f7fbff; }
+.stat-filter:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 .stat-label { display: block; color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .stat-value { display: block; margin-top: 8px; color: var(--navy); font: 700 30px/1 Manrope, sans-serif; }
 .stat-note { display: block; margin-top: 8px; color: var(--muted); font-size: 10px; }
@@ -113,6 +116,11 @@ tbody tr:hover { background: #fbfdff; }
 .form-field label { color: var(--muted); font-size: 10px; font-weight: 600; }
 .form-field input, .form-field select { min-height: 38px; border: 1px solid var(--line); border-radius: 7px; padding: 0 10px; background: white; color: #263d4d; font-size: 11px; }
 .field-error { color: #b42318; font-size: 10px; }
+.reactivation-warning { border: 1px solid #e8c978; border-radius: 8px; padding: 10px; background: #fff8e6; }
+.reactivation-warning[hidden] { display: none; }
+.reactivation-warning label { display: flex; align-items: flex-start; gap: 8px; color: var(--navy); font-size: 11px; }
+.reactivation-warning input { min-height: 0; margin: 0; }
+.reactivation-warning small { color: #72521a; font-size: 10px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line); padding: 13px 20px; }
 #create-modal .modal-actions { position: sticky; bottom: 0; z-index: 1; background: white; }
 .details-modal { width: min(760px, 100%); }

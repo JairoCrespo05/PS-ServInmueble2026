@@ -14,6 +14,7 @@ class InmuebleModel extends Model
         'tipo',
         'superficie',
         'estado',
+        'estado_actividad',
         'direccion_id',
         'usuario_id'
     ];

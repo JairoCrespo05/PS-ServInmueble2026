@@ -67,7 +67,7 @@
                     <td><?= esc($property['alias_nombre']) ?></td>
                     <td><?= esc($property['tipo']) ?></td>
                     <td><?= esc($property['superficie']) ?> m²</td>
-                    <td><?= esc($property['estado']) ?></td>
+                    <td><?= esc($property['estado'] ?? 'Desconocido') ?><?= $property['estado_actividad'] === 'Inactivo' ? ' (Dado de baja)' : '' ?></td>
                     <td>
                       <?= esc(trim($property['calle'] . ' ' . $property['numero'])) ?>
                       <?= esc($property['piso_dpto'] ?? '') ?>

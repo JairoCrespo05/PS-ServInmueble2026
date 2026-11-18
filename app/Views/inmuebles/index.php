@@ -6,21 +6,19 @@ $success     = session()->getFlashdata('success');
 $error       = session()->getFlashdata('error');
 $editId      = session()->getFlashdata('editId');
 $tipos       = array_values(array_unique(array_column($inmuebles, 'tipo')));
-$estados     = array_values(array_unique(array_column($inmuebles, 'estado')));
+$estados     = array_values(array_unique(array_filter(array_column($inmuebles, 'estado'), static fn ($estado): bool => $estado !== null && $estado !== '' && $estado !== 'Desconocido')));
 $ciudades    = array_values(array_unique(array_column($inmuebles, 'ciudad')));
 $abrirModal  = $errors !== [];
 
-$esEstadoActivo = static fn ($estado): bool => in_array(mb_strtolower(trim((string) $estado)), ['activo', 'ocupado'], true);
-$estadoOptions  = array_values(array_unique([
-    'Activo',
-    'Inactivo',
-    'Ocupado',
-    'Disponible',
-    'En Mantenimiento',
-    ...$estados,
-    $formData['estado'] ?? '',
-]));
-$estadoOptions = array_values(array_filter($estadoOptions, static fn ($estado): bool => $estado !== ''));
+$estadoOptions = ['Disponible', 'Ocupado', 'En Mantenimiento'];
+$estadoVisible = static fn ($estado): string => $estado === null || $estado === '' ? 'Desconocido' : (string) $estado;
+$editInactivo = false;
+foreach ($inmuebles as $inmueble) {
+    if ($editId && (int) $inmueble['id'] === (int) $editId) {
+        $editInactivo = $inmueble['estado_actividad'] === 'Inactivo';
+        break;
+    }
+}
 
 sort($tipos);
 sort($estados);
@@ -40,7 +38,7 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
-  <link rel="stylesheet" href="<?= base_url('css/inmuebles.css') ?>?v=5">
+  <link rel="stylesheet" href="<?= base_url('css/inmuebles.css') ?>?v=8">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/radio-options.css') ?>?v=1">
 </head>
@@ -83,22 +81,22 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
       <?php endif ?>
 
       <section class="summary" aria-label="Resumen de inmuebles">
-        <article class="stat">
+        <button class="stat stat-filter" type="button" data-summary-filter="all" aria-pressed="true" aria-controls="property-list">
           <div><span class="stat-label">Total de inmuebles</span><strong class="stat-value"><?= esc($resumen['total']) ?></strong><span class="stat-note">Registros en la base de datos</span></div>
-          <span class="stat-icon icon">apartment</span>
-        </article>
-        <article class="stat">
-          <div><span class="stat-label">Inmuebles activos</span><strong class="stat-value"><?= esc($resumen['activos']) ?></strong><span class="stat-note">Segun el estado registrado</span></div>
-          <span class="stat-icon icon">verified</span>
-        </article>
+          <span class="stat-icon icon" aria-hidden="true">apartment</span>
+        </button>
+        <button class="stat stat-filter" type="button" data-summary-filter="available" aria-pressed="false" aria-controls="property-list">
+          <div><span class="stat-label">Inmuebles disponibles</span><strong class="stat-value"><?= esc($resumen['disponibles']) ?></strong><span class="stat-note">Estado Disponible</span></div>
+          <span class="stat-icon icon" aria-hidden="true">verified</span>
+        </button>
         <article class="stat">
           <div><span class="stat-label">Superficie total</span><strong class="stat-value"><?= esc($formatNumber($resumen['superficie_total'], 2)) ?></strong><span class="stat-note">Metros cuadrados registrados</span></div>
           <span class="stat-icon icon">square_foot</span>
         </article>
-        <article class="stat">
-          <div><span class="stat-label">Servicios activos</span><strong class="stat-value"><?= esc($resumen['servicios_activos']) ?></strong><span class="stat-note">Vinculados a los inmuebles</span></div>
-          <span class="stat-icon icon">power</span>
-        </article>
+        <button class="stat stat-filter" type="button" data-summary-filter="services" aria-pressed="false" aria-controls="property-list">
+          <div><span class="stat-label">Servicios activos</span><strong class="stat-value"><?= esc($resumen['servicios_activos']) ?></strong><span class="stat-note">Vínculos activos en inmuebles</span></div>
+          <span class="stat-icon icon" aria-hidden="true">power</span>
+        </button>
       </section>
 
       <section class="filters" aria-label="Buscar y filtrar inmuebles">
@@ -116,7 +114,7 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
         </div>
         <div class="field">
           <label for="filter-status">Estado</label>
-          <select id="filter-status"><option value="">Todos los estados</option><?php foreach ($estados as $estado): ?><option value="<?= esc(mb_strtolower($estado), 'attr') ?>"><?= esc($estado) ?></option><?php endforeach ?></select>
+          <select id="filter-status"><option value="">Todos los estados</option><?php foreach ($estados as $estado): ?><option value="<?= esc(mb_strtolower(trim($estado)), 'attr') ?>"><?= esc($estadoVisible($estado)) ?></option><?php endforeach ?><option value="baja">Dado de baja</option></select>
         </div>
         <div class="field">
           <label for="filter-debt">Facturas pendientes</label>
@@ -129,7 +127,7 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
         <button class="filter-reset" id="reset-filters" type="button">Limpiar filtros</button>
       </section>
 
-      <section class="property-list" aria-label="Listado de inmuebles">
+      <section class="property-list" id="property-list" aria-label="Listado de inmuebles">
         <div class="property-grid">
               <?php foreach ($inmuebles as $inmueble): ?>
                 <?php
@@ -139,7 +137,8 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
                       'departamento' => 'apartment',
                       default => 'storefront',
                   };
-                  $claseEstado = $esEstadoActivo($inmueble['estado']) ? '' : ' inactive';
+                  $inactivo = $inmueble['estado_actividad'] === 'Inactivo';
+                  $claseEstado = $inmueble['estado_actividad'] === 'Activo' && in_array(mb_strtolower(trim((string) $inmueble['estado'])), ['disponible', 'ocupado'], true) ? '' : ' inactive';
                   $pendientes = $facturasPendientesPorInmueble[(int) $inmueble['id']] ?? 0;
                   $direccion = trim($inmueble['calle'] . ' ' . $inmueble['numero']
                       . ($inmueble['piso_dpto'] ? ', ' . $inmueble['piso_dpto'] : '')
@@ -151,7 +150,8 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
                       'alias_nombre'          => $inmueble['alias_nombre'],
                       'tipo'                  => $inmueble['tipo'],
                       'superficie'            => $inmueble['superficie'],
-                      'estado'                => $inmueble['estado'],
+                      'estado'                => $inactivo ? null : $estadoVisible($inmueble['estado']),
+                      'estado_actividad'      => $inmueble['estado_actividad'],
                       'direccion_id'          => $inmueble['direccion_id'],
                       'calle'                 => $inmueble['calle'],
                       'numero'                => $inmueble['numero'],
@@ -165,10 +165,11 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
                       'servicios'             => $serviciosPorInmueble[$inmueble['id']] ?? [],
                   ];
                 ?>
-                <article class="property-card" data-property-row data-search="<?= esc($searchText, 'attr') ?>" data-city="<?= esc(mb_strtolower($inmueble['ciudad']), 'attr') ?>" data-debt="<?= $pendientes > 0 ? 'con' : 'sin' ?>" data-type="<?= esc(mb_strtolower($inmueble['tipo']), 'attr') ?>" data-status="<?= esc(mb_strtolower($inmueble['estado']), 'attr') ?>">
+                <article class="property-card" data-property-row data-search="<?= esc($searchText, 'attr') ?>" data-city="<?= esc(mb_strtolower($inmueble['ciudad']), 'attr') ?>" data-debt="<?= $pendientes > 0 ? 'con' : 'sin' ?>" data-type="<?= esc(mb_strtolower($inmueble['tipo']), 'attr') ?>" data-status="<?= esc(mb_strtolower(trim((string) $inmueble['estado'])), 'attr') ?>" data-export-status="<?= esc($estadoVisible($inmueble['estado']), 'attr') ?>" data-activity="<?= esc($inmueble['estado_actividad'], 'attr') ?>" data-active-services="<?= (int) $inmueble['servicios_activos'] ?>">
                   <div class="property-card-head">
                     <div class="property"><span class="property-icon icon" aria-hidden="true"><?= esc($iconoTipo) ?></span><div data-export-value="<?= esc($inmueble['alias_nombre'] . ' - ID: INM-' . str_pad((string) $inmueble['id'], 4, '0', STR_PAD_LEFT), 'attr') ?>"><h2 class="property-name"><?= esc($inmueble['alias_nombre']) ?></h2><span class="property-id">ID: INM-<?= esc(str_pad((string) $inmueble['id'], 4, '0', STR_PAD_LEFT)) ?></span></div></div>
-                    <span class="status<?= esc($claseEstado, 'attr') ?>" data-export-status><?= esc($inmueble['estado']) ?></span>
+                    <?php if (! $inactivo): ?><span class="status<?= esc($claseEstado, 'attr') ?>"><?= esc($estadoVisible($inmueble['estado'])) ?></span><?php endif ?>
+                    <?php if ($inactivo): ?><span class="status inactive">Dado de baja</span><?php endif ?>
                   </div>
                   <p class="address" data-export-value="<?= esc($direccion, 'attr') ?>"><?= esc($direccion) ?></p>
                   <div class="property-card-meta">
@@ -202,14 +203,15 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
                         data-alias="<?= esc($inmueble['alias_nombre'], 'attr') ?>"
                         data-tipo="<?= esc($inmueble['tipo'], 'attr') ?>"
                         data-superficie="<?= esc($inmueble['superficie'], 'attr') ?>"
-                        data-estado="<?= esc($inmueble['estado'], 'attr') ?>"
+                        data-estado="<?= esc($inmueble['estado'] ?? '', 'attr') ?>"
+                        data-actividad="<?= esc($inmueble['estado_actividad'], 'attr') ?>"
                         data-calle="<?= esc($inmueble['calle'], 'attr') ?>"
                         data-numero="<?= esc($inmueble['numero'], 'attr') ?>"
                         data-piso="<?= esc($inmueble['piso_dpto'] ?? '', 'attr') ?>"
                         data-provincia="<?= esc($inmueble['provincia'] ?? '', 'attr') ?>"
                         data-ciudad="<?= esc($inmueble['ciudad'], 'attr') ?>"
                       ><span class="icon" aria-hidden="true">edit</span><span class="visually-hidden">Modificar inmueble</span></button>
-                      <?php if (mb_strtolower(trim($inmueble['estado'])) !== 'inactivo'): ?>
+                      <?php if ($inmueble['estado_actividad'] === 'Activo'): ?>
                         <form method="post" action="<?= site_url('inmuebles/' . $inmueble['id'] . '/baja') ?>" data-deactivate-form>
                           <?= csrf_field() ?>
                           <button class="row-action danger" type="submit" aria-label="Dar de baja <?= esc($inmueble['alias_nombre'], 'attr') ?>" title="Dar de baja"><span class="icon" aria-hidden="true">person_off</span><span class="visually-hidden">Dar de baja</span></button>
@@ -268,11 +270,16 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
             <legend>Estado</legend>
             <div class="radio-options">
               <?php foreach ($estadoOptions as $estado): ?>
-                <label class="radio-option"><input type="radio" name="estado" value="<?= esc($estado, 'attr') ?>" required<?= ($formData['estado'] ?? 'Activo') === $estado ? ' checked' : '' ?>> <span><?= esc($estado) ?></span></label>
+                <label class="radio-option"><input type="radio" name="estado" value="<?= esc($estado, 'attr') ?>" required<?= ($formData['estado'] ?? ($editId ? '' : 'Disponible')) === $estado ? ' checked' : '' ?>> <span><?= esc($estado) ?></span></label>
               <?php endforeach ?>
             </div>
             <?php if (isset($errors['estado'])): ?><span class="field-error"><?= esc($errors['estado']) ?></span><?php endif ?>
           </fieldset>
+          <div class="form-field full reactivation-warning" id="reactivation-warning"<?= $editInactivo ? '' : ' hidden' ?>>
+            <label><input type="checkbox" id="reactivar-inmueble" name="reactivar_inmueble" value="1"<?= $editInactivo ? ' required' : ' disabled' ?><?= ($formData['reactivar_inmueble'] ?? '') === '1' ? ' checked' : '' ?>> Confirmo que quiero reactivar este inmueble dado de baja.</label>
+            <small>Al reactivarlo, sus vínculos vigentes y activos pueden volver a admitir facturas nuevas.</small>
+            <?php if (isset($errors['reactivar_inmueble'])): ?><span class="field-error" role="alert"><?= esc($errors['reactivar_inmueble']) ?></span><?php endif ?>
+          </div>
           <p class="form-section-title">Direccion</p>
           <div class="form-field">
             <label for="calle">Calle</label>
@@ -334,6 +341,6 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
   </div>
 
   <script src="<?= base_url('js/sidebar.js') ?>"></script>
-  <script src="<?= base_url('js/inmuebles.js') ?>?v=7"></script>
+  <script src="<?= base_url('js/inmuebles.js') ?>?v=12"></script>
 </body>
 </html>

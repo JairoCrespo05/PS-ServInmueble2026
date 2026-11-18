@@ -205,7 +205,7 @@ final class ServiceListingTest extends CIUnitTestCase
         $data = [
             'alias_nombre' => 'Inmueble de prueba',
             'tipo' => 'Casa',
-            'estado' => 'Activo',
+            'estado' => 'Disponible',
             'calle' => 'Calle de prueba',
             'numero' => '123',
             'piso_dpto' => '',

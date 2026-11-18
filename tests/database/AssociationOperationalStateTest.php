@@ -4,6 +4,7 @@ use App\Database\Migrations\AddEstadoVinculacion;
 use App\Database\Migrations\AddProvinciaToDirecciones;
 use App\Database\Migrations\AddUserManagementState;
 use App\Database\Migrations\CreateServiInmuebleSchema;
+use App\Database\Migrations\ConvertirEstadoActivoInmuebles;
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\FeatureTestTrait;
 use CodeIgniter\Security\Exceptions\SecurityException;
@@ -13,6 +14,7 @@ require_once APPPATH . 'Database/Migrations/2026-11-10-214318_CreateServiInmuebl
 require_once APPPATH . 'Database/Migrations/2026-11-14-020000_AddUserManagementState.php';
 require_once APPPATH . 'Database/Migrations/2026-11-17-190000_AddProvinciaToDirecciones.php';
 require_once APPPATH . 'Database/Migrations/2026-11-18-180000_AddEstadoVinculacion.php';
+require_once APPPATH . 'Database/Migrations/2026-11-18-190000_ConvertirEstadoActivoInmuebles.php';
 
 /**
  * @internal
@@ -30,6 +32,7 @@ final class AssociationOperationalStateTest extends CIUnitTestCase
         (new AddUserManagementState($forge))->up();
         (new AddProvinciaToDirecciones($forge))->up();
         (new AddEstadoVinculacion($forge))->up();
+        (new ConvertirEstadoActivoInmuebles($forge))->up();
 
         foreach ([1, 2] as $id) {
             $this->db->table('usuarios')->insert([
@@ -41,7 +44,7 @@ final class AssociationOperationalStateTest extends CIUnitTestCase
             $this->db->table('direcciones')->insert(['id' => $id, 'calle' => 'Calle', 'numero' => '1', 'ciudad' => 'Localidad']);
             $this->db->table('inmuebles')->insert([
                 'id' => $id, 'usuario_id' => $id, 'direccion_id' => $id, 'alias_nombre' => "Casa {$id}",
-                'tipo' => 'Casa', 'superficie' => 100, 'estado' => 'Activo',
+                'tipo' => 'Casa', 'superficie' => 100, 'estado' => 'Disponible', 'estado_actividad' => 'Activo',
             ]);
         }
         $this->db->table('servicios')->insert([
@@ -68,7 +71,7 @@ final class AssociationOperationalStateTest extends CIUnitTestCase
         $this->changeState(1, 'Inactivo');
         $this->assertSame('En Revisión', $this->association(1)['estado_vinculacion']);
 
-        $this->db->table('inmuebles')->where('id', 1)->update(['estado' => 'Inactivo']);
+        $this->db->table('inmuebles')->where('id', 1)->update(['estado_actividad' => 'Inactivo']);
         $this->changeState(1, 'Activo');
         $this->assertSame('En Revisión', $this->association(1)['estado_vinculacion']);
         $this->assertArrayHasKey('estado_vinculacion', session()->getFlashdata('errors'));
@@ -107,10 +110,10 @@ final class AssociationOperationalStateTest extends CIUnitTestCase
         $this->assertSame(0, $this->db->table('facturas')->countAllResults());
 
         $this->db->table('inmueble_servicios')->where('id', 1)->update(['estado_vinculacion' => 'Activo']);
-        $this->db->table('inmuebles')->where('id', 1)->update(['estado' => 'Inactivo']);
+        $this->db->table('inmuebles')->where('id', 1)->update(['estado_actividad' => 'Inactivo']);
         $this->postInvoice(1)->assertRedirectTo(site_url('facturas/nueva'));
         $this->assertSame(0, $this->db->table('facturas')->countAllResults());
-        $this->db->table('inmuebles')->where('id', 1)->update(['estado' => 'Activo']);
+        $this->db->table('inmuebles')->where('id', 1)->update(['estado_actividad' => 'Activo']);
         $this->db->table('inmueble_servicios')->where('id', 1)->update(['estado' => 'Inactivo']);
         $this->postInvoice(1)->assertRedirectTo(site_url('facturas/nueva'));
         $this->assertSame(0, $this->db->table('facturas')->countAllResults());
@@ -127,7 +130,7 @@ final class AssociationOperationalStateTest extends CIUnitTestCase
         $this->db->table('servicios')->insert([
             'id' => 2, 'nombre' => 'Gas', 'unidad_medida_std' => 'm3', 'proveedor' => 'Prueba', 'categoria' => 'Gas',
         ]);
-        $this->db->table('inmuebles')->where('id', 1)->update(['estado' => 'Inactivo']);
+        $this->db->table('inmuebles')->where('id', 1)->update(['estado_actividad' => 'Inactivo']);
 
         foreach (['Activo', 'Inactivo'] as $state) {
             $this->createAssociation($state);

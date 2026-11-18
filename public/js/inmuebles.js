@@ -8,7 +8,9 @@ const pageSize = document.querySelector("#page-size");
 const pagination = document.querySelector("#pagination");
 const resultSummary = document.querySelector("#result-summary");
 const emptyState = document.querySelector("#empty-state");
+const summaryButtons = [...document.querySelectorAll("[data-summary-filter]")];
 let currentPage = 1;
+let summaryFilter = "all";
 
 function renderTable() {
   const query = searchInput.value.trim().toLocaleLowerCase("es");
@@ -19,10 +21,17 @@ function renderTable() {
   const filtered = rows.filter((row) =>
     row.dataset.search.includes(query)
     && (!type || row.dataset.type === type)
-    && (!status || row.dataset.status === status)
+    && (!status || (status === "baja" ? row.dataset.activity === "Inactivo" : row.dataset.status === status))
     && (!city || row.dataset.city === city)
     && (!debt || row.dataset.debt === debt)
+    && (summaryFilter !== "available" || (row.dataset.status === "disponible" && row.dataset.activity === "Activo"))
+    && (summaryFilter !== "services" || Number(row.dataset.activeServices) > 0)
   );
+  summaryButtons.forEach((button) => {
+    const selected = button.dataset.summaryFilter === summaryFilter
+      && (summaryFilter !== "all" || !(query || type || status || city || debt));
+    button.setAttribute("aria-pressed", String(selected));
+  });
   const size = Number(pageSize.value);
   const pageCount = Math.max(1, Math.ceil(filtered.length / size));
   currentPage = Math.min(currentPage, pageCount);
@@ -58,21 +67,32 @@ function renderTable() {
   renderTable();
 }));
 pageSize.addEventListener("change", () => { currentPage = 1; renderTable(); });
-document.querySelector("#reset-filters").addEventListener("click", () => {
+function clearFilters() {
   searchInput.value = "";
   typeFilter.value = "";
   statusFilter.value = "";
   cityFilter.value = "";
   debtFilter.value = "";
+}
+document.querySelector("#reset-filters").addEventListener("click", () => {
+  clearFilters();
+  summaryFilter = "all";
   currentPage = 1;
   renderTable();
 });
+summaryButtons.forEach((button) => button.addEventListener("click", () => {
+  clearFilters();
+  summaryFilter = button.dataset.summaryFilter;
+  currentPage = 1;
+  renderTable();
+}));
 
 document.querySelector("#export-button").addEventListener("click", () => {
-  const headers = ["Propiedad / Alias", "Direccion y localidad", "Tipo", "Superficie", "Servicios activos", "Estado"];
+  const headers = ["Propiedad / Alias", "Direccion y localidad", "Tipo", "Superficie", "Servicios activos", "Estado", "Actividad"];
   const data = rows.map((row) => [
     ...[...row.querySelectorAll("[data-export-value]")].map((element) => element.dataset.exportValue),
-    row.querySelector("[data-export-status]").textContent.trim(),
+    row.dataset.exportStatus,
+    row.dataset.activity,
   ]);
   const csv = [headers, ...data].map((record) =>
     record.map((value) => `"${value.replaceAll('"', '""')}"`).join(";")
@@ -86,6 +106,14 @@ document.querySelector("#export-button").addEventListener("click", () => {
 
 const modal = document.querySelector("#create-modal");
 const form = modal.querySelector("form");
+const reactivationWarning = document.querySelector("#reactivation-warning");
+const reactivationConfirmation = document.querySelector("#reactivar-inmueble");
+const setReactivation = (required) => {
+  reactivationWarning.hidden = !required;
+  reactivationConfirmation.disabled = !required;
+  reactivationConfirmation.required = required;
+  reactivationConfirmation.checked = false;
+};
 const openModal = () => {
   modal.classList.add("open");
   modal.querySelector(".modal").scrollTop = 0;
@@ -247,7 +275,8 @@ document.querySelectorAll("[data-view-property]").forEach((button) => {
       ["Alias o nombre", property.alias_nombre],
       ["Tipo", property.tipo],
       ["Superficie", `${property.superficie} m²`],
-      ["Estado", property.estado],
+      ...(property.estado === null ? [] : [["Estado", property.estado]]),
+      ["Actividad", property.estado_actividad === "Inactivo" ? "Dado de baja" : "Activo"],
       ["ID de direccion", property.direccion_id],
       ["Calle", property.calle],
       ["Numero", property.numero],
@@ -300,6 +329,7 @@ document.querySelectorAll("[data-view-property]").forEach((button) => {
 });
 document.querySelector("#open-create").addEventListener("click", () => {
   form.reset();
+  setReactivation(false);
   form.action = form.dataset.createAction;
   provinceSelect.value = "";
   setSelectPlaceholder(citySelect, "Primero seleccioná una provincia");
@@ -312,9 +342,11 @@ document.querySelector("#open-create").addEventListener("click", () => {
 document.querySelectorAll("[data-edit-property]").forEach((button) => {
   button.addEventListener("click", async () => {
     form.reset();
+    setReactivation(button.dataset.actividad === "Inactivo");
     form.action = `${form.dataset.createAction}/${button.dataset.id}`;
     document.querySelector("#modal-title").textContent = "Modificar inmueble";
     document.querySelector("#save-property").textContent = "Guardar cambios";
+    form.querySelectorAll('input[name="estado"]').forEach((radio) => { radio.checked = false; });
     for (const [field, value] of Object.entries({
       alias_nombre: button.dataset.alias,
       tipo: button.dataset.tipo,
