@@ -27,7 +27,7 @@ final class RadioFormTest extends CIUnitTestCase
             'servicios' => [],
             'catalogoServicios' => [],
             'inmuebles' => [],
-            'formData' => ['estado' => 'Suspendido'],
+            'formData' => ['estado_vinculacion' => 'En Revisión'],
             'errors' => [],
             'success' => null,
             'error' => null,
@@ -35,8 +35,8 @@ final class RadioFormTest extends CIUnitTestCase
             'serviceLocked' => false,
         ]);
 
-        $this->assertSame(1, $xpath->query('//fieldset[legend="Estado del servicio"]//input[@type="radio" and @name="estado" and @value="Suspendido" and @checked]')->length);
-        $this->assertSame(0, $xpath->query('//select[@name="estado"]')->length);
+        $this->assertSame(1, $xpath->query('//fieldset[legend="Estado operativo del vínculo"]//input[@type="radio" and @name="estado_vinculacion" and @value="En Revisión" and @checked]')->length);
+        $this->assertSame(0, $xpath->query('//select[@name="estado_vinculacion"]')->length);
     }
 
     public function testServiceCategoryPreservesCreateSelectionAndCustomEdit(): void

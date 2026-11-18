@@ -48,11 +48,22 @@ $value = static fn (string $field): string => (string) ($formData[$field] ?? '')
         <div class="notice error" role="alert"><?= esc($error) ?></div>
       <?php endif ?>
 
+      <?php if ($errors !== []): ?>
+        <div class="notice error invoice-error-summary" role="alert">
+          <p>Revisá estos datos antes de guardar:</p>
+          <ul>
+            <?php foreach ($errors as $field => $message): ?>
+              <li><?php if ($asociaciones !== []): ?><a href="#<?= esc($field, 'attr') ?>"><?= esc($message) ?></a><?php else: ?><?= esc($message) ?><?php endif ?></li>
+            <?php endforeach ?>
+          </ul>
+        </div>
+      <?php endif ?>
+
       <?php if ($asociaciones === []): ?>
         <section class="service-card invoice-empty">
           <span class="icon" aria-hidden="true">receipt_long</span>
-          <h2>Todavía no tenés servicios asociados activos</h2>
-          <p>Primero asociá un servicio a uno de tus inmuebles.</p>
+          <h2>No tenés vínculos habilitados para facturar</h2>
+          <p>Para registrar una factura necesitás un vínculo activo y un inmueble que no esté inactivo.</p>
           <a class="button primary" href="<?= site_url('servicios/asociaciones') ?>">Ir a servicios asociados</a>
         </section>
       <?php else: ?>
@@ -61,17 +72,6 @@ $value = static fn (string $field): string => (string) ($formData[$field] ?? '')
             <h2 id="invoice-form-title">Datos de la factura</h2>
             <p><span aria-hidden="true">*</span> Campo obligatorio</p>
           </div>
-          <?php if ($errors !== []): ?>
-            <div class="notice error invoice-error-summary" role="alert">
-              <p>Revisá estos datos antes de guardar:</p>
-              <ul>
-                <?php foreach ($errors as $field => $message): ?>
-                  <li><a href="#<?= esc($field, 'attr') ?>"><?= esc($message) ?></a></li>
-                <?php endforeach ?>
-              </ul>
-            </div>
-          <?php endif ?>
-
           <form method="post" action="<?= site_url('facturas') ?>">
             <?= csrf_field() ?>
             <div class="invoice-form-grid">
@@ -90,7 +90,7 @@ $value = static fn (string $field): string => (string) ($formData[$field] ?? '')
                     <option value="<?= esc($asociacion['id'], 'attr') ?>"<?= $value('inmueble_servicio_id') === (string) $asociacion['id'] ? ' selected' : '' ?>><?= esc($label) ?></option>
                   <?php endforeach ?>
                 </select>
-                <small id="inmueble-servicio-help">Solo se muestran servicios activos de tus inmuebles.</small>
+                <small id="inmueble-servicio-help">Solo se muestran vínculos activos de tus inmuebles habilitados.</small>
                 <?php if (isset($errors['inmueble_servicio_id'])): ?><span class="field-error" id="inmueble_servicio_id-error"><?= esc($errors['inmueble_servicio_id']) ?></span><?php endif ?>
               </div>
 

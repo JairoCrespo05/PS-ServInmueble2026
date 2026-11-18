@@ -83,7 +83,8 @@
                           <?php foreach ($propertyServices as $service): ?>
                             <li>
                               <?= esc($service['servicio_nombre']) ?>
-                              — <?= esc($service['estado_asociacion']) ?>
+                              — <?= mb_strtolower(trim((string) $service['estado_asociacion'])) === 'inactivo' ? 'De baja' : 'Vigente' ?>
+                              · Estado operativo: <?= esc(trim((string) ($service['estado_vinculacion'] ?? '')) !== '' ? $service['estado_vinculacion'] : 'Desconocido') ?>
                             </li>
                           <?php endforeach ?>
                         </ul>

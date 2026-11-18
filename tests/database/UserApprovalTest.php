@@ -450,7 +450,8 @@ final class UserApprovalTest extends CIUnitTestCase
         $propertyPage->assertOK();
         $propertyPage->assertSee('Casa de prueba');
         $propertyPage->assertSee('Servicio histórico de prueba');
-        $propertyPage->assertSee('Inactivo');
+        $propertyPage->assertSee('De baja');
+        $propertyPage->assertSee('Estado operativo: Desconocido');
         $this->assertSame(
             UserModel::LOGIN_INVALID_CREDENTIALS,
             $users->authenticate('property-owner@example.test', 'Passw0rd!')['status']

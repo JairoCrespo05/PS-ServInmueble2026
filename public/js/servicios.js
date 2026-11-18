@@ -113,7 +113,7 @@ document.querySelectorAll("[data-edit-association]").forEach((button) => {
     setService(button.dataset.serviceId, true);
     propertySelect.value = button.dataset.propertyId;
     associateForm.elements.namedItem("titular_inmueble").value = button.dataset.holder;
-    associateForm.elements.namedItem("estado").value = button.dataset.status;
+    associateForm.elements.namedItem("estado_vinculacion").value = button.dataset.status;
     associateForm.elements.namedItem("nro_medidor").value = button.dataset.meter;
     associateForm.elements.namedItem("nro_cuenta_contrato").value = button.dataset.account;
     associateForm.elements.namedItem("cod_pago_electronico").value = button.dataset.payment;

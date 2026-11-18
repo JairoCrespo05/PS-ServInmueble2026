@@ -270,8 +270,8 @@ class Inmuebles extends BaseController
                 'd.updated_at AS direccion_updated_at',
             ])
             ->select('COUNT(isv.id) AS servicios_vinculados', false)
-            ->select("COALESCE(SUM(CASE WHEN LOWER(TRIM(isv.estado)) IN ('activo', 'ocupado') THEN 1 ELSE 0 END), 0) AS servicios_activos", false)
-            ->select("GROUP_CONCAT(DISTINCT CASE WHEN LOWER(TRIM(isv.estado)) IN ('activo', 'ocupado') THEN s.nombre END ORDER BY s.nombre SEPARATOR '|') AS nombres_servicios_activos", false)
+            ->select("COALESCE(SUM(CASE WHEN LOWER(TRIM(isv.estado)) != 'inactivo' AND isv.estado_vinculacion = 'Activo' THEN 1 ELSE 0 END), 0) AS servicios_activos", false)
+            ->select("GROUP_CONCAT(DISTINCT CASE WHEN LOWER(TRIM(isv.estado)) != 'inactivo' AND isv.estado_vinculacion = 'Activo' THEN s.nombre END ORDER BY s.nombre SEPARATOR '|') AS nombres_servicios_activos", false)
             ->join('direcciones d', 'd.id = i.direccion_id')
             ->join('inmueble_servicios isv', 'isv.inmueble_id = i.id', 'left')
             ->join('servicios s', 's.id = isv.servicio_id', 'left')
@@ -308,6 +308,7 @@ class Inmuebles extends BaseController
                 'isv.servicio_id',
                 'isv.titular_inmueble',
                 'isv.estado AS estado_asociacion',
+                'isv.estado_vinculacion',
                 'isv.nro_medidor',
                 'isv.nro_cuenta_contrato',
                 'isv.cod_pago_electronico',

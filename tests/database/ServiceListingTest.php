@@ -28,6 +28,7 @@ final class ServiceListingTest extends CIUnitTestCase
             'servicio_id'      => $associatedServiceId,
             'titular_inmueble' => 'Titular de prueba',
             'estado'           => 'Activo',
+            'estado_vinculacion' => 'Activo',
         ]);
 
         $response = $this->withSession(['user_id' => $ownerId])->get('servicios/asociaciones');
@@ -90,7 +91,7 @@ final class ServiceListingTest extends CIUnitTestCase
                 'servicio_id'       => $serviceId,
                 'inmueble_id'       => $propertyId,
                 'titular_inmueble'  => 'Titular de prueba',
-                'estado'            => 'Activo',
+                'estado_vinculacion' => 'Activo',
                 'service_locked'    => '0',
                 'csrf_test_name'    => $tokenMatches[1],
             ]);

@@ -219,7 +219,8 @@ foreach ($recentInvoices ?? [] as $invoice) {
                               <li data-service-category="<?= esc(mb_strtolower(trim((string) ($service['categoria'] ?? ''))), 'attr') ?>">
                                 <?= esc($service['nombre']) ?>
                                 <?php if ($service['categoria'] !== null): ?>· <?= esc($service['categoria']) ?><?php endif ?>
-                                — <?= esc($service['estado']) ?>
+                                — <?= mb_strtolower(trim((string) $service['estado'])) === 'inactivo' ? 'De baja' : 'Vigente' ?>
+                                · Estado operativo: <?= esc(trim((string) ($service['estado_vinculacion'] ?? '')) !== '' ? $service['estado_vinculacion'] : 'Desconocido') ?>
                               </li>
                             <?php endforeach ?>
                           </ul>

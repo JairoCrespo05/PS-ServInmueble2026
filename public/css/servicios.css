@@ -69,6 +69,8 @@ button { cursor: pointer; font-family: inherit; }
 .property-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
 .tag { border-radius: 5px; padding: 4px 6px; background: #edf1f5; color: #566875; font-size: 9px; }
 .tag.active { background: #e7f6ed; color: var(--green); }
+.tag.paused { background: #fff3dc; color: #825000; }
+.tag.review { background: #e8f2fd; color: #245b86; }
 .no-associations, .empty { color: var(--muted); font-size: 11px; }
 .no-associations { margin: 0; border-radius: 8px; padding: 12px; background: #f7f9fb; }
 .notice { margin-bottom: 14px; border-radius: 8px; padding: 11px 14px; background: #e7f6ed; color: var(--green); font-size: 11px; }
@@ -87,6 +89,7 @@ button { cursor: pointer; font-family: inherit; }
 .form-field { display: grid; gap: 5px; min-width: 0; }
 .form-field.full { grid-column: 1 / -1; }
 .form-field label { color: var(--muted); font-size: 10px; font-weight: 600; }
+.form-field small { color: var(--muted); font-size: 10px; }
 .form-field input, .form-field select { min-height: 38px; border: 1px solid var(--line); border-radius: 7px; padding: 0 10px; background: white; color: #263d4d; font: inherit; font-size: 11px; }
 .field-error { color: #b42318; font-size: 10px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line); padding: 13px 20px; }

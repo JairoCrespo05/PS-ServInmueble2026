@@ -334,6 +334,6 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
   </div>
 
   <script src="<?= base_url('js/sidebar.js') ?>"></script>
-  <script src="<?= base_url('js/inmuebles.js') ?>?v=5"></script>
+  <script src="<?= base_url('js/inmuebles.js') ?>?v=6"></script>
 </body>
 </html>

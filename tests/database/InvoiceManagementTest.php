@@ -340,6 +340,7 @@ final class InvoiceManagementTest extends CIUnitTestCase
             'servicio_id' => $serviceId,
             'titular_inmueble' => 'Propietario de Prueba',
             'estado' => 'Activo',
+            'estado_vinculacion' => 'Activo',
         ]);
 
         return (int) $this->db->insertID();

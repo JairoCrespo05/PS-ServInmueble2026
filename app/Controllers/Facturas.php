@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\FacturaModel;
+use App\Models\InmuebleServicioModel;
 use CodeIgniter\Database\BaseBuilder;
 use CodeIgniter\Database\Exceptions\DatabaseException;
 use CodeIgniter\HTTP\RedirectResponse;
@@ -72,14 +73,9 @@ class Facturas extends BaseController
 
     private function serviceAssociationsForCurrentUser(): array
     {
-        return db_connect()
-            ->table('inmueble_servicios isv')
-            ->join('inmuebles i', 'i.id = isv.inmueble_id')
+        return (new InmuebleServicioModel())->facturablesParaPropietario($this->currentUserId())
             ->join('direcciones d', 'd.id = i.direccion_id')
             ->join('servicios s', 's.id = isv.servicio_id')
-            ->where('i.usuario_id', $this->currentUserId())
-            ->where("LOWER(TRIM(i.estado)) != 'inactivo'", null, false)
-            ->where("LOWER(TRIM(isv.estado)) != 'inactivo'", null, false)
             ->select([
                 'isv.id',
                 'i.alias_nombre',
@@ -281,18 +277,13 @@ class Facturas extends BaseController
         }
 
         $associationId = (int) $data['inmueble_servicio_id'];
-        $association = db_connect()
-            ->table('inmueble_servicios isv')
-            ->join('inmuebles i', 'i.id = isv.inmueble_id')
+        $association = (new InmuebleServicioModel())->facturablesParaPropietario($this->currentUserId())
             ->where('isv.id', $associationId)
-            ->where('i.usuario_id', $this->currentUserId())
-            ->where("LOWER(TRIM(i.estado)) != 'inactivo'", null, false)
-            ->where("LOWER(TRIM(isv.estado)) != 'inactivo'", null, false)
             ->countAllResults();
 
         if ($association === 0) {
             return $this->redirectWithInvoiceErrors($data, [
-                'inmueble_servicio_id' => 'El servicio seleccionado no existe, está inactivo o no corresponde a un inmueble activo tuyo.',
+                'inmueble_servicio_id' => 'El vínculo seleccionado no está activo, fue dado de baja o no corresponde a un inmueble habilitado tuyo.',
             ]);
         }
 

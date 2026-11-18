@@ -265,7 +265,7 @@ public function gestionar(): string
         ->select([
             'isv.id AS asociacion_id',
             'isv.servicio_id',
-            'isv.estado AS estado_servicio',
+            'isv.estado_vinculacion AS estado_servicio',
             'isv.titular_inmueble',
             'isv.nro_medidor',
             'isv.nro_cuenta_contrato',
@@ -375,7 +375,7 @@ public function gestionar(): string
             'servicio_id',
             'inmueble_id',
             'titular_inmueble',
-            'estado',
+            'estado_vinculacion',
             'nro_medidor',
             'nro_cuenta_contrato',
             'cod_pago_electronico',
@@ -393,7 +393,7 @@ public function gestionar(): string
             'servicio_id'           => 'required|is_natural_no_zero',
             'inmueble_id'           => 'required|is_natural_no_zero',
             'titular_inmueble'      => 'required|max_length[150]',
-            'estado'                => 'required|in_list[Activo,Inactivo,Suspendido]',
+            'estado_vinculacion'    => 'required|in_list[' . implode(',', InmuebleServicioModel::ESTADOS_OPERATIVOS) . ']',
             'nro_medidor'           => 'permit_empty|max_length[50]',
             'nro_cuenta_contrato'   => 'permit_empty|max_length[100]',
             'cod_pago_electronico'  => 'permit_empty|max_length[100]',
@@ -412,14 +412,22 @@ public function gestionar(): string
         $servicioId = (int) $submittedData['servicio_id'];
         $inmuebleId = (int) $submittedData['inmueble_id'];
         $servicioExiste = $db->table('servicios')->where('id', $servicioId)->countAllResults() > 0;
-        $inmuebleExiste = $db->table('inmuebles')->where('id', $inmuebleId)->where('usuario_id', $this->currentUserId())->countAllResults() > 0;
+        $inmueble = $db->table('inmuebles')->select('estado')->where('id', $inmuebleId)->where('usuario_id', $this->currentUserId())->get()->getRowArray();
 
-        if (! $servicioExiste || ! $inmuebleExiste) {
+        if (! $servicioExiste || $inmueble === null) {
             return redirect()->to(site_url('servicios/asociaciones'))
                 ->withInput()
                 ->with('formData', $submittedData)
                 ->with('serviceLocked', $serviceLocked)
                 ->with('error', 'El servicio o el inmueble seleccionado ya no existe o no te pertenece.');
+        }
+
+        if ($submittedData['estado_vinculacion'] === 'Activo' && mb_strtolower(trim($inmueble['estado'])) === 'inactivo') {
+            return redirect()->to(site_url('servicios/asociaciones'))
+                ->withInput()
+                ->with('formData', $submittedData)
+                ->with('serviceLocked', $serviceLocked)
+                ->with('errors', ['estado_vinculacion' => 'No podés activar un vínculo de un inmueble inactivo.']);
         }
 
         $asociacionExiste = $db->table('inmueble_servicios')
@@ -442,7 +450,8 @@ public function gestionar(): string
             'servicio_id'          => $servicioId,
             'inmueble_id'          => $inmuebleId,
             'titular_inmueble'     => $submittedData['titular_inmueble'],
-            'estado'               => $submittedData['estado'],
+            'estado'               => 'Activo',
+            'estado_vinculacion'  => $submittedData['estado_vinculacion'],
             'nro_medidor'          => $submittedData['nro_medidor'] ?: null,
             'nro_cuenta_contrato'  => $submittedData['nro_cuenta_contrato'] ?: null,
             'cod_pago_electronico' => $submittedData['cod_pago_electronico'] ?: null,
@@ -471,14 +480,14 @@ public function gestionar(): string
     {
         $modelo = new InmuebleServicioModel();
         $asociacion = $modelo->find($id);
-        if ($asociacion === null || ! $this->userOwnsAssociation($id)) {
+        if ($asociacion === null || ! $this->userOwnsAssociation($id) || mb_strtolower(trim($asociacion['estado'])) === 'inactivo') {
             return redirect()->to(site_url('servicios/asociaciones'))
                 ->with('error', 'No se encontró la asociación que intentás modificar o no tenés permisos sobre ella.');
         }
 
         $fields = [
             'titular_inmueble',
-            'estado',
+            'estado_vinculacion',
             'nro_medidor',
             'nro_cuenta_contrato',
             'cod_pago_electronico',
@@ -495,7 +504,7 @@ public function gestionar(): string
 
         $rules = [
             'titular_inmueble'      => 'required|max_length[150]',
-            'estado'                => 'required|in_list[Activo,Inactivo,Suspendido]',
+            'estado_vinculacion'    => 'required|in_list[' . implode(',', InmuebleServicioModel::ESTADOS_OPERATIVOS) . ']',
             'nro_medidor'           => 'permit_empty|max_length[50]',
             'nro_cuenta_contrato'   => 'permit_empty|max_length[100]',
             'cod_pago_electronico'  => 'permit_empty|max_length[100]',
@@ -510,11 +519,33 @@ public function gestionar(): string
                 ->with('editAssociationId', $id);
         }
 
+        $inmueble = db_connect()->table('inmuebles')
+            ->select('estado')
+            ->where('id', $asociacion['inmueble_id'])
+            ->where('usuario_id', $this->currentUserId())
+            ->get()
+            ->getRowArray();
+
+        if ($inmueble === null) {
+            return redirect()->to(site_url('servicios/asociaciones'))
+                ->with('error', 'No se encontró el inmueble asociado o no tenés permisos sobre él.');
+        }
+
+        if ($submittedData['estado_vinculacion'] === 'Activo'
+            && $asociacion['estado_vinculacion'] !== 'Activo'
+            && mb_strtolower(trim($inmueble['estado'])) === 'inactivo') {
+            return redirect()->to(site_url('servicios/asociaciones'))
+                ->withInput()
+                ->with('formData', $submittedData)
+                ->with('editAssociationId', $id)
+                ->with('errors', ['estado_vinculacion' => 'No podés activar un vínculo de un inmueble inactivo.']);
+        }
+
         $db = db_connect();
         $db->transStart();
         $modelo->update($id, [
             'titular_inmueble'      => $submittedData['titular_inmueble'],
-            'estado'                => $submittedData['estado'],
+            'estado_vinculacion'    => $submittedData['estado_vinculacion'],
             'nro_medidor'           => $submittedData['nro_medidor'] ?: null,
             'nro_cuenta_contrato'   => $submittedData['nro_cuenta_contrato'] ?: null,
             'cod_pago_electronico'  => $submittedData['cod_pago_electronico'] ?: null,

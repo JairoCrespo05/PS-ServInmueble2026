@@ -3,11 +3,6 @@
 $categorias = array_values(array_unique(array_column($servicios, 'categoria')));
 sort($categorias);
 
-$esActivo = static fn ($estado): bool => in_array(
-    mb_strtolower(trim((string) $estado)),
-    ['activo', 'ocupado'],
-    true,
-);
 $iconoServicio = static function (array $servicio): string {
     $identificador = mb_strtolower(trim($servicio['categoria'] . ' ' . $servicio['nombre']));
 
@@ -36,7 +31,7 @@ $editandoAsociacion = $editAssociationId !== null;
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
-  <link rel="stylesheet" href="<?= base_url('css/servicios.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/servicios.css') ?>?v=2">
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/radio-options.css') ?>?v=1">
@@ -195,7 +190,15 @@ $editandoAsociacion = $editAssociationId !== null;
                         <span class="property-address"><?= esc($direccion) ?></span>
                         <div class="property-tags">
                           <span class="tag">ID: INM-<?= esc(str_pad((string) $inmueble['id'], 4, '0', STR_PAD_LEFT)) ?></span>
-                          <span class="tag<?= $esActivo($inmueble['estado_servicio']) ? ' active' : '' ?>">Servicio: <?= esc($inmueble['estado_servicio']) ?></span>
+                          <?php
+                            $estadoClase = match ($inmueble['estado_servicio']) {
+                                'Activo' => ' active',
+                                'Pausado' => ' paused',
+                                'En Revisión' => ' review',
+                                default => '',
+                            };
+                          ?>
+                          <span class="tag<?= esc($estadoClase, 'attr') ?>">Vínculo: <?= esc($inmueble['estado_servicio'] ?? 'Desconocido') ?></span>
                           <span class="tag">Inmueble: <?= esc($inmueble['estado_inmueble']) ?></span>
                           <?php if ($inmueble['nro_medidor']): ?><span class="tag">Medidor: <?= esc($inmueble['nro_medidor']) ?></span><?php endif ?>
                         </div>
@@ -296,13 +299,14 @@ $editandoAsociacion = $editAssociationId !== null;
             <?php if (isset($errors['titular_inmueble'])): ?><span class="field-error"><?= esc($errors['titular_inmueble']) ?></span><?php endif ?>
           </div>
           <fieldset class="form-field radio-field">
-            <legend>Estado del servicio</legend>
+            <legend>Estado operativo del vínculo</legend>
             <div class="radio-options">
-              <?php foreach (['Activo', 'Inactivo', 'Suspendido'] as $estado): ?>
-                <label class="radio-option"><input type="radio" name="estado" value="<?= esc($estado, 'attr') ?>" required<?= ($formData['estado'] ?? 'Activo') === $estado ? ' checked' : '' ?>> <span><?= esc($estado) ?></span></label>
+              <?php foreach (\App\Models\InmuebleServicioModel::ESTADOS_OPERATIVOS as $estado): ?>
+                <label class="radio-option"><input type="radio" name="estado_vinculacion" value="<?= esc($estado, 'attr') ?>" required aria-describedby="association-status-help"<?= ($formData['estado_vinculacion'] ?? 'Activo') === $estado ? ' checked' : '' ?>> <span><?= esc($estado) ?></span></label>
               <?php endforeach ?>
             </div>
-            <?php if (isset($errors['estado'])): ?><span class="field-error"><?= esc($errors['estado']) ?></span><?php endif ?>
+            <small id="association-status-help">Un vínculo no puede activarse si el inmueble está inactivo. Solo los vínculos activos permiten cargar facturas.</small>
+            <?php if (isset($errors['estado_vinculacion'])): ?><span class="field-error"><?= esc($errors['estado_vinculacion']) ?></span><?php endif ?>
           </fieldset>
           <div class="form-field">
             <label for="associate-meter">Numero de medidor <span>(opcional)</span></label>
@@ -334,6 +338,6 @@ $editandoAsociacion = $editAssociationId !== null;
   </div>
 
   <script src="<?= base_url('js/sidebar.js') ?>"></script>
-  <script src="<?= base_url('js/servicios.js') ?>"></script>
+  <script src="<?= base_url('js/servicios.js') ?>?v=2"></script>
 </body>
 </html>

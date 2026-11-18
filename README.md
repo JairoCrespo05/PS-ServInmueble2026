@@ -23,11 +23,16 @@ El proyecto utiliza MySQL/MariaDB por defecto. Para configurar una instalación 
    se guarda con hash. El seeder no se ejecuta fuera de `development`, no cambia
    una cuenta existente y falla si ese correo ya está asociado a otro rol.
 
-Para revertir la estructura:
+Para revertir la estructura cuando las migraciones involucradas lo permitan:
 
 ```sh
 php spark migrate:rollback
 ```
+
+La migración `AddEstadoVinculacion` no admite reversión automática: el campo
+puede contener datos anteriores a la migración o cambios posteriores. Para
+volver a una versión anterior, planifique la restauración desde una copia de
+seguridad y la compatibilidad de los datos antes de modificar la base.
 
 La migración crea las tablas que todavía no existan:
 
@@ -49,6 +54,25 @@ El pago registra fecha, monto total y medio de pago; no admite pagos parciales n
 
 Al registrar o modificar un inmueble, su superficie debe ser de al menos
 50 m². Esta validación no modifica registros existentes.
+
+### Estado operativo de un vínculo
+
+Cada vínculo entre inmueble y servicio tiene un estado operativo propio:
+`Activo`, `Pausado` o `En Revisión`. La baja lógica se guarda por separado
+en `estado`, de modo que dar de baja un vínculo no borra su último estado
+operativo ni sus facturas. Solo un vínculo operativo activo y vigente, cuyo
+inmueble no esté inactivo, permite registrar facturas nuevas. Las facturas
+ya registradas permanecen consultables.
+
+Se permiten cambios manuales entre los tres estados, pero no se puede activar
+un vínculo cuando su inmueble está inactivo. Si un inmueble se da de baja,
+el estado operativo de sus vínculos no cambia automáticamente.
+
+La migración reutiliza `estado_vinculacion` si ya existe y conserva sus
+valores; cuando está vacío, convierte los vínculos anteriores `Activo` a
+`Activo` y `Suspendido` a `Pausado`. Para las bajas históricas sin estado
+operativo registrado lo deja desconocido. Si detecta estados no reconocidos,
+detiene la migración para revisión.
 
 ### Alta de tipos de servicio
 
