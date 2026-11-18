@@ -14,7 +14,7 @@ $renderRows = static function (array $invoices) use ($formatAmount, $formatDate,
         </td>
         <td><?= esc($formatAmount($invoice['monto_total'])) ?></td>
         <td><?= esc($formatDate($invoice['fecha_primer_vencimiento'])) ?></td>
-        <td><a class="invoice-detail-link" href="<?= site_url('facturas/' . $invoice['factura_id']) ?>"><span class="icon" aria-hidden="true">visibility</span>Ver detalle</a></td>
+        <td><a class="invoice-detail-link" href="<?= site_url('facturas/' . $invoice['factura_id']) ?>" title="Ver detalle de factura" aria-label="Ver detalle de <?= esc($invoice['servicio_nombre'] . ' ' . $formatPeriod($invoice['periodo_facturacion']), 'attr') ?>"><span class="icon" aria-hidden="true">visibility</span></a></td>
       </tr>
     <?php endforeach;
 };
@@ -31,7 +31,7 @@ $renderRows = static function (array $invoices) use ($formatAmount, $formatDate,
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/servicios.css') ?>">
-  <link rel="stylesheet" href="<?= base_url('css/facturas.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/facturas.css') ?>?v=<?= filemtime(FCPATH . 'css/facturas.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
 </head>
 <body>

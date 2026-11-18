@@ -302,15 +302,27 @@
 
 .invoice-detail-link {
   display: inline-flex;
+  width: 32px;
+  height: 32px;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  border-radius: 6px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.invoice-detail-link:hover {
+  background: #f0f4f8;
   color: var(--blue);
-  font-weight: 600;
-  text-underline-offset: 3px;
+}
+
+.invoice-detail-link:focus-visible {
+  outline: 3px solid rgb(45 98 142 / 32%);
+  outline-offset: 2px;
 }
 
 .invoice-detail-link .icon {
-  font-size: 17px;
+  font-size: 20px;
 }
 
 .invoice-pagination {
