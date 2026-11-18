@@ -1073,6 +1073,15 @@ body.signup-page .terms-modal {
   border-radius: 14px;
   color: var(--color-text-body);
   box-shadow: 0 24px 64px rgba(16, 42, 67, 0.28);
+
+
+  /* Centrado del modal */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+
 }
 
 body.signup-page .terms-modal::backdrop {
