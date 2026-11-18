@@ -7,18 +7,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 
- <link rel="stylesheet" href="<?= base_url('css/styles.css') ?>"> 
-  <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
+ <link rel="stylesheet" href="<?= base_url('css/styles.css') ?>?v=<?= filemtime(FCPATH . 'css/styles.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>?v=<?= filemtime(FCPATH . 'css/brand.css') ?>">
 
 </head>
 <body class="login-page">
 
   <!-- NAVEGACIÓN SUPERIOR PÚBLICA -->
   <header class="topbar">
-    <?= view('partials/brand') ?>
+    <a href= "<?= base_url()?>"> <?= view('partials/brand') ?> </a>
 
     <nav class="topbar-nav">
-      <a href="<?= base_url() ?>" class="nav-link active">Iniciar Sesión</a>
+      <a href="<?= base_url('login') ?>" class="nav-link active">Iniciar Sesión</a>
       <a href="<?= base_url('sing_up') ?>" class="nav-link" id="linkGoToRegister">Registrarse</a>
       <a href="#" class="nav-link">Ayuda</a>
     </nav>
@@ -139,7 +139,7 @@
           <div class="form-group">
             <div class="form-label-row">
               <label for="inputPassword" class="form-label">Contraseña *</label>
-              <a href="#" class="form-forgot-link">¿Olvidaste tu contraseña?</a>
+              <!-- <a href="#" class="form-forgot-link">¿Olvidaste tu contraseña?</a> -->
             </div>
             <div class="input-wrapper">
               <div class="input-icon-left">

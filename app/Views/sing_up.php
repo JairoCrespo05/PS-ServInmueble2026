@@ -38,10 +38,10 @@ $alertClass = $success !== null && $formError === null && ! $errors ? 'alert-suc
 
   <!-- TOPBAR PÚBLICA -->
   <header class="topbar">
-    <?= view('partials/brand') ?>
+    <a href= "<?= base_url()?>"> <?= view('partials/brand') ?> </a>
 
     <nav class="topbar-nav">
-      <a href="<?= base_url('') ?>" class="nav-link" id="navLinkLogin">Iniciar Sesión</a>
+      <a href="<?= base_url('login') ?>" class="nav-link" id="navLinkLogin">Iniciar Sesión</a>
       <a href="<?= base_url('sing_up') ?>" class="nav-link active">Registrarse</a>
       <a href="#" class="nav-link">Ayuda</a>
     </nav>
@@ -288,7 +288,7 @@ $alertClass = $success !== null && $formError === null && ! $errors ? 'alert-suc
           </button>
 
           <div class="login-prompt-link">
-            ¿Ya tenés cuenta? <a href="<?= base_url('') ?>" id="linkBackToLogin">Iniciar sesión</a>
+            ¿Ya tenés cuenta? <a href="<?= base_url('login') ?>" id="linkBackToLogin">Iniciar sesión</a>
           </div>
 
         </form>
