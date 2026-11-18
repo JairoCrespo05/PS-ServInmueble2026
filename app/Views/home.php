@@ -249,6 +249,7 @@ foreach ($recentInvoices ?? [] as $invoice) {
         </div>
 
         <div class="header-actions">
+          <!--
           <button class="btn btn-secondary" id="btnExportSummary">
             <svg class="icon" viewBox="0 0 24 24">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -257,6 +258,7 @@ foreach ($recentInvoices ?? [] as $invoice) {
             </svg>
             Exportar Informe
           </button>
+           -->
           <a class="btn btn-primary" id="btnNewInvoice" href="<?= site_url('facturas/nueva') ?>">
             <svg class="icon" viewBox="0 0 24 24">
               <line x1="12" y1="5" x2="12" y2="19"></line>

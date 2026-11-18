@@ -139,7 +139,7 @@
           <div class="form-group">
             <div class="form-label-row">
               <label for="inputPassword" class="form-label">Contraseña *</label>
-              <a href="#" class="form-forgot-link">¿Olvidaste tu contraseña?</a>
+              <!-- <a href="#" class="form-forgot-link">¿Olvidaste tu contraseña?</a> -->
             </div>
             <div class="input-wrapper">
               <div class="input-icon-left">
