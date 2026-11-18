@@ -6,10 +6,14 @@
   <title>Solicitud pendiente - ServiInmueble</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
 </head>
 <body class="access-status-page">
+  <header class="topbar">
+    <?= view('partials/brand') ?>
+  </header>
   <main class="access-status-card" aria-labelledby="statusTitle">
     <?php if (($user['requestStatus'] ?? null) === \App\Models\UserModel::REQUEST_REJECTED): ?>
       <div class="welcome-badge">Solicitud rechazada</div>

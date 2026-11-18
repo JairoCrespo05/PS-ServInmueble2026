@@ -255,13 +255,16 @@
     }
 
     .access-status-page {
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      padding: 0;
     }
 
     .access-status-card {
+      align-self: center;
       width: min(100%, 620px);
+      margin: auto;
       padding: 36px;
       background: var(--color-surface-card);
       border: 1px solid var(--color-surface-dim);

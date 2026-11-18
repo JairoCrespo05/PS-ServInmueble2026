@@ -5,23 +5,17 @@
   <!-- Google Fonts: Manrope & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 
  <link rel="stylesheet" href="<?= base_url('css/styles.css') ?>"> 
- 
+  <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
 
 </head>
 <body class="login-page">
 
   <!-- NAVEGACIÓN SUPERIOR PÚBLICA -->
   <header class="topbar">
-    <a href="#" class="brand-container">
-      <div class="brand-logo-icon">SI</div>
-      <div class="brand-text-block">
-        <span class="brand-title">ServiInmueble</span>
-        <span class="brand-subtitle">Gestión Inmobiliaria</span>
-      </div>
-    </a>
+    <?= view('partials/brand') ?>
 
     <nav class="topbar-nav">
       <a href="<?= base_url() ?>" class="nav-link active">Iniciar Sesión</a>
@@ -78,13 +72,13 @@
               <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
-              <span class="">Asociación de medidores, contratos y servicios (US-06)</span>
+              <span class="">Asociación de medidores, contratos y servicios </span>
             </li>
             <li class="hero-feature-item">
               <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
-              <span class="">Liquidación y registro ágil de facturas devengadas (US-07)</span>
+              <span class="">Liquidación y registro ágil de facturas devengadas </span>
             </li>
           </ul>
         </div>
@@ -105,7 +99,7 @@
         <div class="form-header">
           <div class="form-meta">
             <span class="form-category">Portal de Acceso</span>
-            <span class="status-pill-subtle">Autenticado US-02</span>
+            <span class="status-pill-subtle">Inicio de Sesion</span>
           </div>
           <h2 class="form-title">Iniciar Sesión</h2>
           <p class="form-subtitle">Accedé a tu panel de control patrimonial unificado.</p>
@@ -164,7 +158,7 @@
             </div>
           </div>
 
-          <!-- Checkbox: Recordarme -->
+          <!-- Checkbox: Recordarme 
           <label class="checkbox-row">
             <input type="checkbox" id="checkRemember" name="remember">
             <span class="custom-checkbox">
@@ -174,6 +168,7 @@
             </span>
             <span class="checkbox-label-text">Recordar mi sesión en este equipo</span>
           </label>
+          -->
 
           <!-- Botón de Envío -->
           <button type="submit" class="btn-primary" id="btnSubmitLogin">

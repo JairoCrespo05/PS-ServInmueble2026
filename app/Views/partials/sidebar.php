@@ -8,7 +8,7 @@ $isAdministrator = $isAdministrator ?? false;
   <div>
     <div class="sidebar-header">
       <a href="<?= site_url('home') ?>" class="brand-group">
-        <span class="brand-logo-badge">SI</span>
+        <span class="brand-logo-badge"><span class="brand-icon" aria-hidden="true">domain</span></span>
         <span class="brand-title">ServiInmueble</span>
       </a>
       <button class="btn-toggle-sidebar" id="btnToggleSidebar" type="button" title="Colapsar barra lateral" aria-label="Colapsar barra lateral">

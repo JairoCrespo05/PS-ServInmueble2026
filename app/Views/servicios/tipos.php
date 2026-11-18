@@ -44,13 +44,14 @@ $formatError = static fn (string $field): string => isset($errors[$field])
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/tipos-servicio.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'tipos-servicio', 'isAdministrator' => true]) ?>
 
   <div class="workspace">
     <header class="topbar">
-      <div class="top-brand"><span class="icon">domain</span>ServiInmueble</div>
+      <?= view('partials/brand') ?>
       <span class="top-context">Administracion&nbsp; / &nbsp;Catalogo de servicios</span>
 
       <!-- Perfil Usuario -->

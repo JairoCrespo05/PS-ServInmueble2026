@@ -6,17 +6,18 @@
   <title>Gestión de usuarios - ServiInmueble</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/usuarios.css') ?>?v=2">
+  <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'usuarios', 'isAdministrator' => true]) ?>
 
   <div class="main-wrapper" id="mainWrapper">
     <header class="topbar">
-      <div class="topbar-left"></div>
+      <div class="topbar-left"><?= view('partials/brand') ?></div>
       <div class="topbar-right">
         <!-- Perfil Usuario -->
         <div class="user-profile">

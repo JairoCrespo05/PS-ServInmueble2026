@@ -1,0 +1,82 @@
+.top-brand {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  color: #102a43;
+  font: 700 15px Manrope, sans-serif;
+  white-space: nowrap;
+}
+
+.top-brand .icon {
+  display: inline-block;
+  width: auto;
+  height: auto;
+  font-family: "Material Symbols Outlined";
+  font-size: 22px;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+}
+
+.brand-logo-badge .brand-icon {
+  font-family: "Material Symbols Outlined";
+  font-size: 22px;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  direction: ltr;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (max-width: 760px) {
+  body.login-page .topbar,
+  body.signup-page .topbar {
+    gap: 12px;
+    padding: 0 16px;
+  }
+
+  body.login-page .topbar-nav,
+  body.signup-page .topbar-nav {
+    flex-shrink: 0;
+    gap: 14px;
+  }
+
+  body.login-page .topbar-nav .nav-link,
+  body.signup-page .topbar-nav .nav-link {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  body.login-page .topbar-right,
+  body.signup-page .topbar-right {
+    gap: 8px;
+  }
+
+  body.login-page .btn-help,
+  body.signup-page .btn-help {
+    padding: 6px;
+  }
+}
+
+@media (max-width: 520px) {
+  body.login-page .topbar-right,
+  body.signup-page .topbar-right {
+    display: none;
+  }
+
+  body.login-page .topbar-nav,
+  body.signup-page .topbar-nav {
+    gap: 8px;
+  }
+
+  body.login-page .topbar-nav .nav-link,
+  body.signup-page .topbar-nav .nav-link {
+    font-size: 11px;
+  }
+}

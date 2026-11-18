@@ -1,6 +1,6 @@
 (function() {
   function initializeTimedMessages() {
-    document.querySelectorAll('.form-alert.show, .field-error').forEach(function(message) {
+    document.querySelectorAll('.form-alert.show, .field-error:not([data-persistent])').forEach(function(message) {
       setTimeout(function() {
         message.classList.add('is-dismissed');
         if (message.classList.contains('field-error')) {
@@ -90,7 +90,65 @@
     confirmPass.addEventListener('input', validateConfirmPassword);
   }
 
+  function initializeTermsAcceptance() {
+    const checkbox = document.getElementById('checkTerms');
+    const error = document.getElementById('error-terms');
+    if (!checkbox || !error) {
+      return;
+    }
+
+    const message = 'Para continuar, aceptá los Términos y Condiciones y la Política de Privacidad.';
+
+    function updateValidity() {
+      checkbox.setCustomValidity(checkbox.checked ? '' : message);
+      if (checkbox.checked) {
+        error.hidden = true;
+        error.textContent = '';
+        checkbox.removeAttribute('aria-invalid');
+        checkbox.removeAttribute('aria-describedby');
+      }
+    }
+
+    checkbox.addEventListener('invalid', function() {
+      error.textContent = message;
+      error.hidden = false;
+      error.classList.remove('is-dismissed');
+      checkbox.setAttribute('aria-invalid', 'true');
+      checkbox.setAttribute('aria-describedby', error.id);
+    });
+    checkbox.addEventListener('change', updateValidity);
+    updateValidity();
+  }
+
+  function initializeTermsDialog() {
+    const dialog = document.getElementById('termsModal');
+    if (!dialog) {
+      return;
+    }
+
+    document.querySelectorAll('[data-open-terms]').forEach(function(link) {
+      link.addEventListener('click', function(event) {
+        event.preventDefault();
+        dialog.showModal();
+      });
+    });
+
+    dialog.querySelectorAll('[data-close-terms]').forEach(function(button) {
+      button.addEventListener('click', function() {
+        dialog.close();
+      });
+    });
+
+    dialog.addEventListener('click', function(event) {
+      if (event.target === dialog) {
+        dialog.close();
+      }
+    });
+  }
+
   initializePasswordToggles();
   initializeRegistrationForm();
+  initializeTermsAcceptance();
+  initializeTermsDialog();
   initializeTimedMessages();
 })();

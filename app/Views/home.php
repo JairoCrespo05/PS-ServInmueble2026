@@ -12,10 +12,11 @@ foreach ($recentInvoices ?? [] as $invoice) {
   <title><?= $isAdministrator ? 'Administración - ServiInmueble' : 'ServiInmueble 2026 — Home / Resumen General' ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/admin-home.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
 </head>
 <body>
 
@@ -26,6 +27,7 @@ foreach ($recentInvoices ?? [] as $invoice) {
     
     <!-- TOPBAR -->
     <header class="topbar">
+      <?= view('partials/brand') ?>
       <?php if (! $isAdministrator): ?>
         <div class="topbar-left">
           <div class="search-box">

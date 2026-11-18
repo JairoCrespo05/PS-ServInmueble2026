@@ -15,12 +15,13 @@ $value = static fn (string $field): string => (string) ($formData[$field] ?? '')
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/servicios.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/facturas.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'facturas', 'isAdministrator' => false]) ?>
   <div class="workspace">
     <header class="topbar">
-      <div class="top-brand"><span class="icon">domain</span>ServiInmueble</div>
+      <?= view('partials/brand') ?>
       <span class="top-context">Gestión patrimonial&nbsp; / &nbsp;Nueva factura</span>
       <div class="user-profile">
         <div class="user-avatar"><?= esc(strtoupper(substr(session()->get('user_name') ?? 'U', 0, 1))) ?></div>

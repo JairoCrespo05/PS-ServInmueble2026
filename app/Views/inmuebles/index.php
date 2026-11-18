@@ -40,13 +40,14 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
   <link rel="stylesheet" href="<?= base_url('css/inmuebles.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/inmuebles.css') ?>?v=2">
+  <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'inmuebles', 'isAdministrator' => false]) ?>
 
   <div class="workspace">
     <header class="topbar">
-      <div class="top-brand"><span class="icon">domain</span>ServiInmueble</div>
+      <?= view('partials/brand') ?>
       <span class="top-context">Gestion patrimonial&nbsp; / &nbsp;Registro de inmuebles</span>
 
       <!-- Perfil Usuario -->
