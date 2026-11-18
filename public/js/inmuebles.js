@@ -86,6 +86,10 @@ document.querySelector("#export-button").addEventListener("click", () => {
 
 const modal = document.querySelector("#create-modal");
 const form = modal.querySelector("form");
+const openModal = () => {
+  modal.classList.add("open");
+  modal.querySelector(".modal").scrollTop = 0;
+};
 const provinceSelect = form.elements.namedItem("provincia");
 const citySelect = form.elements.namedItem("ciudad");
 const locationStatus = document.querySelector("#location-status");
@@ -303,7 +307,7 @@ document.querySelector("#open-create").addEventListener("click", () => {
   setLocationStatus("");
   document.querySelector("#modal-title").textContent = "Registrar nuevo inmueble";
   document.querySelector("#save-property").textContent = "Guardar inmueble";
-  modal.classList.add("open");
+  openModal();
 });
 document.querySelectorAll("[data-edit-property]").forEach((button) => {
   button.addEventListener("click", async () => {
@@ -324,7 +328,7 @@ document.querySelectorAll("[data-edit-property]").forEach((button) => {
     }
     const provincesAvailable = await provincesPromise;
     if (!provincesAvailable) {
-      modal.classList.add("open");
+      openModal();
       return;
     }
 
@@ -336,7 +340,7 @@ document.querySelectorAll("[data-edit-property]").forEach((button) => {
       citySelect.disabled = true;
       setLocationStatus("Este inmueble no tiene una provincia registrada. Seleccioná una provincia y luego una localidad.");
     }
-    modal.classList.add("open");
+    openModal();
   });
 });
 document.querySelectorAll("[data-deactivate-form]").forEach((deactivateForm) => {

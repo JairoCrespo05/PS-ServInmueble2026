@@ -40,7 +40,7 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
-  <link rel="stylesheet" href="<?= base_url('css/inmuebles.css') ?>?v=3">
+  <link rel="stylesheet" href="<?= base_url('css/inmuebles.css') ?>?v=5">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/radio-options.css') ?>?v=1">
 </head>
@@ -334,6 +334,6 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
   </div>
 
   <script src="<?= base_url('js/sidebar.js') ?>"></script>
-  <script src="<?= base_url('js/inmuebles.js') ?>?v=6"></script>
+  <script src="<?= base_url('js/inmuebles.js') ?>?v=7"></script>
 </body>
 </html>
