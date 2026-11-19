@@ -84,7 +84,7 @@
                             <li>
                               <?= esc($service['servicio_nombre']) ?>
                               — <?= mb_strtolower(trim((string) $service['estado_asociacion'])) === 'inactivo' ? 'De baja' : 'Vigente' ?>
-                              · Estado operativo: <?= esc(trim((string) ($service['estado_efectivo'] ?? '')) !== '' ? $service['estado_efectivo'] : 'Desconocido') ?>
+                              · Estado operativo efectivo: <?= esc(trim((string) ($service['estado_efectivo'] ?? '')) !== '' ? $service['estado_efectivo'] : 'Desconocido') ?>
                             </li>
                           <?php endforeach ?>
                         </ul>
