@@ -21,6 +21,8 @@ final class RadioFormTest extends CIUnitTestCase
         $this->assertSame(3, $xpath->query('//fieldset[legend="Estado"]//input[@type="radio" and @name="estado"]')->length);
         $this->assertSame(0, $xpath->query('//fieldset[legend="Estado"]//input[@value="Activo" or @value="Inactivo"]')->length);
         $this->assertSame(0, $xpath->query('//select[@name="estado"]')->length);
+        $this->assertSame(1, $xpath->query('//section[@aria-labelledby="property-form-section"]//input[@name="alias_nombre"]')->length);
+        $this->assertSame(1, $xpath->query('//section[@aria-labelledby="address-form-section"]//select[@name="provincia"]')->length);
     }
 
     public function testNewPropertyDefaultsToDisponible(): void
@@ -49,6 +51,8 @@ final class RadioFormTest extends CIUnitTestCase
 
         $this->assertSame(1, $xpath->query('//fieldset[legend="Estado operativo del vínculo"]//input[@type="radio" and @name="estado_vinculacion" and @value="En Revisión" and @checked]')->length);
         $this->assertSame(0, $xpath->query('//select[@name="estado_vinculacion"]')->length);
+        $this->assertSame(1, $xpath->query('//section[@id="association-selection"]//select[@name="inmueble_id"]')->length);
+        $this->assertSame(1, $xpath->query('//section[@aria-labelledby="association-form-section"]//input[@name="titular_inmueble"]')->length);
     }
 
     public function testServiceCategoryPreservesCreateSelectionAndCustomEdit(): void
@@ -61,6 +65,7 @@ final class RadioFormTest extends CIUnitTestCase
         $create = $this->renderXPath('servicios/tipos', $data);
         $this->assertSame(1, $create->query('//*[@id="create-category-field"]//input[@name="categoria" and @value="Agua" and @checked and @data-unit="m3"]')->length);
         $this->assertSame(1, $create->query('//*[@id="edit-category-field" and @disabled]')->length);
+        $this->assertSame(1, $create->query('//section[@aria-labelledby="service-form-section"]//input[@name="proveedor"]')->length);
 
         $data['editId'] = 1;
         $data['formData']['categoria'] = 'Categoría personalizada';

@@ -125,6 +125,27 @@ final class AssociationOperationalStateTest extends CIUnitTestCase
         $this->assertSame(1, $this->db->table('facturas')->countAllResults());
     }
 
+    public function testInvoiceFormGroupsItsFieldsIntoSections(): void
+    {
+        $this->db->table('inmueble_servicios')->where('id', 1)->update(['estado_vinculacion' => 'Activo']);
+        $form = $this->withSession(['user_id' => 1])->get('facturas/nueva');
+        $form->assertOK();
+        $document = new DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML('<?xml encoding="UTF-8">' . $form->response()->getBody());
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        $xpath = new DOMXPath($document);
+        foreach ([
+            'invoice-service-section' => 'inmueble_servicio_id',
+            'invoice-dates-section' => 'fecha_emision',
+            'invoice-amount-section' => 'monto_total',
+            'invoice-readings-section' => 'lectura_actual',
+        ] as $section => $field) {
+            $this->assertSame(1, $xpath->query('//section[@aria-labelledby="' . $section . '"]//*[@name="' . $field . '"]')->length);
+        }
+    }
+
     public function testNewLinksCannotBeActivatedOnInactiveProperties(): void
     {
         $this->db->table('servicios')->insert([

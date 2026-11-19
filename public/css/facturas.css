@@ -95,7 +95,7 @@
 
 .invoice-form-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px 20px;
   padding: 22px 24px;
 }
@@ -103,6 +103,15 @@
 .invoice-form-grid .field.full,
 .invoice-section-title {
   grid-column: 1 / -1;
+}
+
+.invoice-form-grid .field {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.invoice-form-grid .field input,
+.invoice-form-grid .field select {
+  min-width: 0;
 }
 
 .invoice-section-title {

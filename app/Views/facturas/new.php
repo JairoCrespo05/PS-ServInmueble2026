@@ -14,8 +14,9 @@ $value = static fn (string $field): string => (string) ($formData[$field] ?? '')
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/servicios.css') ?>">
-  <link rel="stylesheet" href="<?= base_url('css/facturas.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/facturas.css') ?>?v=2">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/modal-forms.css') ?>?v=4">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'facturas', 'isAdministrator' => false]) ?>
@@ -75,7 +76,8 @@ $value = static fn (string $field): string => (string) ($formData[$field] ?? '')
           <form method="post" action="<?= site_url('facturas') ?>">
             <?= csrf_field() ?>
             <div class="invoice-form-grid">
-              <h3 class="invoice-section-title">Servicio y período</h3>
+              <section class="form-section" aria-labelledby="invoice-service-section">
+              <h3 class="invoice-section-title form-section-title" id="invoice-service-section">Servicio y período</h3>
               <div class="field full">
                 <label for="inmueble_servicio_id">Servicio asociado <span aria-hidden="true">*</span></label>
                 <select id="inmueble_servicio_id" name="inmueble_servicio_id" required aria-describedby="inmueble-servicio-help<?= isset($errors['inmueble_servicio_id']) ? ' inmueble_servicio_id-error' : '' ?>"<?= isset($errors['inmueble_servicio_id']) ? ' aria-invalid="true"' : '' ?>>
@@ -101,7 +103,9 @@ $value = static fn (string $field): string => (string) ($formData[$field] ?? '')
                 <?php if (isset($errors['periodo_facturacion'])): ?><span class="field-error" id="periodo_facturacion-error"><?= esc($errors['periodo_facturacion']) ?></span><?php endif ?>
               </div>
 
-              <h3 class="invoice-section-title">Fechas de la factura</h3>
+              </section>
+              <section class="form-section" aria-labelledby="invoice-dates-section">
+              <h3 class="invoice-section-title form-section-title" id="invoice-dates-section">Fechas de la factura</h3>
               <div class="field">
                 <label for="fecha_emision">Fecha de emisión <span aria-hidden="true">*</span></label>
                 <input id="fecha_emision" name="fecha_emision" type="date" value="<?= esc($value('fecha_emision'), 'attr') ?>" required aria-describedby="<?= isset($errors['fecha_emision']) ? 'fecha_emision-error' : 'fecha-emision-help' ?>"<?= isset($errors['fecha_emision']) ? ' aria-invalid="true"' : '' ?>>
@@ -121,7 +125,9 @@ $value = static fn (string $field): string => (string) ($formData[$field] ?? '')
                 <?php if (isset($errors['fecha_segundo_vencimiento'])): ?><span class="field-error" id="fecha_segundo_vencimiento-error"><?= esc($errors['fecha_segundo_vencimiento']) ?></span><?php endif ?>
               </div>
 
-              <h3 class="invoice-section-title">Importe y consumo</h3>
+              </section>
+              <section class="form-section" aria-labelledby="invoice-amount-section">
+              <h3 class="invoice-section-title form-section-title" id="invoice-amount-section">Importe y consumo</h3>
               <div class="field">
                 <label for="monto_total">Monto total <span aria-hidden="true">*</span></label>
                 <input id="monto_total" name="monto_total" type="number" min="0.01" max="9999999999.99" step="0.01" inputmode="decimal" value="<?= esc($value('monto_total'), 'attr') ?>" required aria-describedby="<?= isset($errors['monto_total']) ? 'monto_total-error' : 'monto-help' ?>"<?= isset($errors['monto_total']) ? ' aria-invalid="true"' : '' ?>>
@@ -135,7 +141,9 @@ $value = static fn (string $field): string => (string) ($formData[$field] ?? '')
                 <?php if (isset($errors['consumo_periodo'])): ?><span class="field-error" id="consumo_periodo-error"><?= esc($errors['consumo_periodo']) ?></span><?php endif ?>
               </div>
 
-              <h3 class="invoice-section-title">Lecturas del medidor <span>Opcional</span></h3>
+              </section>
+              <section class="form-section" aria-labelledby="invoice-readings-section">
+              <h3 class="invoice-section-title form-section-title" id="invoice-readings-section">Lecturas del medidor <span>Opcional</span></h3>
               <div class="field">
                 <label for="lectura_anterior">Lectura anterior</label>
                 <input id="lectura_anterior" name="lectura_anterior" type="number" min="0" max="999999999.999" step="0.001" inputmode="decimal" value="<?= esc($value('lectura_anterior'), 'attr') ?>" aria-describedby="<?= isset($errors['lectura_anterior']) ? 'lectura_anterior-error lecturas-help' : 'lecturas-help' ?>"<?= isset($errors['lectura_anterior']) ? ' aria-invalid="true"' : '' ?>>
@@ -147,6 +155,7 @@ $value = static fn (string $field): string => (string) ($formData[$field] ?? '')
                 <small id="lecturas-help">Si la factura no incluye lecturas, dejá ambas vacías.</small>
                 <?php if (isset($errors['lectura_actual'])): ?><span class="field-error" id="lectura_actual-error"><?= esc($errors['lectura_actual']) ?></span><?php endif ?>
               </div>
+              </section>
             </div>
             <div class="invoice-form-footer">
               <p>La factura se registrará como <strong>Pendiente</strong>.</p>

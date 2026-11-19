@@ -46,6 +46,7 @@ $formatError = static fn (string $field): string => isset($errors[$field])
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/radio-options.css') ?>?v=1">
+  <link rel="stylesheet" href="<?= base_url('css/modal-forms.css') ?>?v=4">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'tipos-servicio', 'isAdministrator' => true]) ?>
@@ -195,6 +196,8 @@ $formatError = static fn (string $field): string => isset($errors[$field])
       <form method="post" action="<?= $editId ? site_url('tipos-servicio/' . $editId) : site_url('tipos-servicio') ?>" id="service-form" data-create-action="<?= esc(site_url('tipos-servicio'), 'attr') ?>">
         <?= csrf_field() ?>
         <div class="form-body">
+          <section class="form-section" aria-labelledby="service-form-section">
+          <h3 class="form-section-title" id="service-form-section">Datos del servicio</h3>
           <div class="form-field full">
             <label for="service-name">Nombre</label>
             <input id="service-name" name="nombre" maxlength="100" required value="<?= esc($formData['nombre'] ?? '') ?>">
@@ -231,6 +234,7 @@ $formatError = static fn (string $field): string => isset($errors[$field])
             <input id="service-provider" name="proveedor" maxlength="150" required value="<?= esc($formData['proveedor'] ?? '') ?>">
             <?= $formatError('proveedor') ?>
           </div>
+          </section>
         </div>
         <footer class="modal-actions">
           <button class="button secondary" type="button" data-close-modal>Cancelar</button>

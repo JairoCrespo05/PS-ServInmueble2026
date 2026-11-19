@@ -35,6 +35,7 @@ $editandoAsociacion = $editAssociationId !== null;
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/radio-options.css') ?>?v=1">
+  <link rel="stylesheet" href="<?= base_url('css/modal-forms.css') ?>?v=4">
 
 </head>
 <body>
@@ -262,6 +263,8 @@ $editandoAsociacion = $editAssociationId !== null;
               <?php foreach ($errors as $message): ?><span class="field-error"><?= esc($message) ?></span><?php endforeach ?>
             </div>
           <?php endif ?>
+          <section class="form-section" id="association-selection" aria-labelledby="association-selection-title"<?= $editandoAsociacion ? ' hidden' : '' ?>>
+          <h3 class="form-section-title" id="association-selection-title">Servicio e inmueble</h3>
           <div class="form-field full" id="service-field"<?= $editandoAsociacion ? ' hidden' : '' ?>>
             <label for="associate-service">Servicio<?= $editandoAsociacion ? ' (no modificable)' : '' ?></label>
             <select id="associate-service" required<?= $serviceLocked || $editandoAsociacion ? ' disabled' : '' ?>>
@@ -292,7 +295,9 @@ $editandoAsociacion = $editAssociationId !== null;
             </select>
             <?php if (isset($errors['inmueble_id'])): ?><span class="field-error"><?= esc($errors['inmueble_id']) ?></span><?php endif ?>
           </div>
-          <p class="form-section-title">Datos de la asociacion</p>
+          </section>
+          <section class="form-section" aria-labelledby="association-form-section">
+          <h3 class="form-section-title" id="association-form-section">Datos de la asociacion</h3>
           <div class="form-field">
             <label for="associate-holder">Titular del servicio</label>
             <input id="associate-holder" name="titular_inmueble" maxlength="150" required value="<?= esc($formData['titular_inmueble'] ?? '', 'attr') ?>">
@@ -328,6 +333,7 @@ $editandoAsociacion = $editAssociationId !== null;
             <input id="associate-billing" name="domicilio_facturacion" maxlength="255" value="<?= esc($formData['domicilio_facturacion'] ?? '', 'attr') ?>">
             <?php if (isset($errors['domicilio_facturacion'])): ?><span class="field-error"><?= esc($errors['domicilio_facturacion']) ?></span><?php endif ?>
           </div>
+          </section>
         </div>
         <div class="modal-actions">
           <button class="button secondary" id="cancel-associate" type="button">Cancelar</button>
@@ -338,6 +344,6 @@ $editandoAsociacion = $editAssociationId !== null;
   </div>
 
   <script src="<?= base_url('js/sidebar.js') ?>"></script>
-  <script src="<?= base_url('js/servicios.js') ?>?v=2"></script>
+  <script src="<?= base_url('js/servicios.js') ?>?v=3"></script>
 </body>
 </html>

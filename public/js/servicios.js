@@ -48,6 +48,7 @@ const propertySelect = document.querySelector("#associate-property");
 const initialPropertyOptions = [...propertySelect.options].slice(1);
 const serviceField = document.querySelector("#service-field");
 const propertyField = document.querySelector("#property-field");
+const associationSelection = document.querySelector("#association-selection");
 const associateTitle = document.querySelector("#associate-title");
 const associateDescription = document.querySelector("#associate-description");
 const saveAssociation = document.querySelector("#save-association");
@@ -79,6 +80,7 @@ function setService(serviceId, locked) {
 }
 
 function setAssociationMode(editing) {
+  associationSelection.hidden = editing;
   serviceField.hidden = editing;
   propertyField.hidden = editing;
   associateTitle.textContent = editing ? "Modificar asociacion" : "Asociar servicio a inmueble";

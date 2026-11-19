@@ -41,6 +41,7 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
   <link rel="stylesheet" href="<?= base_url('css/inmuebles.css') ?>?v=8">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/radio-options.css') ?>?v=1">
+  <link rel="stylesheet" href="<?= base_url('css/modal-forms.css') ?>?v=4">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'inmuebles', 'isAdministrator' => false]) ?>
@@ -250,7 +251,8 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
         <?= csrf_field() ?>
         <div class="form-body">
           <?php if (isset($errors['database'])): ?><div class="field-error form-field full" role="alert"><?= esc($errors['database']) ?></div><?php endif ?>
-          <p class="form-section-title">Datos de la propiedad</p>
+          <section class="form-section" aria-labelledby="property-form-section">
+          <h3 class="form-section-title" id="property-form-section">Datos de la propiedad</h3>
           <div class="form-field full">
             <label for="alias_nombre">Alias o nombre</label>
             <input id="alias_nombre" name="alias_nombre" maxlength="150" required value="<?= esc($formData['alias_nombre'] ?? '', 'attr') ?>">
@@ -280,7 +282,9 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
             <small>Al reactivarlo, sus vínculos vigentes y activos pueden volver a admitir facturas nuevas.</small>
             <?php if (isset($errors['reactivar_inmueble'])): ?><span class="field-error" role="alert"><?= esc($errors['reactivar_inmueble']) ?></span><?php endif ?>
           </div>
-          <p class="form-section-title">Direccion</p>
+          </section>
+          <section class="form-section" aria-labelledby="address-form-section">
+          <h3 class="form-section-title" id="address-form-section">Direccion</h3>
           <div class="form-field">
             <label for="calle">Calle</label>
             <input id="calle" name="calle" maxlength="150" required value="<?= esc($formData['calle'] ?? '', 'attr') ?>">
@@ -314,6 +318,7 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
             <span id="location-status" role="status" aria-live="polite"></span>
             <button class="button" id="retry-location-catalog" type="button" hidden>Reintentar carga del catálogo</button>
           </div>
+          </section>
         </div>
         <div class="modal-actions"><button class="button" id="cancel-create" type="button">Cancelar</button><button class="button primary" id="save-property" type="submit"><?= $editId ? 'Guardar cambios' : 'Guardar inmueble' ?></button></div>
       </form>
