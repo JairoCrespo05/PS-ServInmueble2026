@@ -1,0 +1,5 @@
+Property States
+ [ ] Only three states are accepted on create and update
+ [ ] Reactivation requires explicit confirmation
+ [ ] Deactivation preserves state and requires confirmation to reactivate
+

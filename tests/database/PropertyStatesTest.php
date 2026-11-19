@@ -100,6 +100,25 @@ final class PropertyStatesTest extends CIUnitTestCase
     public function testDeactivationPreservesStateAndRequiresConfirmationToReactivate(): void
     {
         $this->db->table('inmuebles')->where('id', 1)->update(['estado' => 'Disponible', 'estado_actividad' => 'Activo']);
+        $this->db->table('servicios')->insert([
+            'id' => 1,
+            'nombre' => 'Electricidad',
+            'unidad_medida_std' => 'kWh',
+            'proveedor' => 'Proveedor de prueba',
+            'categoria' => 'Electricidad',
+        ]);
+        $this->db->table('inmueble_servicios')->insert([
+            'id' => 1,
+            'inmueble_id' => 1,
+            'servicio_id' => 1,
+            'titular_inmueble' => 'Propietario de prueba',
+            'estado' => 'Activo',
+            'estado_vinculacion' => 'Activo',
+        ]);
+        $activePage = $this->withSession(['user_id' => 1])->get('inmuebles');
+        $activePage->assertOK();
+        $this->assertStringContainsString('data-active-services="1"', $activePage->response()->getBody());
+
         $page = $this->withSession(['user_id' => 1])->get('servicios/asociaciones');
         $page->assertOK();
         preg_match('/name="csrf_test_name" value="([^"]+)"/', $page->response()->getBody(), $matches);
@@ -109,10 +128,21 @@ final class PropertyStatesTest extends CIUnitTestCase
         $row = $this->db->table('inmuebles')->where('id', 1)->get()->getRowArray();
         $this->assertSame('Disponible', $row['estado']);
         $this->assertSame('Inactivo', $row['estado_actividad']);
+        $inactivePage = $this->withSession(['user_id' => 1])->get('inmuebles');
+        $inactivePage->assertOK();
+        $this->assertStringContainsString('data-active-services="0"', $inactivePage->response()->getBody());
+        $this->assertSame(
+            'Activo',
+            $this->db->table('inmueble_servicios')->where('id', 1)->get()->getRow()->estado_vinculacion
+        );
+
         $this->postProperty('inmuebles/1', ['estado' => 'Disponible']);
         $this->assertSame('Inactivo', $this->db->table('inmuebles')->where('id', 1)->get()->getRow()->estado_actividad);
         $this->postProperty('inmuebles/1', ['estado' => 'Disponible', 'reactivar_inmueble' => '1']);
         $this->assertSame('Activo', $this->db->table('inmuebles')->where('id', 1)->get()->getRow()->estado_actividad);
+        $reactivatedPage = $this->withSession(['user_id' => 1])->get('inmuebles');
+        $reactivatedPage->assertOK();
+        $this->assertStringContainsString('data-active-services="1"', $reactivatedPage->response()->getBody());
     }
 
     private function postProperty(string $path, array $values): void

@@ -22,13 +22,32 @@ final class InvoiceDetailLinkTest extends CIUnitTestCase
         $paid = $invoice;
         $paid['factura_id'] = 13;
         $paid['estado_factura'] = 'Pagada';
+        $report = view('facturas/report', [
+            'pendientes' => [$invoice],
+            'pagadas' => [$paid],
+            'cantidadPendiente' => 1,
+            'cantidadPagada' => 1,
+            'coincidenciasPendientes' => 1,
+            'coincidenciasPagadas' => 1,
+            'totalCoincidencias' => 2,
+            'totalFacturas' => 2,
+            'buscar' => '',
+            'totalPendiente' => 100,
+            'totalPagado' => 100,
+        ]);
+
         $views = [
             [view('facturas/index', [
-                'facturas' => [$invoice], 'success' => null, 'error' => null, 'pagerLinks' => '',
+                'facturas' => [$invoice],
+                'success' => null,
+                'error' => null,
+                'pagerLinks' => '',
+                'totalFacturas' => 1,
+                'totalResultados' => 1,
+                'buscar' => '',
+                'estado' => '',
             ]), [12]],
-            [view('facturas/report', [
-                'pendientes' => [$invoice], 'pagadas' => [$paid], 'totalPendiente' => 100, 'totalPagado' => 100,
-            ]), [12, 13]],
+            [$report, [12, 13]],
         ];
 
         foreach ($views as [$html, $ids]) {

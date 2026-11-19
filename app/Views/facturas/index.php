@@ -54,7 +54,7 @@ $formatPeriod = static fn ($value): string => $value ? date('m/Y', strtotime($va
         <div class="notice error" role="alert"><?= esc($error) ?></div>
       <?php endif ?>
 
-      <?php if ($facturas === []): ?>
+      <?php if ($totalFacturas === 0): ?>
         <section class="service-card invoice-empty" aria-labelledby="invoice-empty-title">
           <span class="icon" aria-hidden="true">receipt_long</span>
           <h2 id="invoice-empty-title">Todavía no registraste facturas</h2>
@@ -70,35 +70,65 @@ $formatPeriod = static fn ($value): string => $value ? date('m/Y', strtotime($va
             </div>
             <a class="button secondary" href="<?= site_url('facturas/informe') ?>"><span class="icon" aria-hidden="true">assessment</span>Pendientes y pagadas</a>
           </div>
-          <div class="table-scroll" role="region" aria-label="Listado de facturas registradas" tabindex="0">
-            <table class="invoice-table">
-              <thead>
-                <tr>
-                  <th scope="col">Período</th>
-                  <th scope="col">Inmueble y servicio</th>
-                  <th scope="col">Importe</th>
-                  <th scope="col">Vencimiento</th>
-                  <th scope="col">Estado</th>
-                  <th scope="col"><span class="visually-hidden">Acciones</span></th>
-                </tr>
-              </thead>
-              <tbody>
-                <?php foreach ($facturas as $factura): ?>
+          <form class="invoice-filters" method="get" action="<?= site_url('facturas') ?>">
+            <div class="field invoice-filter-search">
+              <label for="invoice-search">Buscar por inmueble, servicio o proveedor</label>
+              <input id="invoice-search" name="buscar" type="search" maxlength="100" value="<?= esc($buscar, 'attr') ?>" placeholder="Ej.: Casa Centro, electricidad o proveedor">
+            </div>
+            <div class="field">
+              <label for="invoice-status">Estado</label>
+              <select id="invoice-status" name="estado">
+                <option value="">Todos los estados</option>
+                <option value="Pendiente"<?= $estado === 'Pendiente' ? ' selected' : '' ?>>Pendiente</option>
+                <option value="Pagada"<?= $estado === 'Pagada' ? ' selected' : '' ?>>Pagada</option>
+              </select>
+            </div>
+            <div class="invoice-filter-actions">
+              <button class="button" type="submit"><span class="icon" aria-hidden="true">search</span>Buscar</button>
+              <a class="button secondary" href="<?= site_url('facturas') ?>">Limpiar</a>
+            </div>
+          </form>
+          <p class="invoice-results-count" role="status">
+            Mostrando <?= esc(count($facturas)) ?> de <?= esc($totalResultados) ?>
+            <?= $totalResultados === 1 ? 'resultado' : 'resultados' ?>
+            (<?= esc($totalFacturas) ?> <?= $totalFacturas === 1 ? 'factura' : 'facturas' ?> en total).
+          </p>
+          <?php if ($facturas === []): ?>
+            <div class="invoice-report-empty" role="status">
+              No hay facturas que coincidan con esos filtros.
+              <a href="<?= site_url('facturas') ?>">Limpiar filtros</a>
+            </div>
+          <?php else: ?>
+            <div class="table-scroll" role="region" aria-label="Listado de facturas registradas" tabindex="0">
+              <table class="invoice-table">
+                <thead>
                   <tr>
-                    <td><?= esc($formatPeriod($factura['periodo_facturacion'])) ?></td>
-                    <td>
-                      <strong><?= esc($factura['alias_nombre']) ?></strong>
-                      <span class="invoice-secondary"><?= esc($factura['servicio_nombre'] . ' · ' . $factura['proveedor']) ?></span>
-                    </td>
-                    <td><?= esc($formatAmount($factura['monto_total'])) ?></td>
-                    <td><?= esc($formatDate($factura['fecha_primer_vencimiento'])) ?></td>
-                    <td><span class="invoice-status <?= $factura['estado_factura'] === 'Pagada' ? 'paid' : 'pending' ?>"><?= esc($factura['estado_factura']) ?></span></td>
-                    <td><a class="invoice-detail-link" href="<?= site_url('facturas/' . $factura['factura_id']) ?>" title="Ver detalle de factura" aria-label="Ver detalle de <?= esc($factura['servicio_nombre'] . ' ' . $formatPeriod($factura['periodo_facturacion']), 'attr') ?>"><span class="icon" aria-hidden="true">visibility</span></a></td>
+                    <th scope="col">Período</th>
+                    <th scope="col">Inmueble y servicio</th>
+                    <th scope="col">Importe</th>
+                    <th scope="col">Vencimiento</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col"><span class="visually-hidden">Acciones</span></th>
                   </tr>
-                <?php endforeach ?>
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  <?php foreach ($facturas as $factura): ?>
+                    <tr>
+                      <td><?= esc($formatPeriod($factura['periodo_facturacion'])) ?></td>
+                      <td>
+                        <strong><?= esc($factura['alias_nombre']) ?></strong>
+                        <span class="invoice-secondary"><?= esc($factura['servicio_nombre'] . ' · ' . $factura['proveedor']) ?></span>
+                      </td>
+                      <td><?= esc($formatAmount($factura['monto_total'])) ?></td>
+                      <td><?= esc($formatDate($factura['fecha_primer_vencimiento'])) ?></td>
+                      <td><span class="invoice-status <?= $factura['estado_factura'] === 'Pagada' ? 'paid' : 'pending' ?>"><?= esc($factura['estado_factura']) ?></span></td>
+                      <td><a class="invoice-detail-link" href="<?= site_url('facturas/' . $factura['factura_id']) ?>" title="Ver detalle de factura" aria-label="Ver detalle de <?= esc($factura['servicio_nombre'] . ' ' . $formatPeriod($factura['periodo_facturacion']), 'attr') ?>"><span class="icon" aria-hidden="true">visibility</span></a></td>
+                    </tr>
+                  <?php endforeach ?>
+                </tbody>
+              </table>
+            </div>
+          <?php endif ?>
           <?php if ($pagerLinks !== ''): ?>
             <nav class="invoice-pagination" aria-label="Páginas de facturas"><?= $pagerLinks ?></nav>
           <?php endif ?>

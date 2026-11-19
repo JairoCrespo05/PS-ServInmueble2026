@@ -139,6 +139,46 @@ final class InvoiceManagementTest extends CIUnitTestCase
         $foreignDetail->assertStatus(404);
     }
 
+    public function testInvoiceListCanSearchPropertyServiceAndProviderAndFilterStatus(): void
+    {
+        $ownerId = $this->createOwner('invoice-filter-owner@example.test');
+        $otherOwnerId = $this->createOwner('invoice-filter-other@example.test');
+        $associationId = $this->createServiceAssociation($ownerId, 'Casa Filtrable');
+        $otherAssociationId = $this->createServiceAssociation($otherOwnerId, 'Casa Ajena Filtrable');
+        $this->createInvoice($associationId, '2026-11-01', 'Pendiente');
+        $this->createInvoice($associationId, '2026-10-01', 'Pagada', '1000.00', [
+            'fecha_pago_realizado' => '2026-10-15',
+            'monto_abonado' => '1000.00',
+            'medio_pago' => 'Transferencia',
+        ]);
+        $this->createInvoice($otherAssociationId, '2026-11-01', 'Pendiente');
+
+        foreach (['Casa Filtrable', 'Electricidad', 'Proveedor de Prueba'] as $term) {
+            $search = $this->withSession(['user_id' => $ownerId])
+                ->get('facturas?buscar=' . rawurlencode($term));
+
+            $search->assertStatus(200);
+            $search->assertSee('Casa Filtrable');
+            $search->assertDontSee('Casa Ajena Filtrable');
+        }
+
+        $pending = $this->withSession(['user_id' => $ownerId])
+            ->get('facturas?estado=Pendiente');
+
+        $pending->assertStatus(200);
+        $pending->assertSee('11/2026');
+        $pending->assertDontSee('10/2026');
+        $pending->assertDontSee('Casa Ajena Filtrable');
+
+        $noResults = $this->withSession(['user_id' => $ownerId])
+            ->get('facturas?buscar=sin-resultados');
+
+        $noResults->assertStatus(200);
+        $noResults->assertSee('No hay facturas que coincidan con esos filtros.');
+        $noResults->assertSee('Limpiar filtros');
+        $noResults->assertDontSee('Todavía no registraste facturas');
+    }
+
     public function testReportSeparatesInvoiceStatesAndShowsOwnerTotals(): void
     {
         $ownerId = $this->createOwner('invoice-report-owner@example.test');
@@ -161,6 +201,64 @@ final class InvoiceManagementTest extends CIUnitTestCase
         $report->assertSee('$ 1.200,00');
         $report->assertSee('$ 800,00');
         $report->assertDontSee('Casa Informe Ajena');
+    }
+
+    public function testInvoiceReportSearchFiltersBothTablesAndKeepsOwnerTotalsGlobal(): void
+    {
+        $ownerId = $this->createOwner('invoice-report-search-owner@example.test');
+        $otherOwnerId = $this->createOwner('invoice-report-search-other@example.test');
+        $waterAssociationId = $this->createServiceAssociation($ownerId, 'Casa Mistral', 'Agua', 'Aguas del Sur');
+        $electricityAssociationId = $this->createServiceAssociation(
+            $ownerId,
+            'Departamento Norte',
+            'Electricidad',
+            'Luz del Sur'
+        );
+        $otherAssociationId = $this->createServiceAssociation(
+            $otherOwnerId,
+            'Casa Mistral Ajena',
+            'Agua',
+            'Aguas del Sur'
+        );
+        $this->createInvoice($waterAssociationId, '2026-09-01', 'Pendiente', '1200.00');
+        $this->createInvoice($waterAssociationId, '2026-10-01', 'Pagada', '800.00', [
+            'fecha_pago_realizado' => '2026-10-15',
+            'monto_abonado' => '800.00',
+            'medio_pago' => 'Transferencia',
+        ]);
+        $this->createInvoice($electricityAssociationId, '2026-07-01', 'Pendiente', '300.00');
+        $this->createInvoice($electricityAssociationId, '2026-08-01', 'Pagada', '400.00', [
+            'fecha_pago_realizado' => '2026-08-15',
+            'monto_abonado' => '400.00',
+            'medio_pago' => 'Efectivo',
+        ]);
+        $this->createInvoice($otherAssociationId, '2026-11-01', 'Pendiente', '9900.00');
+
+        foreach ([
+            'Casa Mistral' => ['Casa Mistral', 'Departamento Norte'],
+            'Electricidad' => ['Departamento Norte', 'Casa Mistral'],
+            'Luz del Sur' => ['Departamento Norte', 'Casa Mistral'],
+        ] as $term => [$expectedProperty, $excludedProperty]) {
+            $report = $this->withSession(['user_id' => $ownerId])
+                ->get('facturas/informe?buscar=' . rawurlencode($term));
+
+            $report->assertStatus(200);
+            $report->assertSee($expectedProperty);
+            $report->assertDontSee($excludedProperty);
+            $report->assertDontSee('Casa Mistral Ajena');
+            $report->assertSee('La búsqueda coincide con 2 de 4 facturas:');
+            $report->assertSee('$ 1.500,00');
+            $report->assertSee('$ 1.200,00');
+        }
+
+        $noResults = $this->withSession(['user_id' => $ownerId])
+            ->get('facturas/informe?buscar=sin-resultados');
+
+        $noResults->assertStatus(200);
+        $noResults->assertSee('No hay facturas pendientes que coincidan con esta búsqueda.');
+        $noResults->assertSee('No hay facturas pagadas que coincidan con esta búsqueda.');
+        $noResults->assertSee('$ 1.500,00');
+        $noResults->assertSee('$ 1.200,00');
     }
 
     public function testOwnerCanRegisterFullPaymentAndInvoiceBecomesPaid(): void
@@ -308,7 +406,12 @@ final class InvoiceManagementTest extends CIUnitTestCase
         return $user['userId'];
     }
 
-    private function createServiceAssociation(int $ownerId, string $propertyName): int
+    private function createServiceAssociation(
+        int $ownerId,
+        string $propertyName,
+        string $serviceName = 'Electricidad',
+        string $provider = 'Proveedor de Prueba'
+    ): int
     {
         $this->db->table('direcciones')->insert([
             'calle' => 'Calle de Prueba',
@@ -328,10 +431,10 @@ final class InvoiceManagementTest extends CIUnitTestCase
         $propertyId = (int) $this->db->insertID();
 
         $this->db->table('servicios')->insert([
-            'nombre' => 'Electricidad',
+            'nombre' => $serviceName,
             'unidad_medida_std' => 'kWh',
-            'proveedor' => 'Proveedor de Prueba',
-            'categoria' => 'Electricidad',
+            'proveedor' => $provider,
+            'categoria' => $serviceName,
         ]);
         $serviceId = (int) $this->db->insertID();
 

@@ -504,15 +504,15 @@ foreach ($recentInvoices ?? [] as $invoice) {
               <h2 class="card-title">Acciones Frecuentes</h2>
             </div>
             <div class="shortcuts-grid">
-              <a href="#" class="shortcut-card" id="scAddProperty">
+              <a href="<?= site_url('inmuebles') ?>" class="shortcut-card">
                 <div class="shortcut-icon">
                   <svg class="icon" viewBox="0 0 24 24"><path d="M3 21h18"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="10" y1="11" x2="14" y2="11"></line></svg>
                 </div>
                 <div class="shortcut-title">+ Nuevo Inmueble</div>
-                <div class="shortcut-desc">Alta en padrón catastral</div>
+                <div class="shortcut-desc">Ir a inmuebles para registrar uno nuevo</div>
               </a>
 
-              <a href="#" class="shortcut-card" id="scAddService">
+              <a href="<?= site_url('servicios/asociaciones') ?>" class="shortcut-card">
                 <div class="shortcut-icon">
                   <svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                 </div>
@@ -520,7 +520,7 @@ foreach ($recentInvoices ?? [] as $invoice) {
                 <div class="shortcut-desc">Vincular contrato (US-06)</div>
               </a>
 
-              <a href="#" class="shortcut-card" id="scReports">
+              <a href="<?= site_url('facturas/informe') ?>" class="shortcut-card">
                 <div class="shortcut-icon">
                   <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                 </div>
@@ -528,13 +528,13 @@ foreach ($recentInvoices ?? [] as $invoice) {
                 <div class="shortcut-desc">Listado tabular US-09</div>
               </a>
 
-              <a href="#" class="shortcut-card" id="scSupport">
+              <div class="shortcut-card shortcut-card-unavailable" aria-disabled="true">
                 <div class="shortcut-icon">
                   <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                 </div>
                 <div class="shortcut-title">Centro de Ayuda</div>
-                <div class="shortcut-desc">Guía y soporte técnico</div>
-              </a>
+                <div class="shortcut-desc">Disponible próximamente</div>
+              </div>
             </div>
 
             <div class="info-box">

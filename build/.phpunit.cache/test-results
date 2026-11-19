@@ -1,0 +1,1 @@
+{"version":2,"defects":{"PropertyStatesTest::testOnlyThreeStatesAreAcceptedOnCreateAndUpdate":8,"PropertyStatesTest::testReactivationRequiresExplicitConfirmation":8,"PropertyStatesTest::testDeactivationPreservesStateAndRequiresConfirmationToReactivate":8},"times":[]}

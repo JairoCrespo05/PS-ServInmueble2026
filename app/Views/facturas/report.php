@@ -51,7 +51,7 @@ $renderRows = static function (array $invoices) use ($formatAmount, $formatDate,
     <main class="page">
       <section class="page-head">
         <div>
-          <p class="eyebrow">Facturas / US-09</p>
+          <p class="eyebrow">Facturas</p>
           <h1>Informe de facturación</h1>
           <p class="subtitle">Importes de las facturas pendientes y pagadas de tus inmuebles.</p>
         </div>
@@ -60,6 +60,29 @@ $renderRows = static function (array $invoices) use ($formatAmount, $formatDate,
         </div>
       </section>
 
+      <form class="invoice-filters invoice-report-filters" method="get" action="<?= site_url('facturas/informe') ?>">
+        <div class="field invoice-filter-search">
+          <label for="invoice-report-search">Buscar por inmueble, servicio o proveedor</label>
+          <input id="invoice-report-search" name="buscar" type="search" maxlength="100" value="<?= esc($buscar, 'attr') ?>" placeholder="Ej.: Casa Centro, electricidad o proveedor">
+        </div>
+        <div class="invoice-filter-actions">
+          <button class="button" type="submit"><span class="icon" aria-hidden="true">search</span>Buscar</button>
+          <a class="button secondary" href="<?= site_url('facturas/informe') ?>">Limpiar</a>
+        </div>
+      </form>
+      <p class="invoice-results-count invoice-report-results-count" role="status">
+        <?php if ($buscar !== ''): ?>
+          La búsqueda coincide con <?= esc($totalCoincidencias) ?> de <?= esc($totalFacturas) ?> facturas:
+          <?= esc($coincidenciasPendientes) ?> <?= $coincidenciasPendientes === 1 ? 'pendiente' : 'pendientes' ?>
+          y <?= esc($coincidenciasPagadas) ?> <?= $coincidenciasPagadas === 1 ? 'pagada' : 'pagadas' ?>.
+        <?php else: ?>
+          <?= esc($totalFacturas) ?> <?= $totalFacturas === 1 ? 'factura' : 'facturas' ?> en total:
+          <?= esc($cantidadPendiente) ?> <?= $cantidadPendiente === 1 ? 'pendiente' : 'pendientes' ?>
+          y <?= esc($cantidadPagada) ?> <?= $cantidadPagada === 1 ? 'pagada' : 'pagadas' ?>.
+        <?php endif ?>
+        Los importes de las tarjetas corresponden al total global.
+      </p>
+
       <section class="invoice-report-totals" aria-label="Totales de facturación">
         <article class="service-card invoice-total-card pending">
           <div class="invoice-total-heading">
@@ -67,7 +90,7 @@ $renderRows = static function (array $invoices) use ($formatAmount, $formatDate,
             <span class="invoice-total-label">Total pendiente</span>
           </div>
           <strong><?= esc($formatAmount($totalPendiente)) ?></strong>
-          <span class="invoice-total-count"><?= esc(count($pendientes)) ?> facturas</span>
+          <span class="invoice-total-count"><?= esc($cantidadPendiente) ?> <?= $cantidadPendiente === 1 ? 'factura' : 'facturas' ?> en total</span>
         </article>
         <article class="service-card invoice-total-card paid">
           <div class="invoice-total-heading">
@@ -75,7 +98,7 @@ $renderRows = static function (array $invoices) use ($formatAmount, $formatDate,
             <span class="invoice-total-label">Total pagado</span>
           </div>
           <strong><?= esc($formatAmount($totalPagado)) ?></strong>
-          <span class="invoice-total-count"><?= esc(count($pagadas)) ?> facturas</span>
+          <span class="invoice-total-count"><?= esc($cantidadPagada) ?> <?= $cantidadPagada === 1 ? 'factura' : 'facturas' ?> en total</span>
         </article>
       </section>
 
@@ -85,12 +108,18 @@ $renderRows = static function (array $invoices) use ($formatAmount, $formatDate,
             <span class="invoice-section-icon pending icon" aria-hidden="true">schedule</span>
             <div>
               <h2 id="pending-invoices-title">Facturas pendientes</h2>
-              <p>Total: <strong><?= esc($formatAmount($totalPendiente)) ?></strong></p>
+              <p>Total global: <strong><?= esc($formatAmount($totalPendiente)) ?></strong></p>
             </div>
           </div>
         </div>
         <?php if ($pendientes === []): ?>
-          <p class="invoice-report-empty">No tenés facturas pendientes.</p>
+          <p class="invoice-report-empty" role="status">
+            <?php if ($cantidadPendiente === 0): ?>
+              No tenés facturas pendientes.
+            <?php else: ?>
+              No hay facturas pendientes que coincidan con esta búsqueda.
+            <?php endif ?>
+          </p>
         <?php else: ?>
           <div class="table-scroll" role="region" aria-label="Listado de facturas pendientes" tabindex="0">
             <table class="invoice-table">
@@ -107,12 +136,18 @@ $renderRows = static function (array $invoices) use ($formatAmount, $formatDate,
             <span class="invoice-section-icon paid icon" aria-hidden="true">task_alt</span>
             <div>
               <h2 id="paid-invoices-title">Facturas pagadas</h2>
-              <p>Total: <strong><?= esc($formatAmount($totalPagado)) ?></strong></p>
+              <p>Total global: <strong><?= esc($formatAmount($totalPagado)) ?></strong></p>
             </div>
           </div>
         </div>
         <?php if ($pagadas === []): ?>
-          <p class="invoice-report-empty">Todavía no tenés facturas pagadas.</p>
+          <p class="invoice-report-empty" role="status">
+            <?php if ($cantidadPagada === 0): ?>
+              Todavía no tenés facturas pagadas.
+            <?php else: ?>
+              No hay facturas pagadas que coincidan con esta búsqueda.
+            <?php endif ?>
+          </p>
         <?php else: ?>
           <div class="table-scroll" role="region" aria-label="Listado de facturas pagadas" tabindex="0">
             <table class="invoice-table">
