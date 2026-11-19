@@ -522,6 +522,16 @@ class Inmuebles extends BaseController
                 'estado'       => $formData['estado'],
                 'updated_at'   => $now,
             ] + ($reactivating ? ['estado_actividad' => 'Activo'] : []));
+        if ($reactivating) {
+            $db->table('inmueble_servicios')
+                ->where('inmueble_id', $id)
+                ->where('motivo_suspension', 'BajaInmueble')
+                ->update([
+                    'estado' => 'Activo',
+                    'motivo_suspension' => null,
+                    'updated_at' => $now,
+                ]);
+        }
         $db->transComplete();
 
         if (! $db->transStatus()) {
@@ -558,6 +568,14 @@ class Inmuebles extends BaseController
             ->where('id', $id)
             ->update([
                 'estado_actividad' => 'Inactivo',
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+        $db->table('inmueble_servicios')
+            ->where('inmueble_id', $id)
+            ->where("LOWER(TRIM(estado)) != 'inactivo'", null, false)
+            ->update([
+                'estado' => 'Inactivo',
+                'motivo_suspension' => 'BajaInmueble',
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
         $db->transComplete();

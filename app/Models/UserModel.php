@@ -183,7 +183,7 @@ class UserModel extends Model
     public function findServicesForUserProperties(int $userId): array
     {
         return $this->db->table('inmueble_servicios isv')
-            ->select('isv.id AS asociacion_id, isv.inmueble_id, isv.estado AS estado_asociacion, isv.estado_vinculacion, s.nombre AS servicio_nombre, s.categoria AS servicio_categoria, s.proveedor')
+            ->select("isv.id AS asociacion_id, isv.inmueble_id, i.estado_actividad, isv.estado AS estado_asociacion, isv.estado_vinculacion, CASE WHEN i.estado_actividad = 'Inactivo' OR LOWER(TRIM(isv.estado)) = 'inactivo' THEN 'Inactivo' ELSE isv.estado_vinculacion END AS estado_efectivo, s.nombre AS servicio_nombre, s.categoria AS servicio_categoria, s.proveedor")
             ->join('inmuebles i', 'i.id = isv.inmueble_id')
             ->join('servicios s', 's.id = isv.servicio_id')
             ->where('i.usuario_id', $userId)

@@ -1,6 +1,7 @@
 <?php
 
 use App\Database\Migrations\AddEstadoVinculacion;
+use App\Database\Migrations\AddAssociationPropertySuspension;
 use App\Database\Migrations\AddProvinciaToDirecciones;
 use App\Database\Migrations\AddUserManagementState;
 use App\Database\Migrations\CreateServiInmuebleSchema;
@@ -16,6 +17,7 @@ require_once APPPATH . 'Database/Migrations/2026-11-14-020000_AddUserManagementS
 require_once APPPATH . 'Database/Migrations/2026-11-17-190000_AddProvinciaToDirecciones.php';
 require_once APPPATH . 'Database/Migrations/2026-11-18-180000_AddEstadoVinculacion.php';
 require_once APPPATH . 'Database/Migrations/2026-11-18-190000_ConvertirEstadoActivoInmuebles.php';
+require_once APPPATH . 'Database/Migrations/2026-11-19-120000_AddAssociationPropertySuspension.php';
 
 /**
  * @internal
@@ -34,6 +36,7 @@ final class PropertyStatesTest extends CIUnitTestCase
         (new AddProvinciaToDirecciones($forge))->up();
         (new AddEstadoVinculacion($forge))->up();
         (new ConvertirEstadoActivoInmuebles($forge))->up();
+        (new AddAssociationPropertySuspension($forge))->up();
         $this->db->table('usuarios')->insert([
             'id' => 1, 'nombre' => 'Propietario', 'apellido' => 'Prueba',
             'email' => 'property-state@example.test', 'password' => 'test',
@@ -115,6 +118,15 @@ final class PropertyStatesTest extends CIUnitTestCase
             'estado' => 'Activo',
             'estado_vinculacion' => 'Activo',
         ]);
+        $this->db->table('inmueble_servicios')->insert([
+            'id' => 2,
+            'inmueble_id' => 1,
+            'servicio_id' => 1,
+            'titular_inmueble' => 'Propietario de prueba',
+            'estado' => 'Inactivo',
+            'estado_vinculacion' => 'Activo',
+            'motivo_suspension' => null,
+        ]);
         $activePage = $this->withSession(['user_id' => 1])->get('inmuebles');
         $activePage->assertOK();
         $this->assertStringContainsString('data-active-services="1"', $activePage->response()->getBody());
@@ -131,15 +143,27 @@ final class PropertyStatesTest extends CIUnitTestCase
         $inactivePage = $this->withSession(['user_id' => 1])->get('inmuebles');
         $inactivePage->assertOK();
         $this->assertStringContainsString('data-active-services="0"', $inactivePage->response()->getBody());
+        $inactiveServicePage = $this->withSession(['user_id' => 1])->get('servicios');
+        $inactiveServicePage->assertOK();
+        $this->assertStringContainsString('Vínculo: Inactivo', $inactiveServicePage->response()->getBody());
         $this->assertSame(
             'Activo',
             $this->db->table('inmueble_servicios')->where('id', 1)->get()->getRow()->estado_vinculacion
         );
+        $association = $this->db->table('inmueble_servicios')->where('id', 1)->get()->getRowArray();
+        $this->assertSame('Inactivo', $association['estado']);
+        $this->assertSame('BajaInmueble', $association['motivo_suspension']);
 
         $this->postProperty('inmuebles/1', ['estado' => 'Disponible']);
         $this->assertSame('Inactivo', $this->db->table('inmuebles')->where('id', 1)->get()->getRow()->estado_actividad);
         $this->postProperty('inmuebles/1', ['estado' => 'Disponible', 'reactivar_inmueble' => '1']);
         $this->assertSame('Activo', $this->db->table('inmuebles')->where('id', 1)->get()->getRow()->estado_actividad);
+        $association = $this->db->table('inmueble_servicios')->where('id', 1)->get()->getRowArray();
+        $this->assertSame('Activo', $association['estado']);
+        $this->assertNull($association['motivo_suspension']);
+        $manualAssociation = $this->db->table('inmueble_servicios')->where('id', 2)->get()->getRowArray();
+        $this->assertSame('Inactivo', $manualAssociation['estado']);
+        $this->assertNull($manualAssociation['motivo_suspension']);
         $reactivatedPage = $this->withSession(['user_id' => 1])->get('inmuebles');
         $reactivatedPage->assertOK();
         $this->assertStringContainsString('data-active-services="1"', $reactivatedPage->response()->getBody());

@@ -26,6 +26,7 @@ class AdminDashboardModel extends Model
                 'isv.id AS asociacion_id',
                 'isv.estado AS estado_asociacion',
                 'isv.estado_vinculacion',
+                "CASE WHEN i.estado_actividad = 'Inactivo' OR LOWER(TRIM(isv.estado)) = 'inactivo' THEN 'Inactivo' ELSE isv.estado_vinculacion END AS estado_efectivo",
                 's.nombre AS servicio_nombre',
                 's.categoria AS servicio_categoria',
                 's.proveedor AS servicio_proveedor',
@@ -69,6 +70,7 @@ class AdminDashboardModel extends Model
                     'proveedor' => $row['servicio_proveedor'],
                     'estado' => $row['estado_asociacion'],
                     'estado_vinculacion' => $row['estado_vinculacion'],
+                    'estado_efectivo' => $row['estado_efectivo'],
                 ];
             }
         }
