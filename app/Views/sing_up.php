@@ -33,6 +33,7 @@ $alertClass = $success !== null && $formError === null && ! $errors ? 'alert-suc
 
   <link rel="stylesheet" href="<?= base_url('css/styles.css') ?>?v=<?= filemtime(FCPATH . 'css/styles.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>?v=<?= filemtime(FCPATH . 'css/brand.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/support-modal.css') ?>">
 </head>
 <body class="signup-page">
 
@@ -43,11 +44,11 @@ $alertClass = $success !== null && $formError === null && ! $errors ? 'alert-suc
     <nav class="topbar-nav">
       <a href="<?= base_url('login') ?>" class="nav-link" id="navLinkLogin">Iniciar Sesión</a>
       <a href="<?= base_url('sing_up') ?>" class="nav-link active">Registrarse</a>
-      <a href="#" class="nav-link">Ayuda</a>
+      <a href="#supportModal" class="nav-link" data-open-support>Ayuda</a>
     </nav>
 
     <div class="topbar-right">
-      <a href="#" class="btn-help">
+      <a href="#supportModal" class="btn-help" data-open-support>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
           <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
@@ -292,6 +293,10 @@ $alertClass = $success !== null && $formError === null && ! $errors ? 'alert-suc
           </div>
 
         </form>
+
+        <div class="support-link-block">
+          ¿Necesitás ayuda para registrarte? <a href="#supportModal" data-open-support>Contactá a Soporte Técnico</a>
+        </div>
       </section>
 
     </div>
@@ -305,10 +310,11 @@ $alertClass = $success !== null && $formError === null && ! $errors ? 'alert-suc
     <div class="footer-links">
       <a href="#termsModal" data-open-terms>Términos y Condiciones</a>
       <a href="#termsModal" data-open-terms>Política de Privacidad</a>
-      <a href="#">Centro de Ayuda</a>
+      <a href="#supportModal" data-open-support>Centro de Ayuda</a>
     </div>
   </footer>
 
+  <?= view('partials/support_modal') ?>
   <dialog class="terms-modal" id="termsModal" aria-labelledby="termsModalTitle">
     <header class="terms-modal-header">
       <div>
@@ -349,5 +355,6 @@ $alertClass = $success !== null && $formError === null && ! $errors ? 'alert-suc
 
   <!-- JAVASCRIPT VANILLA PURO (Sin librerías, sin dependencias) -->
   <script src="<?= base_url('js/script.js') ?>?v=<?= filemtime(FCPATH . 'js/script.js') ?>"></script>
+  <script src="<?= base_url('js/support-modal.js') ?>"></script>
 </body>
 </html>

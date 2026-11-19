@@ -9,6 +9,7 @@
 
  <link rel="stylesheet" href="<?= base_url('css/styles.css') ?>?v=<?= filemtime(FCPATH . 'css/styles.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>?v=<?= filemtime(FCPATH . 'css/brand.css') ?>">
+ <link rel="stylesheet" href="<?= base_url('css/support-modal.css') ?>">
 
 </head>
 <body class="login-page">
@@ -20,11 +21,11 @@
     <nav class="topbar-nav">
       <a href="<?= base_url('login') ?>" class="nav-link active">Iniciar Sesión</a>
       <a href="<?= base_url('sing_up') ?>" class="nav-link" id="linkGoToRegister">Registrarse</a>
-      <a href="#" class="nav-link">Ayuda</a>
+      <a href="#supportModal" class="nav-link" data-open-support>Ayuda</a>
     </nav>
 
     <div class="topbar-right">
-      <a href="#" class="btn-help">
+      <a href="#supportModal" class="btn-help" data-open-support>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
           <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
@@ -194,7 +195,7 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
           </svg>
-          ¿Inconvenientes para acceder? <a href="#" class="">Contactá a Soporte Técnico</a>
+          ¿Inconvenientes para acceder? <a href="#supportModal" data-open-support>Contactá a Soporte Técnico</a>
         </div>
 
       </section>
@@ -210,11 +211,13 @@
     <div class="footer-links">
       <a href="#" class="">Términos del Servicio</a>
       <a href="#" class="">Políticas de Privacidad</a>
-      <a href="#" class="">Centro de Ayuda</a>
+      <a href="#supportModal" data-open-support>Centro de Ayuda</a>
     </div>
   </footer>
 
+  <?= view('partials/support_modal') ?>
   <script src="<?= base_url('js/script.js') ?>"></script>
+  <script src="<?= base_url('js/support-modal.js') ?>"></script>
 
 
 </body></html>

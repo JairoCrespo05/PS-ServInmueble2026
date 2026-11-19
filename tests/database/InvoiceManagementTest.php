@@ -50,6 +50,83 @@ final class InvoiceManagementTest extends CIUnitTestCase
         $this->assertLessThan(strpos($body, '10/2026'), strpos($body, '11/2026'));
     }
 
+    public function testOwnerHomeShowsLiveMetricsScopedToTheOwner(): void
+    {
+        $ownerId = $this->createOwner('invoice-metrics-owner@example.test');
+        $otherOwnerId = $this->createOwner('invoice-metrics-other@example.test');
+        $month = new DateTimeImmutable('first day of this month');
+        $previousMonth = $month->modify('-1 month');
+
+        $activeAssociationId = $this->createServiceAssociation($ownerId, 'Casa activa métricas');
+        $inactivePropertyAssociationId = $this->createServiceAssociation($ownerId, 'Casa inactiva métricas');
+        $pausedAssociationId = $this->createServiceAssociation($ownerId, 'Servicio pausado métricas');
+        $foreignAssociationId = $this->createServiceAssociation($otherOwnerId, 'Casa ajena métricas');
+
+        $this->db->table('inmuebles')
+            ->where('id', $this->propertyIdForAssociation($inactivePropertyAssociationId))
+            ->update(['estado_actividad' => 'Inactivo']);
+        $this->db->table('inmueble_servicios')
+            ->where('id', $pausedAssociationId)
+            ->update(['estado_vinculacion' => 'Pausado']);
+
+        $pendingThisMonthId = $this->createInvoice(
+            $activeAssociationId,
+            $month->format('Y-m-d'),
+            'Pendiente',
+            '1234.50'
+        );
+        $pendingOutsideMonthId = $this->createInvoice(
+            $inactivePropertyAssociationId,
+            $month->format('Y-m-d'),
+            'Pendiente',
+            '500.00'
+        );
+        $paidThisMonthId = $this->createInvoice(
+            $pausedAssociationId,
+            $month->format('Y-m-d'),
+            'Pagada',
+            '600.00'
+        );
+        $foreignInvoiceId = $this->createInvoice(
+            $foreignAssociationId,
+            $month->format('Y-m-d'),
+            'Pendiente',
+            '9999.00'
+        );
+
+        $this->setInvoiceDueDates($pendingThisMonthId, $previousMonth, $month->modify('+5 days'));
+        $this->setInvoiceDueDates($pendingOutsideMonthId, $previousMonth);
+        $this->setInvoiceDueDates($paidThisMonthId, $month->modify('+5 days'));
+        $this->setInvoiceDueDates($foreignInvoiceId, $month->modify('+5 days'));
+
+        $home = $this->withSession(['user_id' => $ownerId])->get('home');
+
+        $home->assertStatus(200);
+        $body = $home->response()->getBody();
+        $this->assertMatchesRegularExpression('/id="kpiProperties">\s*2\s*<small>propiedades/s', $body);
+        $this->assertMatchesRegularExpression('/id="kpiServices">\s*1\s*<small>contratos/s', $body);
+        $this->assertMatchesRegularExpression('/id="kpiToPay">\s*\$\s*1\.234,50/s', $body);
+        $this->assertMatchesRegularExpression('/1\s*factura pendiente\s*con vencimiento este mes/s', $body);
+        $this->assertMatchesRegularExpression('/id="kpiCompliance">\s*33,3%/s', $body);
+        $this->assertMatchesRegularExpression('/1\s*de 3 facturas del período pagadas/s', $body);
+        $home->assertDontSee('$ 9.999,00');
+    }
+
+    public function testOwnerHomeShowsEmptyMetricStateWhenThereIsNoData(): void
+    {
+        $ownerId = $this->createOwner('invoice-metrics-empty@example.test');
+
+        $home = $this->withSession(['user_id' => $ownerId])->get('home');
+        $body = $home->response()->getBody();
+
+        $home->assertStatus(200);
+        $home->assertSee('id="kpiCompliance">—');
+        $home->assertSee('Sin facturas del período actual');
+        $this->assertMatchesRegularExpression('/id="kpiProperties">\s*0\s*<small>propiedades/s', $body);
+        $this->assertMatchesRegularExpression('/id="kpiServices">\s*0\s*<small>contratos/s', $body);
+        $this->assertMatchesRegularExpression('/>\s*0\s*facturas pendientes\s*con vencimiento este mes/s', $body);
+    }
+
     public function testUpcomingInvoiceBannerShowsNearestPendingDueDateWithinSevenDays(): void
     {
         $ownerId = $this->createOwner('invoice-upcoming-owner@example.test');
@@ -447,6 +524,16 @@ final class InvoiceManagementTest extends CIUnitTestCase
         ]);
 
         return (int) $this->db->insertID();
+    }
+
+    private function propertyIdForAssociation(int $associationId): int
+    {
+        return (int) $this->db->table('inmueble_servicios')
+            ->select('inmueble_id')
+            ->where('id', $associationId)
+            ->get()
+            ->getRow()
+            ->inmueble_id;
     }
 
     private function createInvoice(

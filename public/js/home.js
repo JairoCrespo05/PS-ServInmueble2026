@@ -100,17 +100,19 @@
         applySummaryFilters();
       }
 
-      // // Accesos rápidos
-      // document.getElementById('scAddProperty')?.addEventListener('click', (e) => {
-      //   e.preventDefault();
-      //   alert('Abriendo formulario de Alta de Inmueble (US-05)');
-      // });
-      // document.getElementById('scAddService')?.addEventListener('click', (e) => {
-      //   e.preventDefault();
-      //   alert('Abriendo modal de Vinculación de Servicio (US-06)');
-      // });
-      // document.getElementById('scReports')?.addEventListener('click', (e) => {
-      //   e.preventDefault();
-      //   alert('Redirigiendo al módulo de Informes Tabulares (US-09)');
-      // });
+      // Accesos rápidos
+      /*
+      document.getElementById('scAddProperty')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        alert('Abriendo formulario de Alta de Inmueble (US-05)');
+      });
+      document.getElementById('scAddService')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        alert('Abriendo modal de Vinculación de Servicio (US-06)');
+      });
+      document.getElementById('scReports')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        alert('Redirigiendo al módulo de Informes Tabulares (US-09)');
+      });
+      */
     })();
