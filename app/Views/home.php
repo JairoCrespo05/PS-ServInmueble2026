@@ -17,6 +17,7 @@ foreach ($recentInvoices ?? [] as $invoice) {
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/admin-home.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/support-modal.css') ?>">
 </head>
 <body>
 
@@ -56,7 +57,7 @@ foreach ($recentInvoices ?? [] as $invoice) {
             </select>
           </div>
 
-          <!-- Notificaciones -->
+          <!-- Notificaciones 
           <button class="icon-btn" title="Notificaciones" aria-label="Notificaciones">
             <svg class="icon" viewBox="0 0 24 24">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -64,6 +65,7 @@ foreach ($recentInvoices ?? [] as $invoice) {
             </svg>
             <span class="notification-dot"></span>
           </button>
+          -->
         <?php endif ?>
 
         <!-- Perfil Usuario -->
@@ -305,10 +307,12 @@ foreach ($recentInvoices ?? [] as $invoice) {
         <div class="kpi-card">
           <div>
             <div class="kpi-label">Inmuebles en Gestión</div>
-            <div class="kpi-value" id="kpiProperties">12 <small>propiedades</small></div>
-            <div class="kpi-detail success">
-              <svg class="icon" style="width:14px;height:14px;" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline></svg>
-              100% con servicios censados
+            <div class="kpi-value" id="kpiProperties">
+              <?= esc((string) $dashboardMetrics['property_count']) ?>
+              <small><?= $dashboardMetrics['property_count'] === 1 ? 'propiedad' : 'propiedades' ?></small>
+            </div>
+            <div class="kpi-detail" style="color:var(--color-text-muted);">
+              Inmuebles activos
             </div>
           </div>
           <div class="kpi-icon-wrap">
@@ -320,9 +324,12 @@ foreach ($recentInvoices ?? [] as $invoice) {
         <div class="kpi-card">
           <div>
             <div class="kpi-label">Servicios Activos</div>
-            <div class="kpi-value" id="kpiServices">38 <small>contratos</small></div>
+            <div class="kpi-value" id="kpiServices">
+              <?= esc((string) $dashboardMetrics['active_service_count']) ?>
+              <small>contratos</small>
+            </div>
             <div class="kpi-detail" style="color:var(--color-text-muted);">
-              Luz, Gas, Agua, Expensas
+              Asociación activa en inmuebles activos
             </div>
           </div>
           <div class="kpi-icon-wrap">
@@ -334,10 +341,15 @@ foreach ($recentInvoices ?? [] as $invoice) {
         <div class="kpi-card">
           <div>
             <div class="kpi-label">A Pagar Este Mes</div>
-            <div class="kpi-value" id="kpiToPay">$ 84.350 <small>ARS</small></div>
+            <div class="kpi-value" id="kpiToPay">
+              $ <?= esc(number_format($dashboardMetrics['pending_invoice_amount'], 2, ',', '.')) ?>
+              <small>ARS</small>
+            </div>
             <div class="kpi-detail warning">
               <svg class="icon" style="width:14px;height:14px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              2 facturas pendientes
+              <?= esc((string) $dashboardMetrics['pending_invoice_count']) ?>
+              <?= $dashboardMetrics['pending_invoice_count'] === 1 ? 'factura pendiente' : 'facturas pendientes' ?>
+              con vencimiento este mes
             </div>
           </div>
           <div class="kpi-icon-wrap" style="color:var(--color-status-warning); background:var(--color-status-warning-bg);">
@@ -349,14 +361,31 @@ foreach ($recentInvoices ?? [] as $invoice) {
         <div class="kpi-card">
           <div>
             <div class="kpi-label">Tasa de Cumplimiento</div>
-            <div class="kpi-value" id="kpiCompliance">96.4%</div>
-            <div class="kpi-detail success">
-              <svg class="icon" style="width:14px;height:14px;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Sin mora punitoria devengada
-            </div>
+            <?php if ($dashboardMetrics['invoice_count'] === 0): ?>
+              <div class="kpi-value" id="kpiCompliance">—</div>
+              <div class="kpi-detail" id="kpiComplianceDetail" style="color:var(--color-text-muted);">
+                Sin facturas del período actual
+              </div>
+            <?php else: ?>
+              <div class="kpi-value" id="kpiCompliance">
+                <?= esc(number_format(
+                    $dashboardMetrics['paid_invoice_count'] / $dashboardMetrics['invoice_count'] * 100,
+                    1,
+                    ',',
+                    '.'
+                )) ?>%
+              </div>
+              <div class="kpi-detail" style="color:var(--color-text-muted);">
+                <svg class="icon" style="width:14px;height:14px;" viewBox="0 0 24 24"><path d="M3 3v18h18"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>
+                <span id="kpiComplianceDetail">
+                  <?= esc((string) $dashboardMetrics['paid_invoice_count']) ?>
+                  de <?= esc((string) $dashboardMetrics['invoice_count']) ?> facturas del período pagadas
+                </span>
+              </div>
+            <?php endif ?>
           </div>
-          <div class="kpi-icon-wrap" style="color:var(--color-status-success); background:var(--color-status-success-bg);">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          <div class="kpi-icon-wrap">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>
           </div>
         </div>
       </section>
@@ -450,7 +479,7 @@ foreach ($recentInvoices ?? [] as $invoice) {
         <!-- Columna Derecha: Gráfico de Consumo Semestral y Accesos Rápidos -->
         <div class="side-stack">
 
-          <!-- Gráfico de Consumos (Barras CSS Nativas) -->
+          <!-- Gráfico de Consumos (Barras CSS Nativas) 
           <div class="card">
             <div class="card-header">
               <h2 class="card-title">Evolución de Consumo Eléctrico</h2>
@@ -498,37 +527,39 @@ foreach ($recentInvoices ?? [] as $invoice) {
             </div>
           </div>
 
+                          -->
+
           <!-- Accesos Rápidos Operativos -->
           <div class="card">
             <div class="card-header">
               <h2 class="card-title">Acciones Frecuentes</h2>
             </div>
             <div class="shortcuts-grid">
-              <a href="#" class="shortcut-card" id="scAddProperty">
+              <a href="<?= esc(site_url('inmuebles'), 'attr') ?>" class="shortcut-card" id="scAddProperty">
                 <div class="shortcut-icon">
                   <svg class="icon" viewBox="0 0 24 24"><path d="M3 21h18"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="10" y1="11" x2="14" y2="11"></line></svg>
                 </div>
-                <div class="shortcut-title">+ Nuevo Inmueble</div>
-                <div class="shortcut-desc">Alta en padrón catastral</div>
+                <div class="shortcut-title">Gestionar Inmuebles</div>
+                <div class="shortcut-desc">ABMC</div>
               </a>
 
-              <a href="#" class="shortcut-card" id="scAddService">
+              <a href="<?= esc(site_url('servicios/asociaciones'), 'attr') ?>" class="shortcut-card" id="scAddService">
                 <div class="shortcut-icon">
                   <svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                 </div>
                 <div class="shortcut-title">Asociar Suministro</div>
-                <div class="shortcut-desc">Vincular contrato (US-06)</div>
+                <div class="shortcut-desc">Vincular contrato</div>
               </a>
 
-              <a href="#" class="shortcut-card" id="scReports">
+              <a href="<?= esc(site_url('facturas/informe'), 'attr') ?>" class="shortcut-card" id="scReports">
                 <div class="shortcut-icon">
                   <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                 </div>
                 <div class="shortcut-title">Informes de Pago</div>
-                <div class="shortcut-desc">Listado tabular US-09</div>
+                <div class="shortcut-desc">Listado de pendientes y pagas </div>
               </a>
 
-              <a href="#" class="shortcut-card" id="scSupport">
+              <a href="#supportModal" class="shortcut-card" id="scSupport" data-open-support>
                 <div class="shortcut-icon">
                   <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                 </div>
@@ -561,13 +592,15 @@ foreach ($recentInvoices ?? [] as $invoice) {
       <div class="footer-links">
         <a href="#">Términos del Servicio</a>
         <a href="#">Políticas de Privacidad</a>
-        <a href="#">Centro de Ayuda</a>
+        <a href="#supportModal" data-open-support>Centro de Ayuda</a>
       </div>
     </footer>
 
   </div>
 
+  <?= view('partials/support_modal') ?>
   <!-- ================= JAVASCRIPT VANILLA PURO ================= -->
-  <script src="<?= base_url('js/home.js') ?>"></script>
+  <script src="<?= base_url('js/home.js') ?>?v=<?= filemtime(FCPATH . 'js/home.js') ?>"></script>
+  <script src="<?= base_url('js/support-modal.js') ?>"></script>
 </body>
 </html>

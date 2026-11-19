@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\AdminDashboardModel;
 use App\Models\FacturaModel;
+use App\Models\OwnerDashboardModel;
 use App\Models\RolModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
@@ -39,6 +40,7 @@ class Home extends BaseController
                 'isAdministrator' => false,
                 'recentInvoices'  => $invoices->findRecentForOwner((int) $user['id']),
                 'upcomingInvoice' => $invoices->findNearestUpcomingForOwner((int) $user['id']),
+                'dashboardMetrics' => (new OwnerDashboardModel())->findMetricsForOwner((int) $user['id']),
             ]);
         }
 
