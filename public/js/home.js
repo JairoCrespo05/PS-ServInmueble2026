@@ -101,6 +101,7 @@
       }
 
       // Accesos rápidos
+      /*
       document.getElementById('scAddProperty')?.addEventListener('click', (e) => {
         e.preventDefault();
         alert('Abriendo formulario de Alta de Inmueble (US-05)');
@@ -113,4 +114,5 @@
         e.preventDefault();
         alert('Redirigiendo al módulo de Informes Tabulares (US-09)');
       });
+      */
     })();
