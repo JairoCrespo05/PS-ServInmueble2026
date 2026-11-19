@@ -18,6 +18,7 @@ class InmuebleServicioModel extends Model
         'titular_inmueble',
         'estado',
         'estado_vinculacion',
+        'motivo_suspension',
         'nro_cuenta_contrato',
         'cod_pago_electronico',
         'domicilio_facturacion',

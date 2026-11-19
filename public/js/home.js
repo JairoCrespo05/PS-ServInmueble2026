@@ -100,6 +100,8 @@
         applySummaryFilters();
       }
 
+
+
       // Accesos rápidos
       /*
       document.getElementById('scAddProperty')?.addEventListener('click', (e) => {

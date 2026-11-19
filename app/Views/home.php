@@ -222,7 +222,7 @@ foreach ($recentInvoices ?? [] as $invoice) {
                                 <?= esc($service['nombre']) ?>
                                 <?php if ($service['categoria'] !== null): ?>· <?= esc($service['categoria']) ?><?php endif ?>
                                 — <?= mb_strtolower(trim((string) $service['estado'])) === 'inactivo' ? 'De baja' : 'Vigente' ?>
-                                · Estado operativo: <?= esc(trim((string) ($service['estado_vinculacion'] ?? '')) !== '' ? $service['estado_vinculacion'] : 'Desconocido') ?>
+                                · Estado operativo: <?= esc(trim((string) ($service['estado_efectivo'] ?? '')) !== '' ? $service['estado_efectivo'] : 'Desconocido') ?>
                               </li>
                             <?php endforeach ?>
                           </ul>

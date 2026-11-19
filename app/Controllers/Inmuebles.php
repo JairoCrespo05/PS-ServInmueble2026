@@ -273,36 +273,15 @@ class Inmuebles extends BaseController
                 'd.created_at AS direccion_created_at',
                 'd.updated_at AS direccion_updated_at',
             ])
-            ->select('COUNT(isv.id) AS servicios_vinculados', false)
-            ->select("COALESCE(SUM(CASE WHEN LOWER(TRIM(isv.estado)) != 'inactivo' AND isv.estado_vinculacion = 'Activo' THEN 1 ELSE 0 END), 0) AS servicios_activos", false)
-            ->select("GROUP_CONCAT(DISTINCT CASE WHEN LOWER(TRIM(isv.estado)) != 'inactivo' AND isv.estado_vinculacion = 'Activo' THEN s.nombre END ORDER BY s.nombre SEPARATOR '|') AS nombres_servicios_activos", false)
             ->join('direcciones d', 'd.id = i.direccion_id')
-            ->join('inmueble_servicios isv', 'isv.inmueble_id = i.id', 'left')
-            ->join('servicios s', 's.id = isv.servicio_id', 'left')
-            ->groupBy([
-                'i.id',
-                'i.alias_nombre',
-                'i.tipo',
-                'i.superficie',
-                'i.estado',
-                'i.estado_actividad',
-                'i.created_at',
-                'i.updated_at',
-                'i.direccion_id',
-                'd.calle',
-                'd.numero',
-                'd.piso_dpto',
-                'd.provincia',
-                'd.ciudad',
-                'd.created_at',
-                'd.updated_at',
-            ])
             ->orderBy('COALESCE(i.updated_at, i.created_at)', 'DESC', false)
             ->orderBy('i.id', 'DESC')
             ->get()
             ->getResultArray();
 
         $serviciosPorInmueble = [];
+        $serviciosActivosPorInmueble = [];
+        $nombresServiciosActivosPorInmueble = [];
         $asociaciones = db_connect()
             ->table('inmueble_servicios isv')
             ->join('inmuebles i', 'i.id = isv.inmueble_id', 'left')
@@ -320,6 +299,7 @@ class Inmuebles extends BaseController
                 'isv.domicilio_facturacion',
                 'isv.created_at AS asociacion_created_at',
                 'isv.updated_at AS asociacion_updated_at',
+                'i.estado_actividad AS inmueble_estado_actividad',
                 's.nombre AS servicio_nombre',
                 's.categoria AS servicio_categoria',
                 's.unidad_medida_std',
@@ -331,8 +311,26 @@ class Inmuebles extends BaseController
             ->getResultArray();
 
         foreach ($asociaciones as $asociacion) {
-            $serviciosPorInmueble[(int) $asociacion['inmueble_id']][] = $asociacion;
+            $inmuebleId = (int) $asociacion['inmueble_id'];
+            $serviciosPorInmueble[$inmuebleId][] = $asociacion;
+
+            if (
+                $asociacion['inmueble_estado_actividad'] === 'Activo'
+                && mb_strtolower(trim($asociacion['estado_asociacion'])) !== 'inactivo'
+                && $asociacion['estado_vinculacion'] === 'Activo'
+            ) {
+                $nombre = (string) $asociacion['servicio_nombre'];
+                $serviciosActivosPorInmueble[$inmuebleId] = ($serviciosActivosPorInmueble[$inmuebleId] ?? 0) + 1;
+                $nombresServiciosActivosPorInmueble[$inmuebleId][mb_strtolower($nombre)] = $nombre;
+            }
         }
+
+        foreach ($inmuebles as &$inmueble) {
+            $nombres = array_values($nombresServiciosActivosPorInmueble[(int) $inmueble['id']] ?? []);
+            $inmueble['servicios_activos'] = $serviciosActivosPorInmueble[(int) $inmueble['id']] ?? 0;
+            $inmueble['nombres_servicios_activos'] = implode('|', $nombres);
+        }
+        unset($inmueble);
 
         $resumen = [
             'total'             => count($inmuebles),
@@ -524,6 +522,16 @@ class Inmuebles extends BaseController
                 'estado'       => $formData['estado'],
                 'updated_at'   => $now,
             ] + ($reactivating ? ['estado_actividad' => 'Activo'] : []));
+        if ($reactivating) {
+            $db->table('inmueble_servicios')
+                ->where('inmueble_id', $id)
+                ->where('motivo_suspension', 'BajaInmueble')
+                ->update([
+                    'estado' => 'Activo',
+                    'motivo_suspension' => null,
+                    'updated_at' => $now,
+                ]);
+        }
         $db->transComplete();
 
         if (! $db->transStatus()) {
@@ -560,6 +568,14 @@ class Inmuebles extends BaseController
             ->where('id', $id)
             ->update([
                 'estado_actividad' => 'Inactivo',
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+        $db->table('inmueble_servicios')
+            ->where('inmueble_id', $id)
+            ->where("LOWER(TRIM(estado)) != 'inactivo'", null, false)
+            ->update([
+                'estado' => 'Inactivo',
+                'motivo_suspension' => 'BajaInmueble',
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
         $db->transComplete();

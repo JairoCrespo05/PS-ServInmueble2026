@@ -261,11 +261,11 @@ public function gestionar(): string
         ->join('inmuebles i', 'i.id = isv.inmueble_id')
         ->join('direcciones d', 'd.id = i.direccion_id')
         ->where('i.usuario_id', $usuarioId)
-        ->where("LOWER(TRIM(isv.estado)) !=", 'inactivo')
         ->select([
             'isv.id AS asociacion_id',
             'isv.servicio_id',
-            'isv.estado_vinculacion AS estado_servicio',
+            'isv.estado AS estado_asociacion',
+            "CASE WHEN i.estado_actividad = 'Inactivo' OR LOWER(TRIM(isv.estado)) = 'inactivo' THEN 'Inactivo' ELSE isv.estado_vinculacion END AS estado_servicio",
             'isv.titular_inmueble',
             'isv.nro_medidor',
             'isv.nro_cuenta_contrato',
@@ -580,7 +580,7 @@ public function gestionar(): string
 
         $db = db_connect();
         $db->transStart();
-        $modelo->update($id, ['estado' => 'Inactivo']);
+        $modelo->update($id, ['estado' => 'Inactivo', 'motivo_suspension' => null]);
         $db->transComplete();
 
         if (! $db->transStatus()) {

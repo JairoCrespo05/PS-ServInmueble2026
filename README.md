@@ -45,10 +45,10 @@ Los modelos CRUD están disponibles en `App\Models`: `DireccionModel`, `Inmueble
 
 El módulo de facturas permite consultar el listado y el detalle, cargar nuevas facturas y ver el informe de pendientes y pagadas:
 
-- `/facturas`: listado de facturas del propietario autenticado.
+- `/facturas`: listado de facturas del propietario autenticado, con búsqueda por inmueble, servicio o proveedor y filtro por estado (`Pendiente`/`Pagada`). Los filtros se aplican antes de paginar.
 - `/facturas/nueva`: alta de factura; se registra inicialmente como `Pendiente`.
 - `/facturas/{id}`: detalle y registro de pago total.
-- `/facturas/informe`: totales y tablas de facturas pendientes y pagadas.
+- `/facturas/informe`: totales globales y tablas de facturas pendientes y pagadas, con búsqueda por inmueble, servicio o proveedor. La búsqueda filtra las filas, no los totales.
 
 El pago registra fecha, monto total y medio de pago; no admite pagos parciales ni adjuntos digitales en este alcance. La migración `AddInvoiceServicePeriodUniqueKey` evita duplicar una factura por servicio asociado y período.
 

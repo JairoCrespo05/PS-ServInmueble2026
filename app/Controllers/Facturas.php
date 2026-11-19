@@ -71,6 +71,27 @@ class Facturas extends BaseController
         return $query;
     }
 
+    private function invoiceSearchTerm(): string
+    {
+        $searchInput = $this->request->getGet('buscar');
+        $search = is_scalar($searchInput) ? trim((string) $searchInput) : '';
+
+        return mb_substr($search, 0, 100);
+    }
+
+    private function applyInvoiceSearch(BaseBuilder $query, string $search): BaseBuilder
+    {
+        if ($search !== '') {
+            $query->groupStart()
+                ->like('i.alias_nombre', $search)
+                ->orLike('s.nombre', $search)
+                ->orLike('s.proveedor', $search)
+                ->groupEnd();
+        }
+
+        return $query;
+    }
+
     private function serviceAssociationsForCurrentUser(): array
     {
         return (new InmuebleServicioModel())->facturablesParaPropietario($this->currentUserId())
@@ -189,9 +210,26 @@ class Facturas extends BaseController
 
     public function index(): string
     {
-        $page = max(1, (int) ($this->request->getGet('page') ?? 1));
+        $search = $this->invoiceSearchTerm();
+
+        $statusInput = $this->request->getGet('estado');
+        $status = is_scalar($statusInput) ? trim((string) $statusInput) : '';
+        if (! in_array($status, [self::ESTADO_PENDIENTE, self::ESTADO_PAGADA], true)) {
+            $status = '';
+        }
+
         $query = $this->ownedInvoicesQuery();
+        $totalFacturas = (clone $query)->countAllResults();
+
+        $this->applyInvoiceSearch($query, $search);
+
+        if ($status !== '') {
+            $query->where('f.estado_factura', $status);
+        }
+
         $total = (clone $query)->countAllResults();
+        $pageInput = $this->request->getGet('page');
+        $page = max(1, is_scalar($pageInput) ? (int) $pageInput : 1);
         $pageCount = max(1, (int) ceil($total / self::PER_PAGE));
         $page = min($page, $pageCount);
 
@@ -208,6 +246,10 @@ class Facturas extends BaseController
         return view('facturas/index', [
             'facturas' => $invoices,
             'pagerLinks' => $pagerLinks,
+            'totalFacturas' => $totalFacturas,
+            'totalResultados' => $total,
+            'buscar' => $search,
+            'estado' => $status,
             'success' => session()->getFlashdata('invoiceSuccess'),
             'error' => session()->getFlashdata('invoiceError'),
         ]);
@@ -359,14 +401,24 @@ class Facturas extends BaseController
 
     public function report(): string
     {
-        $pending = (clone $this->ownedInvoicesQuery())
-            ->where('f.estado_factura', self::ESTADO_PENDIENTE)
+        $search = $this->invoiceSearchTerm();
+        $pendingQuery = $this->ownedInvoicesQuery()
+            ->where('f.estado_factura', self::ESTADO_PENDIENTE);
+        $paidQuery = $this->ownedInvoicesQuery()
+            ->where('f.estado_factura', self::ESTADO_PAGADA);
+        $pendingCount = (clone $pendingQuery)->countAllResults();
+        $paidCount = (clone $paidQuery)->countAllResults();
+        $pendingSearchQuery = $this->applyInvoiceSearch(clone $pendingQuery, $search);
+        $paidSearchQuery = $this->applyInvoiceSearch(clone $paidQuery, $search);
+        $pendingMatches = (clone $pendingSearchQuery)->countAllResults();
+        $paidMatches = (clone $paidSearchQuery)->countAllResults();
+
+        $pending = $pendingSearchQuery
             ->orderBy('f.fecha_primer_vencimiento', 'ASC')
             ->orderBy('f.id', 'DESC')
             ->get()
             ->getResultArray();
-        $paid = (clone $this->ownedInvoicesQuery())
-            ->where('f.estado_factura', self::ESTADO_PAGADA)
+        $paid = $paidSearchQuery
             ->orderBy('f.fecha_pago_realizado', 'DESC')
             ->orderBy('f.id', 'DESC')
             ->get()
@@ -385,6 +437,13 @@ class Facturas extends BaseController
         return view('facturas/report', [
             'pendientes' => $pending,
             'pagadas' => $paid,
+            'cantidadPendiente' => $pendingCount,
+            'cantidadPagada' => $paidCount,
+            'coincidenciasPendientes' => $pendingMatches,
+            'coincidenciasPagadas' => $paidMatches,
+            'totalCoincidencias' => $pendingMatches + $paidMatches,
+            'totalFacturas' => $pendingCount + $paidCount,
+            'buscar' => $search,
             'totalPendiente' => (float) $pendingTotal,
             'totalPagado' => (float) $paidTotal,
         ]);

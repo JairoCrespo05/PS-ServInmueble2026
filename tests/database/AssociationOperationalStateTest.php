@@ -1,6 +1,7 @@
 <?php
 
 use App\Database\Migrations\AddEstadoVinculacion;
+use App\Database\Migrations\AddAssociationPropertySuspension;
 use App\Database\Migrations\AddProvinciaToDirecciones;
 use App\Database\Migrations\AddUserManagementState;
 use App\Database\Migrations\CreateServiInmuebleSchema;
@@ -15,6 +16,7 @@ require_once APPPATH . 'Database/Migrations/2026-11-14-020000_AddUserManagementS
 require_once APPPATH . 'Database/Migrations/2026-11-17-190000_AddProvinciaToDirecciones.php';
 require_once APPPATH . 'Database/Migrations/2026-11-18-180000_AddEstadoVinculacion.php';
 require_once APPPATH . 'Database/Migrations/2026-11-18-190000_ConvertirEstadoActivoInmuebles.php';
+require_once APPPATH . 'Database/Migrations/2026-11-19-120000_AddAssociationPropertySuspension.php';
 
 /**
  * @internal
@@ -33,6 +35,7 @@ final class AssociationOperationalStateTest extends CIUnitTestCase
         (new AddProvinciaToDirecciones($forge))->up();
         (new AddEstadoVinculacion($forge))->up();
         (new ConvertirEstadoActivoInmuebles($forge))->up();
+        (new AddAssociationPropertySuspension($forge))->up();
 
         foreach ([1, 2] as $id) {
             $this->db->table('usuarios')->insert([
