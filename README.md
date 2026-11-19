@@ -23,6 +23,25 @@ El proyecto utiliza MySQL/MariaDB por defecto. Para configurar una instalación 
    se guarda con hash. El seeder no se ejecuta fuera de `development`, no cambia
    una cuenta existente y falla si ese correo ya está asociado a otro rol.
 
+Para cargar un escenario completo de presentación en desarrollo, con el catálogo,
+dos propietarios, una solicitud pendiente, inmuebles, servicios asociados e
+historial de facturas, ejecute:
+
+```sh
+php spark db:seed DemoDataSeeder
+```
+
+El seeder también crea el administrador de prueba. Las cuentas ficticias de
+propietario usan `lucia.demo@example.test` y `mateo.demo@example.test`; la cuenta
+pendiente es `emilia.pendiente@example.test`. Las tres usan `Demo2026!`. La clave
+del administrador sigue siendo `Passw0rd!`. Son credenciales públicas de
+demostración: no las reutilice fuera de una instalación local aislada.
+
+La carga es idempotente: volver a ejecutarla no duplica el escenario. Si una
+cuenta o registro reservado para la demo ya existe con datos diferentes, el
+seeder se detiene sin sobrescribirlo. La ejecución está limitada a
+`development`.
+
 Para revertir la estructura cuando las migraciones involucradas lo permitan:
 
 ```sh
@@ -92,7 +111,11 @@ ya registradas permanecen consultables.
 
 Se permiten cambios manuales entre los tres estados, pero no se puede activar
 un vínculo cuando su inmueble está inactivo. Si un inmueble se da de baja,
-el estado operativo de sus vínculos no cambia automáticamente.
+sus vínculos vigentes pasan a `estado = Inactivo` con
+`motivo_suspension = BajaInmueble`; el estado operativo no cambia. Al reactivar
+el inmueble, solo se reactivan los vínculos dados de baja por ese motivo. Una
+baja manual del vínculo usa `estado = Inactivo` sin motivo de inmueble y no se
+revierte al reactivar la propiedad.
 
 La migración reutiliza `estado_vinculacion` si ya existe y conserva sus
 valores; cuando está vacío, convierte los vínculos anteriores `Activo` a
@@ -107,6 +130,8 @@ Agua y Gas usan `m3`, Electricidad usa `kWh`, e Internet, Telefonía,
 Televisión y Expensas usan `Mes`. El servidor calcula la unidad al registrar
 el servicio, sin confiar en el valor enviado por el navegador. La edición de
 servicios existentes conserva su comportamiento anterior.
+`ServiciosSeeder` usa las mismas unidades y corrige sus filas precargadas de
+Internet de la unidad anterior `Mbps` a `Mes`.
 
 Estas equivalencias reflejan el trigger `bi_servicios_unidad_medida` presente
 en la base local. Ese trigger y la restricción de categorías no están incluidos

@@ -21,9 +21,11 @@ $iconoCategoria = static function (string $categoria): string {
         str_contains($categoria, 'agua') => 'water_drop',
         str_contains($categoria, 'gas') => 'local_fire_department',
         str_contains($categoria, 'internet') || str_contains($categoria, 'telecom') => 'router',
+        str_contains($categoria, 'telefon') => 'call',
+        str_contains($categoria, 'televis') => 'tv',
         str_contains($categoria, 'expensa') || str_contains($categoria, 'consorcio') => 'apartment',
         str_contains($categoria, 'impuesto') || str_contains($categoria, 'tasa') => 'account_balance',
-        default => 'miscellaneous_services',
+        default => 'build',
     };
 };
 $formatError = static fn (string $field): string => isset($errors[$field])
