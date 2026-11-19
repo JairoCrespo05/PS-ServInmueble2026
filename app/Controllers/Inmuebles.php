@@ -293,6 +293,7 @@ class Inmuebles extends BaseController
                 'isv.titular_inmueble',
                 'isv.estado AS estado_asociacion',
                 'isv.estado_vinculacion',
+                "CASE WHEN i.estado_actividad = 'Inactivo' OR LOWER(TRIM(isv.estado)) = 'inactivo' THEN 'Inactivo' ELSE isv.estado_vinculacion END AS estado_vinculacion_efectivo",
                 'isv.nro_medidor',
                 'isv.nro_cuenta_contrato',
                 'isv.cod_pago_electronico',

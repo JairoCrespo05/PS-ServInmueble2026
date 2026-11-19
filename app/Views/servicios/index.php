@@ -205,20 +205,22 @@ $editandoAsociacion = $editAssociationId !== null;
                         </div>
                       </div>
                       <div class="association-actions">
-                        <button
-                          class="association-action"
-                          type="button"
-                          data-edit-association
-                          data-id="<?= esc($inmueble['asociacion_id'], 'attr') ?>"
-                          data-service-id="<?= esc($servicio['id'], 'attr') ?>"
-                          data-property-id="<?= esc($inmueble['id'], 'attr') ?>"
-                          data-holder="<?= esc($inmueble['titular_inmueble'], 'attr') ?>"
-                          data-status="<?= esc($inmueble['estado_servicio'], 'attr') ?>"
-                          data-meter="<?= esc($inmueble['nro_medidor'] ?? '', 'attr') ?>"
-                          data-account="<?= esc($inmueble['nro_cuenta_contrato'] ?? '', 'attr') ?>"
-                          data-payment="<?= esc($inmueble['cod_pago_electronico'] ?? '', 'attr') ?>"
-                          data-billing="<?= esc($inmueble['domicilio_facturacion'] ?? '', 'attr') ?>"
-                        >Modificar</button>
+                        <?php if (mb_strtolower(trim($inmueble['estado_servicio'])) !== 'inactivo'): ?>
+                          <button
+                            class="association-action"
+                            type="button"
+                            data-edit-association
+                            data-id="<?= esc($inmueble['asociacion_id'], 'attr') ?>"
+                            data-service-id="<?= esc($servicio['id'], 'attr') ?>"
+                            data-property-id="<?= esc($inmueble['id'], 'attr') ?>"
+                            data-holder="<?= esc($inmueble['titular_inmueble'], 'attr') ?>"
+                            data-status="<?= esc($inmueble['estado_servicio'], 'attr') ?>"
+                            data-meter="<?= esc($inmueble['nro_medidor'] ?? '', 'attr') ?>"
+                            data-account="<?= esc($inmueble['nro_cuenta_contrato'] ?? '', 'attr') ?>"
+                            data-payment="<?= esc($inmueble['cod_pago_electronico'] ?? '', 'attr') ?>"
+                            data-billing="<?= esc($inmueble['domicilio_facturacion'] ?? '', 'attr') ?>"
+                          >Modificar</button>
+                        <?php endif ?>
                         <?php if (mb_strtolower(trim($inmueble['estado_servicio'])) !== 'inactivo'): ?>
                           <form method="post" action="<?= site_url('servicios/asociaciones/' . $inmueble['asociacion_id'] . '/baja') ?>" data-deactivate-association>
                             <?= csrf_field() ?>

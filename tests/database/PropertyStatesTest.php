@@ -143,9 +143,19 @@ final class PropertyStatesTest extends CIUnitTestCase
         $inactivePage = $this->withSession(['user_id' => 1])->get('inmuebles');
         $inactivePage->assertOK();
         $this->assertStringContainsString('data-active-services="0"', $inactivePage->response()->getBody());
+        $document = new DOMDocument();
+        $previousErrorSetting = libxml_use_internal_errors(true);
+        $document->loadHTML($inactivePage->response()->getBody());
+        libxml_clear_errors();
+        libxml_use_internal_errors($previousErrorSetting);
+        $detailNodes = (new DOMXPath($document))->query('//*[@data-property-details]');
+        $this->assertNotFalse($detailNodes);
+        $propertyDetails = json_decode($detailNodes->item(0)->getAttribute('data-property-details'), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame('Inactivo', $propertyDetails['servicios'][0]['estado_vinculacion_efectivo']);
         $inactiveServicePage = $this->withSession(['user_id' => 1])->get('servicios');
         $inactiveServicePage->assertOK();
         $this->assertStringContainsString('Vínculo: Inactivo', $inactiveServicePage->response()->getBody());
+        $this->assertStringNotContainsString('data-edit-association', $inactiveServicePage->response()->getBody());
         $this->assertSame(
             'Activo',
             $this->db->table('inmueble_servicios')->where('id', 1)->get()->getRow()->estado_vinculacion

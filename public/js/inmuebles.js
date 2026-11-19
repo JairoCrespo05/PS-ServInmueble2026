@@ -309,7 +309,7 @@ document.querySelectorAll("[data-view-property]").forEach((button) => {
           ["Proveedor", service.proveedor],
           ["Titular", service.titular_inmueble],
           ["Situación del vínculo", service.estado_asociacion.trim().toLocaleLowerCase("es") === "inactivo" ? "De baja" : "Vigente"],
-          ["Estado operativo del vínculo", service.estado_vinculacion],
+          ["Estado operativo efectivo del vínculo", service.estado_vinculacion_efectivo],
           ["Numero de medidor", service.nro_medidor],
           ["Cuenta / contrato", service.nro_cuenta_contrato],
           ["Codigo de pago electronico", service.cod_pago_electronico],

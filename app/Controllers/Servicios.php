@@ -534,14 +534,9 @@ public function gestionar(): string
                 ->with('error', 'No se encontró el inmueble asociado o no tenés permisos sobre él.');
         }
 
-        if ($submittedData['estado_vinculacion'] === 'Activo'
-            && $asociacion['estado_vinculacion'] !== 'Activo'
-            && $inmueble['estado_actividad'] !== 'Activo') {
+        if ($inmueble['estado_actividad'] !== 'Activo') {
             return redirect()->to(site_url('servicios/asociaciones'))
-                ->withInput()
-                ->with('formData', $submittedData)
-                ->with('editAssociationId', $id)
-                ->with('errors', ['estado_vinculacion' => 'No podés activar un vínculo de un inmueble inactivo.']);
+                ->with('error', 'No podés modificar el vínculo mientras el inmueble esté dado de baja.');
         }
 
         $db = db_connect();
