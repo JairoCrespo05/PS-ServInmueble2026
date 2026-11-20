@@ -56,6 +56,30 @@ final class ServiceListingTest extends CIUnitTestCase
         );
     }
 
+    public function testTelevisionServiceUsesTelevisionIcon(): void
+    {
+        $ownerId = $this->createOwner('television-service-owner@example.test');
+        $propertyId = $this->createProperty($ownerId, 'Inmueble con television');
+        $serviceId = $this->createService('TV Cable', 'Televisión', 'Mes');
+
+        $this->db->table('inmueble_servicios')->insert([
+            'inmueble_id'        => $propertyId,
+            'servicio_id'        => $serviceId,
+            'titular_inmueble'   => 'Titular de prueba',
+            'estado'             => 'Activo',
+            'estado_vinculacion' => 'Activo',
+        ]);
+
+        $response = $this->withSession(['user_id' => $ownerId])->get('servicios/asociaciones');
+        $response->assertOK();
+
+        $xpath = $this->xpathFor($response->response()->getBody());
+        $this->assertSame(
+            'tv',
+            trim($xpath->query('//article[@data-service-card]//span[contains(@class, "service-icon")]')->item(0)->textContent)
+        );
+    }
+
     public function testOwnerWithoutAssociationsSeesEmptyStateAndCanStartFirstAssociation(): void
     {
         $ownerId = $this->createOwner('empty-service-list-owner@example.test');
@@ -323,13 +347,13 @@ final class ServiceListingTest extends CIUnitTestCase
         return (int) $this->db->insertID();
     }
 
-    private function createService(string $name): int
+    private function createService(string $name, string $category = 'Electricidad', string $unit = 'kWh'): int
     {
         $this->db->table('servicios')->insert([
             'nombre'            => $name,
-            'unidad_medida_std' => 'kWh',
+            'unidad_medida_std' => $unit,
             'proveedor'         => 'Proveedor de prueba',
-            'categoria'         => 'Electricidad',
+            'categoria'         => $category,
         ]);
 
         return (int) $this->db->insertID();

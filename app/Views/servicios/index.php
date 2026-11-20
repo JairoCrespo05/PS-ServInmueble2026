@@ -11,6 +11,7 @@ $iconoServicio = static function (array $servicio): string {
         str_contains($identificador, 'agua') => 'water_drop',
         str_contains($identificador, 'gas') => 'local_fire_department',
         str_contains($identificador, 'internet') || str_contains($identificador, 'wifi') => 'wifi',
+        str_contains($identificador, 'televis') => 'tv',
         str_contains($identificador, 'expensa') || str_contains($identificador, 'consorcio') => 'receipt_long',
         default => 'miscellaneous_services',
     };
