@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="PropertyStatesTest" file="/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/tests/database/PropertyStatesTest.php" tests="3" assertions="0" errors="3" failures="0" skipped="0" time="0.000000">
+    <testcase name="testOnlyThreeStatesAreAcceptedOnCreateAndUpdate" file="/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/tests/database/PropertyStatesTest.php" line="70" class="PropertyStatesTest" classname="PropertyStatesTest" assertions="0" time="0.000000">
+      <error type="CodeIgniter\Database\Exceptions\DatabaseException">PropertyStatesTest::testOnlyThreeStatesAreAcceptedOnCreateAndUpdate
+CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
+Main connection [SQLite3]: Class "SQLite3" not found
+
+/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/system/Database/BaseConnection.php:606
+/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/system/Database/SQLite3/Connection.php:74
+/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/system/Database/Database.php:74
+/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/system/Database/Config.php:111
+/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/tests/database/PropertyStatesTest.php:33</error>
+    </testcase>
+    <testcase name="testReactivationRequiresExplicitConfirmation" file="/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/tests/database/PropertyStatesTest.php" line="88" class="PropertyStatesTest" classname="PropertyStatesTest" assertions="0" time="0.000000">
+      <error type="CodeIgniter\Database\Exceptions\DatabaseException">PropertyStatesTest::testReactivationRequiresExplicitConfirmation
+CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
+Main connection [SQLite3]: Class "SQLite3" not found
+
+/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/system/Database/BaseConnection.php:606
+/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/system/Database/SQLite3/Connection.php:74
+/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/system/Database/Database.php:74
+/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/system/Database/Config.php:111
+/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/tests/database/PropertyStatesTest.php:33</error>
+    </testcase>
+    <testcase name="testDeactivationPreservesStateAndRequiresConfirmationToReactivate" file="/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/tests/database/PropertyStatesTest.php" line="103" class="PropertyStatesTest" classname="PropertyStatesTest" assertions="0" time="0.000000">
+      <error type="CodeIgniter\Database\Exceptions\DatabaseException">PropertyStatesTest::testDeactivationPreservesStateAndRequiresConfirmationToReactivate
+CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
+Main connection [SQLite3]: Class "SQLite3" not found
+
+/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/system/Database/BaseConnection.php:606
+/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/system/Database/SQLite3/Connection.php:74
+/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/system/Database/Database.php:74
+/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/system/Database/Config.php:111
+/home/marce/Documentos/Lic. Sistemas/3er Año/Proyecto de software/TP-Final/ProyectoFinal/PS-ServInmueble2026/tests/database/PropertyStatesTest.php:33</error>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,368 @@
+/* =====================================================================
+   admin-home.css  (solo CSS, sin cambios de HTML)
+   Cargar DESPUÉS de home.css. Reemplaza visualmente los bloques admin
+   de home.css (.admin-shortcut*, .admin-summary-*) para que coincidan
+   con el Catálogo de tipos de servicios.
+   Todo se activa solo en la vista admin: .content-area:has(.admin-shortcuts)
+   ===================================================================== */
+
+.content-area:has(.admin-shortcuts) {
+  --ah-navy: #102a43;
+  --ah-blue: #2d628e;
+  --ah-muted: #627d98;
+  --ah-line: #e2e8f0;
+  --ah-soft: #f0f4f8;
+  --ah-body: #344b5c;
+
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+/* ---------- Encabezado ---------- */
+.content-area:has(.admin-shortcuts) .page-header { margin: 0; }
+
+.content-area:has(.admin-shortcuts) .welcome-badge {
+  display: block;
+  margin: 0 0 5px;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: none;
+  color: var(--ah-blue);
+  font: 700 11px Inter, sans-serif;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.content-area:has(.admin-shortcuts) .page-header .page-title {
+  margin: 0 0 5px;
+  color: var(--ah-navy);
+  font: 700 clamp(26px, 2.5vw, 36px) / 1.2 Manrope, sans-serif;
+  letter-spacing: -.025em;
+}
+
+.content-area:has(.admin-shortcuts) .page-header .page-subtitle {
+  max-width: 900px;
+  margin: 0;
+  color: var(--ah-muted);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+/* ---------- Tarjetas de acceso ---------- */
+.content-area .admin-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.content-area .admin-shortcuts .admin-shortcut {
+  display: flex;
+  min-height: 190px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 18px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(16 42 67 / 4%);
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.content-area .admin-shortcuts .admin-shortcut:hover {
+  border-color: #9dceff;
+  box-shadow: 0 4px 14px rgb(16 42 67 / 8%);
+}
+
+/* Icono generado por CSS (no requiere HTML) */
+.content-area .admin-shortcuts .admin-shortcut::before {
+  content: "";
+  width: 52px;
+  height: 52px;
+  flex: none;
+  border-radius: 12px;
+  background: #e8eef3 center / 27px no-repeat;
+}
+
+.content-area .admin-shortcuts .admin-shortcut:nth-child(1)::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232d628e' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='10' cy='7' r='4'/%3E%3Cpath d='M21 21v-2a4 4 0 0 0-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E");
+}
+
+.content-area .admin-shortcuts .admin-shortcut:nth-child(2)::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232d628e' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 2 4 14h7l-1 8 9-12h-7z'/%3E%3C/svg%3E");
+}
+
+.content-area .admin-shortcuts .admin-shortcut > div { flex: 1; }
+
+.content-area .admin-shortcuts .admin-shortcut .card-title {
+  margin: 0;
+  color: var(--ah-navy);
+  font: 600 18px / 1.35 Manrope, sans-serif;
+}
+
+.content-area .admin-shortcuts .admin-shortcut .page-subtitle {
+  margin: 5px 0 0;
+  color: var(--ah-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Los dos botones iguales (antes: uno relleno y otro con borde) */
+.content-area .admin-shortcuts .admin-shortcut .btn {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 16px;
+  background: #e8f2fd;
+  color: var(--ah-blue);
+  font: 600 13px Inter, sans-serif;
+  text-decoration: none;
+  box-shadow: none;
+  transition: background-color .15s, color .15s;
+}
+
+.content-area .admin-shortcuts .admin-shortcut .btn:hover {
+  background: var(--ah-blue);
+  color: #fff;
+}
+
+.content-area .admin-shortcuts .admin-shortcut .btn:focus-visible {
+  outline: 2px solid var(--ah-blue);
+  outline-offset: 2px;
+}
+
+/* ---------- Tarjeta del listado ---------- */
+.content-area:has(.admin-shortcuts) > section.card[aria-labelledby] {
+  overflow: hidden;
+  border: 1px solid var(--ah-line);
+  border-radius: 16px;
+  padding: 0;
+  background: #fff;
+  box-shadow: none;
+}
+
+.content-area:has(.admin-shortcuts) > section.card[aria-labelledby] .card-header {
+  padding: 20px 20px 0;
+  border: 0;
+  background: none;
+}
+
+.content-area:has(.admin-shortcuts) > section.card[aria-labelledby] .card-title-group {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.content-area:has(.admin-shortcuts) > section.card[aria-labelledby] .card-title {
+  margin: 0 0 4px;
+  color: var(--ah-navy);
+  font: 700 18px / 1.3 Manrope, sans-serif;
+}
+
+.content-area:has(.admin-shortcuts) > section.card[aria-labelledby] .page-subtitle {
+  margin: 0;
+  color: var(--ah-muted);
+  font-size: 13px;
+}
+
+.content-area:has(.admin-shortcuts) .badge-subtle {
+  border: 0;
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: var(--ah-soft);
+  color: var(--ah-muted);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ---------- Filtros: una sola barra ---------- */
+.content-area .admin-summary-filter-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 16px;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 18px 20px;
+  background: none;
+}
+
+/* "Filtros / Combiná criterios" queda solo para lectores de pantalla */
+.content-area .admin-summary-filter-heading { display: contents; }
+
+.content-area .admin-summary-filter-heading > div {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.content-area .admin-summary-result-count {
+  order: 3;
+  align-self: center;
+  margin-left: auto;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: none;
+  color: var(--ah-muted);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.content-area .admin-summary-result-count:empty { display: none; }
+
+.content-area .admin-summary-filters {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.content-area .admin-summary-filters label {
+  display: grid;
+  min-width: 0;
+  flex: 0 1 230px;
+  gap: 5px;
+  color: var(--ah-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.content-area .admin-summary-filters select {
+  width: 100%;
+  height: 44px;
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  outline: 0;
+  padding: 0 38px 0 14px;
+  background: var(--ah-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23627d98' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center;
+  color: var(--ah-body);
+  font: 13px Inter, sans-serif;
+  cursor: pointer;
+  transition: border-color .15s, background-color .15s, box-shadow .15s;
+}
+
+.content-area .admin-summary-filters select:hover { background-color: #e8eef3; }
+
+.content-area .admin-summary-filters select:focus-visible {
+  border-color: #7aa4c4;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgb(45 98 142 / 10%);
+}
+
+.content-area .admin-summary-reset {
+  height: 44px;
+  border: 1px solid var(--ah-line);
+  border-radius: 10px;
+  padding: 0 16px;
+  background: #fff;
+  color: var(--ah-navy);
+  font: 600 13px Inter, sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color .15s;
+}
+
+.content-area .admin-summary-reset:hover { background: var(--ah-soft); }
+
+/* ---------- Tabla ---------- */
+.content-area:has(.admin-shortcuts) .table-container {
+  overflow-x: auto;
+  border-top: 1px solid var(--ah-line);
+}
+
+.content-area #adminPropertySummaryTable {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.content-area #adminPropertySummaryTable th {
+  height: 52px;
+  padding: 12px 18px;
+  background: var(--ah-soft);
+  color: var(--ah-muted);
+  font: 700 12px Inter, sans-serif;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.content-area #adminPropertySummaryTable td {
+  padding: 16px 18px;
+  border-top: 1px solid #edf1f5;
+  color: var(--ah-body);
+  font-size: 13px;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+
+.content-area #adminPropertySummaryTable tbody tr:first-child td { border-top: 0; }
+.content-area #adminPropertySummaryTable tbody tr:hover { background: #f8fafc; }
+
+.content-area #adminPropertySummaryTable td strong {
+  color: var(--ah-navy);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.content-area #adminPropertySummaryTable td small {
+  display: block;
+  margin-top: 2px;
+  color: var(--ah-muted);
+  font-size: 12px;
+}
+
+.content-area #adminPropertySummaryTable td br { display: none; }
+
+/* Servicios relacionados como chips */
+.content-area #adminPropertySummaryTable td ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.content-area #adminPropertySummaryTable td li {
+  border-radius: 6px;
+  padding: 4px 8px;
+  background: var(--ah-soft);
+  color: var(--ah-body);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.content-area #adminPropertySummaryTable td[colspan] {
+  padding: 38px 16px;
+  color: var(--ah-muted);
+  text-align: center;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 760px) {
+  .content-area:has(.admin-shortcuts) { gap: 18px; }
+  .content-area .admin-shortcuts { grid-template-columns: 1fr; }
+  .content-area .admin-shortcuts .admin-shortcut { min-height: 0; }
+  .content-area .admin-summary-filter-panel { padding: 14px 12px; }
+  .content-area .admin-summary-filters { flex-direction: column; align-items: stretch; }
+  .content-area .admin-summary-filters label { flex-basis: auto; }
+  .content-area .admin-summary-result-count { margin-left: 0; }
+}
