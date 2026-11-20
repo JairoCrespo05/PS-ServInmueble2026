@@ -176,7 +176,7 @@ foreach ($allUsers as $listedUser) {
               <td class="user-secondary-cell"><?= esc($listedUser['created_at'] ?? 'Sin fecha') ?></td>
               <td>
                 <?php if (! $listedUser['activo']): ?>
-                  <span class="user-state-badge is-inactive">Baja</span>
+                  <span class="user-state-badge is-inactive state-color" data-state-domain="usuario" data-state="baja">Baja</span>
                 <?php else: ?>
                   <?php
                   $stateClass = match ($listedUser['estado_solicitud']) {
@@ -186,30 +186,35 @@ foreach ($allUsers as $listedUser) {
                       default => '',
                   };
                   ?>
-                  <span class="user-state-badge <?= esc($stateClass, 'attr') ?>"><?= esc($listedUser['estado_solicitud']) ?></span>
+                  <span class="user-state-badge state-color <?= esc($stateClass, 'attr') ?>" data-state-domain="usuario" data-state="<?= esc(mb_strtolower(trim($listedUser['estado_solicitud'])), 'attr') ?>"><?= esc($listedUser['estado_solicitud']) ?></span>
                 <?php endif ?>
               </td>
               <td>
                 <div class="user-row-actions">
                   <a
-                    class="btn btn-secondary user-icon-action"
+                    class="crud-button crud-button--icon crud-button--edit"
                     href="<?= site_url('usuarios/' . (int) $listedUser['id'] . '/editar') ?>"
                     aria-label="<?= esc('Modificar datos de ' . $fullName, 'attr') ?>"
                     title="Modificar"
                   >
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>
+                    <?= view('partials/crud_icon', ['entity' => 'person', 'action' => 'edit']) ?>
                   </a>
-                  <a class="btn btn-secondary" href="<?= site_url('usuarios/' . (int) $listedUser['id'] . '/inmuebles') ?>">Inmuebles</a>
+                  <a
+                    class="crud-button crud-button--icon crud-button--detail"
+                    href="<?= site_url('usuarios/' . (int) $listedUser['id'] . '/inmuebles') ?>"
+                    aria-label="<?= esc('Ver inmuebles de ' . $fullName, 'attr') ?>"
+                    title="Ver inmuebles"
+                  ><span class="crud-symbol" aria-hidden="true">apartment</span></a>
                   <?php if ($listedUser['activo'] && (int) $listedUser['id'] !== $currentAdminId): ?>
                     <form method="post" action="<?= site_url('usuarios/' . (int) $listedUser['id'] . '/baja') ?>" onsubmit="return confirm('¿Dar de baja esta cuenta? Se conservarán sus inmuebles y su historial.')">
                       <?= csrf_field() ?>
                       <button
                         type="submit"
-                        class="btn btn-danger user-icon-action"
+                        class="crud-button crud-button--icon crud-button--delete"
                         aria-label="<?= esc('Dar de baja a ' . $fullName, 'attr') ?>"
                         title="Dar de baja"
                       >
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="m19 6-1 14H6L5 6"></path><path d="M10 11v5"></path><path d="M14 11v5"></path></svg>
+                        <?= view('partials/crud_icon', ['entity' => 'person', 'action' => 'block']) ?>
                       </button>
                     </form>
                   <?php elseif (! $listedUser['activo']): ?>

@@ -18,6 +18,8 @@ $formatPeriod = static fn ($value): string => $value ? date('m/Y', strtotime($va
   <link rel="stylesheet" href="<?= base_url('css/servicios.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/facturas.css') ?>?v=<?= filemtime(FCPATH . 'css/facturas.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/crud-buttons.css') ?>?v=1">
+  <link rel="stylesheet" href="<?= base_url('css/state-colors.css') ?>?v=1">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'facturas', 'isAdministrator' => false]) ?>
@@ -43,7 +45,7 @@ $formatPeriod = static fn ($value): string => $value ? date('m/Y', strtotime($va
         </div>
         <div class="actions">
           <a class="button" href="<?= site_url('facturas/informe') ?>"><span class="icon">assessment</span>Ver informe</a>
-          <a class="button primary" href="<?= site_url('facturas/nueva') ?>"><span class="icon">add</span>Cargar factura</a>
+          <a class="crud-button crud-button--create" href="<?= site_url('facturas/nueva') ?>"><span class="icon" aria-hidden="true">add</span>Cargar factura</a>
         </div>
       </section>
 
@@ -59,7 +61,7 @@ $formatPeriod = static fn ($value): string => $value ? date('m/Y', strtotime($va
           <span class="icon" aria-hidden="true">receipt_long</span>
           <h2 id="invoice-empty-title">Todavía no registraste facturas</h2>
           <p>Cuando cargues una factura de un servicio asociado a tus inmuebles, aparecerá en este listado.</p>
-          <a class="button primary" href="<?= site_url('facturas/nueva') ?>">Cargar primera factura</a>
+          <a class="crud-button crud-button--create" href="<?= site_url('facturas/nueva') ?>"><span class="icon" aria-hidden="true">add</span>Cargar primera factura</a>
         </section>
       <?php else: ?>
         <section class="service-card invoice-list-card" aria-labelledby="invoice-list-title">
@@ -121,8 +123,8 @@ $formatPeriod = static fn ($value): string => $value ? date('m/Y', strtotime($va
                       </td>
                       <td><?= esc($formatAmount($factura['monto_total'])) ?></td>
                       <td><?= esc($formatDate($factura['fecha_primer_vencimiento'])) ?></td>
-                      <td><span class="invoice-status <?= $factura['estado_factura'] === 'Pagada' ? 'paid' : 'pending' ?>"><?= esc($factura['estado_factura']) ?></span></td>
-                      <td><a class="invoice-detail-link" href="<?= site_url('facturas/' . $factura['factura_id']) ?>" title="Ver detalle de factura" aria-label="Ver detalle de <?= esc($factura['servicio_nombre'] . ' ' . $formatPeriod($factura['periodo_facturacion']), 'attr') ?>"><span class="icon" aria-hidden="true">visibility</span></a></td>
+                      <td><span class="invoice-status state-color <?= $factura['estado_factura'] === 'Pagada' ? 'paid' : 'pending' ?>" data-state-domain="factura" data-state="<?= esc(mb_strtolower(trim((string) $factura['estado_factura'])), 'attr') ?>"><?= esc($factura['estado_factura']) ?></span></td>
+                      <td><a class="crud-button crud-button--icon crud-button--detail" href="<?= site_url('facturas/' . $factura['factura_id']) ?>" title="Ver detalle de factura" aria-label="Ver detalle de <?= esc($factura['servicio_nombre'] . ' ' . $formatPeriod($factura['periodo_facturacion']), 'attr') ?>"><?= view('partials/crud_icon', ['entity' => 'receipt_long', 'action' => 'visibility']) ?></a></td>
                     </tr>
                   <?php endforeach ?>
                 </tbody>

@@ -1,0 +1,50 @@
+@charset "UTF-8";
+
+.state-color[data-state-domain] {
+  background-color: #edf1f5;
+  color: #475569;
+}
+
+.state-color[data-state-domain="inmueble"][data-state="disponible"],
+.state-color[data-state-domain="vinculo"][data-state="pausado"] {
+  background-color: #e8f2fd;
+  color: #174b73;
+}
+
+.state-color[data-state-domain="inmueble"][data-state="ocupado"] {
+  background-color: #f2eafd;
+  color: #643493;
+}
+
+.state-color[data-state-domain="inmueble"][data-state="en mantenimiento"],
+.state-color[data-state-domain="vinculo"][data-state="en revisión"] {
+  background-color: #fff0dd;
+  color: #8a400b;
+}
+
+.state-color[data-state-domain="usuario"][data-state="aprobada"],
+.state-color[data-state-domain="vinculo"][data-state="activo"],
+.state-color[data-state-domain="factura"][data-state="pagada"] {
+  background-color: #e7f6ed;
+  color: #146c43;
+}
+
+.state-color[data-state-domain="usuario"][data-state="pendiente"],
+.state-color[data-state-domain="factura"][data-state="pendiente"] {
+  background-color: #fff3d6;
+  color: #805000;
+}
+
+.state-color[data-state-domain="inmueble"][data-state="dado de baja"],
+.state-color[data-state-domain="usuario"][data-state="rechazada"],
+.state-color[data-state-domain="vinculo"][data-state="inactivo"],
+.state-color[data-state-domain="factura"][data-state="vencida"] {
+  background-color: #fef2f2;
+  color: #b42318;
+}
+
+.state-color[data-state-domain="usuario"][data-state="inactiva"],
+.state-color[data-state-domain="usuario"][data-state="baja"] {
+  background-color: #edf1f5;
+  color: #475569;
+}

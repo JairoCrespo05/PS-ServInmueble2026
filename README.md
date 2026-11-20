@@ -2,6 +2,23 @@
 
 Proyecto final de la materia Proyecto de Software: gestión de inmuebles, servicios y facturas.
 
+## Botones ABMC
+
+Las acciones de alta, modificación, baja y detalle comparten
+`public/css/crud-buttons.css`: utilice `crud-button` junto con las variantes
+`crud-button--create`, `crud-button--edit`, `crud-button--delete` o
+`crud-button--detail`. Para acciones solo con icono agregue
+`crud-button--icon`, un nombre accesible (`aria-label`) y un `title`.
+El parcial `app/Views/partials/crud_icon.php` combina el símbolo de la entidad
+y el de la acción; requiere la fuente Material Symbols Outlined que ya cargan
+las vistas. Los botones de navegación, filtros y confirmación conservan sus
+estilos propios.
+
+Las etiquetas de estados existentes usan `public/css/state-colors.css` con la
+clase `state-color` y los atributos `data-state-domain` y `data-state`. Sus
+colores son compartidos por dominio y estado; el texto, tamaño y forma de cada
+etiqueta se conservan. Un color no determina el estado ni modifica su lógica.
+
 ## Base de datos
 
 El proyecto utiliza MySQL/MariaDB por defecto. Para configurar una instalación local:

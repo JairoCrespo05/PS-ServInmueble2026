@@ -14,7 +14,7 @@ $renderRows = static function (array $invoices) use ($formatAmount, $formatDate,
         </td>
         <td><?= esc($formatAmount($invoice['monto_total'])) ?></td>
         <td><?= esc($formatDate($invoice['fecha_primer_vencimiento'])) ?></td>
-        <td><a class="invoice-detail-link" href="<?= site_url('facturas/' . $invoice['factura_id']) ?>" title="Ver detalle de factura" aria-label="Ver detalle de <?= esc($invoice['servicio_nombre'] . ' ' . $formatPeriod($invoice['periodo_facturacion']), 'attr') ?>"><span class="icon" aria-hidden="true">visibility</span></a></td>
+        <td><a class="crud-button crud-button--icon crud-button--detail" href="<?= site_url('facturas/' . $invoice['factura_id']) ?>" title="Ver detalle de factura" aria-label="Ver detalle de <?= esc($invoice['servicio_nombre'] . ' ' . $formatPeriod($invoice['periodo_facturacion']), 'attr') ?>"><?= view('partials/crud_icon', ['entity' => 'receipt_long', 'action' => 'visibility']) ?></a></td>
       </tr>
     <?php endforeach;
 };
@@ -33,6 +33,7 @@ $renderRows = static function (array $invoices) use ($formatAmount, $formatDate,
   <link rel="stylesheet" href="<?= base_url('css/servicios.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/facturas.css') ?>?v=<?= filemtime(FCPATH . 'css/facturas.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/crud-buttons.css') ?>?v=1">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'informe-facturas', 'isAdministrator' => false]) ?>

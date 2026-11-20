@@ -42,6 +42,12 @@ final class ServiceListingTest extends CIUnitTestCase
         $serviceName = $xpath->query('.//h2[@class="service-name"]', $cards->item(0));
         $this->assertNotFalse($serviceName);
         $this->assertSame('Servicio asociado de prueba', trim($serviceName->item(0)->textContent));
+        $this->assertSame(1, $xpath->query('//span[@data-state-domain="vinculo" and @data-state="activo"]')->length);
+        $this->assertSame(1, $xpath->query('//span[@data-state-domain="inmueble" and @data-state="activo"]')->length);
+        $this->assertSame(1, $xpath->query('//button[@id="open-associate" and contains(@class, "crud-button--create")]')->length);
+        $this->assertSame(1, $xpath->query('//button[@data-associate-service and @disabled]')->length);
+        $this->assertSame(1, $xpath->query('//button[@data-edit-association and contains(@class, "crud-button--edit") and @aria-label]')->length);
+        $this->assertSame(1, $xpath->query('//form[@data-deactivate-association]//button[contains(@class, "crud-button--delete") and @aria-label]')->length);
         $this->assertSame(
             1,
             $xpath->query('//select[@id="associate-service"]/option[@value="' . $unusedServiceId . '"]')->length

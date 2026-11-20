@@ -49,6 +49,7 @@ final class InvoiceDetailLinkTest extends CIUnitTestCase
             ]), [12]],
             [$report, [12, 13]],
         ];
+        $this->assertStringContainsString('data-state-domain="factura" data-state="pendiente">Pendiente', $views[0][0]);
 
         foreach ($views as [$html, $ids]) {
             $this->assertStringContainsString(
@@ -60,15 +61,16 @@ final class InvoiceDetailLinkTest extends CIUnitTestCase
             $document->loadHTML('<?xml encoding="UTF-8">' . $html);
             libxml_clear_errors();
             libxml_use_internal_errors($previous);
-            $links = (new DOMXPath($document))->query('//a[@class="invoice-detail-link"]');
+            $xpath = new DOMXPath($document);
+            $links = $xpath->query('//a[contains(concat(" ", normalize-space(@class), " "), " crud-button--detail ")]');
             $this->assertCount(count($ids), $links);
 
             foreach ($ids as $index => $id) {
                 $link = $links->item($index);
                 $this->assertSame(site_url('facturas/' . $id), $link->getAttribute('href'));
                 $this->assertSame('Ver detalle de Electricidad 10/2026', $link->getAttribute('aria-label'));
-                $this->assertSame('visibility', trim($link->textContent));
-                $this->assertSame('true', $link->firstChild->getAttribute('aria-hidden'));
+                $this->assertSame('receipt_longvisibility', trim($link->textContent));
+                $this->assertSame('true', $xpath->query('.//span[contains(@class, "crud-symbol")]', $link)->item(0)->getAttribute('aria-hidden'));
             }
         }
     }

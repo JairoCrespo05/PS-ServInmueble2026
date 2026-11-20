@@ -1,0 +1,67 @@
+:root {
+  --crud-create: #146c43;
+  --crud-edit: #245b86;
+  --crud-delete: #b42318;
+  --crud-detail: #526579;
+}
+
+.crud-button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 14px;
+  color: #fff;
+  font: 600 13px/1.2 Inter, "Segoe UI", sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color .15s ease, transform .15s ease;
+}
+
+.crud-button--create { background: var(--crud-create); }
+.crud-button--edit { background: var(--crud-edit); }
+.crud-button--delete { background: var(--crud-delete); }
+.crud-button--detail { background: var(--crud-detail); }
+.crud-button--create:hover:not(:disabled) { background: #0e5232; }
+.crud-button--edit:hover:not(:disabled) { background: #193f5f; }
+.crud-button--delete:hover:not(:disabled) { background: #8c1c13; }
+.crud-button--detail:hover:not(:disabled) { background: #3c4b5a; }
+.crud-button:active:not(:disabled) { transform: translateY(1px); }
+.crud-button:focus-visible { outline: 3px solid #102a43; outline-offset: 3px; }
+.crud-button:disabled { opacity: .55; cursor: not-allowed; }
+.crud-button--icon { width: 40px; min-width: 40px; height: 40px; padding: 0; }
+
+.crud-symbol {
+  position: relative;
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  font: normal 22px/1 "Material Symbols Outlined";
+  white-space: nowrap;
+  -webkit-font-smoothing: antialiased;
+}
+
+.crud-symbol__modifier {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  background: inherit;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.crud-button--edit .crud-symbol__modifier { background: var(--crud-edit); }
+.crud-button--delete .crud-symbol__modifier { background: var(--crud-delete); }
+.crud-button--detail .crud-symbol__modifier { background: var(--crud-detail); }
+.crud-button--edit:hover .crud-symbol__modifier { background: #193f5f; }
+.crud-button--delete:hover .crud-symbol__modifier { background: #8c1c13; }
+.crud-button--detail:hover .crud-symbol__modifier { background: #3c4b5a; }
+
+@media (prefers-reduced-motion: reduce) {
+  .crud-button { transition: none; }
+}

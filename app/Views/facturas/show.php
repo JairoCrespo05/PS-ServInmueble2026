@@ -21,6 +21,7 @@ $paymentValue = static fn (string $field, string $fallback = ''): string => (str
   <link rel="stylesheet" href="<?= base_url('css/servicios.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/facturas.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/state-colors.css') ?>?v=1">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'facturas', 'isAdministrator' => false]) ?>
@@ -55,7 +56,7 @@ $paymentValue = static fn (string $field, string $fallback = ''): string => (str
         <section class="service-card invoice-detail-card" aria-labelledby="invoice-detail-title">
           <div class="invoice-list-head">
             <h2 id="invoice-detail-title">Datos de la factura</h2>
-            <span class="invoice-status <?= $paid ? 'paid' : 'pending' ?>"><?= esc($factura['estado_factura']) ?></span>
+            <span class="invoice-status state-color <?= $paid ? 'paid' : 'pending' ?>" data-state-domain="factura" data-state="<?= esc(mb_strtolower(trim((string) $factura['estado_factura'])), 'attr') ?>"><?= esc($factura['estado_factura']) ?></span>
           </div>
           <dl class="invoice-detail-grid">
             <div><dt>Inmueble</dt><dd><?= esc($factura['alias_nombre']) ?></dd></div>
