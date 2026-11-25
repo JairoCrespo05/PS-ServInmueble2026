@@ -14,7 +14,7 @@ foreach ($recentInvoices ?? [] as $invoice) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
-  <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/home.css') ?>?v=<?= filemtime(FCPATH . 'css/home.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/admin-home.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/support-modal.css') ?>">
@@ -301,12 +301,46 @@ foreach ($recentInvoices ?? [] as $invoice) {
         </div>
       <?php endif ?>
 
+      <?php if ($dashboardMetrics['overdue_invoice_count'] > 0): ?>
+        <section class="overdue-home-alert" aria-labelledby="overdue-home-title">
+          <div class="overdue-home-heading">
+            <div class="overdue-home-icon material-symbol" aria-hidden="true">priority_high</div>
+            <div>
+              <p class="overdue-home-eyebrow">Requieren atención</p>
+              <h2 id="overdue-home-title">
+                <?= esc((string) $dashboardMetrics['overdue_invoice_count']) ?>
+                <?= $dashboardMetrics['overdue_invoice_count'] === 1 ? 'factura vencida' : 'facturas vencidas' ?>
+              </h2>
+              <p>
+                Saldo pendiente: <strong>$ <?= esc(number_format($dashboardMetrics['overdue_invoice_amount'], 2, ',', '.')) ?> ARS</strong>
+              </p>
+            </div>
+          </div>
+          <ul class="overdue-home-list">
+            <?php foreach ($overdueInvoices as $invoice): ?>
+              <?php $overdueInvoiceUrl = site_url('facturas/' . $invoice['factura_id'] . '#payment-title'); ?>
+              <li>
+                <div class="overdue-home-invoice">
+                  <strong><?= esc($invoice['alias_nombre']) ?> · <?= esc($invoice['servicio_nombre']) ?></strong>
+                  <span><?= esc($invoice['proveedor']) ?> · venció el <?= esc(date('d/m/Y', strtotime($invoice['fecha_vencimiento_efectivo']))) ?></span>
+                </div>
+                <span class="overdue-home-days"><?= esc((string) $invoice['dias_mora']) ?> <?= $invoice['dias_mora'] === 1 ? 'día' : 'días' ?> de mora</span>
+                <a class="overdue-home-action" href="<?= esc($overdueInvoiceUrl, 'attr') ?>">Ver y pagar</a>
+              </li>
+            <?php endforeach ?>
+          </ul>
+          <?php if ($dashboardMetrics['overdue_invoice_count'] > count($overdueInvoices)): ?>
+            <a class="overdue-home-all" href="<?= site_url('facturas?estado=Vencida') ?>">Ver todas las facturas vencidas</a>
+          <?php endif ?>
+        </section>
+      <?php endif ?>
+
       <!-- Tarjetas de Métricas Principales (KPIs) -->
       <section class="kpi-grid">
         <!-- KPI 1 -->
-        <div class="kpi-card">
+        <div class="kpi-card metric-properties">
           <div>
-            <div class="kpi-label">Inmuebles en Gestión</div>
+            <div class="kpi-label"><span class="material-symbol" aria-hidden="true">apartment</span>Inmuebles en Gestión</div>
             <div class="kpi-value" id="kpiProperties">
               <?= esc((string) $dashboardMetrics['property_count']) ?>
               <small><?= $dashboardMetrics['property_count'] === 1 ? 'propiedad' : 'propiedades' ?></small>
@@ -321,9 +355,9 @@ foreach ($recentInvoices ?? [] as $invoice) {
         </div>
 
         <!-- KPI 2 -->
-        <div class="kpi-card">
+        <div class="kpi-card metric-services">
           <div>
-            <div class="kpi-label">Servicios Activos</div>
+            <div class="kpi-label"><span class="material-symbol" aria-hidden="true">electric_bolt</span>Servicios Activos</div>
             <div class="kpi-value" id="kpiServices">
               <?= esc((string) $dashboardMetrics['active_service_count']) ?>
               <small>contratos</small>
@@ -338,9 +372,9 @@ foreach ($recentInvoices ?? [] as $invoice) {
         </div>
 
         <!-- KPI 3 -->
-        <div class="kpi-card">
+        <div class="kpi-card metric-payments">
           <div>
-            <div class="kpi-label">A Pagar Este Mes</div>
+            <div class="kpi-label"><span class="material-symbol" aria-hidden="true">receipt_long</span>A Pagar Este Mes</div>
             <div class="kpi-value" id="kpiToPay">
               $ <?= esc(number_format($dashboardMetrics['pending_invoice_amount'], 2, ',', '.')) ?>
               <small>ARS</small>
@@ -358,9 +392,27 @@ foreach ($recentInvoices ?? [] as $invoice) {
         </div>
 
         <!-- KPI 4 -->
-        <div class="kpi-card">
+        <div class="kpi-card metric-overdue">
           <div>
-            <div class="kpi-label">Tasa de Cumplimiento</div>
+            <div class="kpi-label"><span class="material-symbol" aria-hidden="true">notification_important</span>Facturas Vencidas</div>
+            <div class="kpi-value" id="kpiOverdue">
+              <?= esc((string) $dashboardMetrics['overdue_invoice_count']) ?>
+              <small><?= $dashboardMetrics['overdue_invoice_count'] === 1 ? 'factura' : 'facturas' ?></small>
+            </div>
+            <div class="kpi-detail overdue-kpi-detail">
+              $ <?= esc(number_format($dashboardMetrics['overdue_invoice_amount'], 2, ',', '.')) ?> ARS pendientes
+            </div>
+            <a class="kpi-card-link" href="<?= site_url('facturas?estado=Vencida') ?>">Revisar mora <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="kpi-icon-wrap">
+            <span class="material-symbol" aria-hidden="true">warning</span>
+          </div>
+        </div>
+
+        <!-- KPI 5 -->
+        <div class="kpi-card metric-compliance">
+          <div>
+            <div class="kpi-label"><span class="material-symbol" aria-hidden="true">donut_small</span>Tasa de Cumplimiento</div>
             <?php if ($dashboardMetrics['invoice_count'] === 0): ?>
               <div class="kpi-value" id="kpiCompliance">—</div>
               <div class="kpi-detail" id="kpiComplianceDetail" style="color:var(--color-text-muted);">
@@ -381,6 +433,16 @@ foreach ($recentInvoices ?? [] as $invoice) {
                   <?= esc((string) $dashboardMetrics['paid_invoice_count']) ?>
                   de <?= esc((string) $dashboardMetrics['invoice_count']) ?> facturas del período pagadas
                 </span>
+              </div>
+              <div
+                class="kpi-compliance-track"
+                role="progressbar"
+                aria-label="Tasa de cumplimiento de pagos"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="<?= esc((string) round($dashboardMetrics['paid_invoice_count'] / $dashboardMetrics['invoice_count'] * 100, 1), 'attr') ?>"
+              >
+                <span style="width: <?= esc((string) min(100, max(0, $dashboardMetrics['paid_invoice_count'] / $dashboardMetrics['invoice_count'] * 100)), 'attr') ?>%"></span>
               </div>
             <?php endif ?>
           </div>
@@ -423,10 +485,11 @@ foreach ($recentInvoices ?? [] as $invoice) {
                 <?php else: ?>
                   <?php foreach ($recentInvoices as $invoice): ?>
                     <?php
-                    $status = trim((string) $invoice['estado_factura']);
+                    $status = trim((string) $invoice['estado_visual']);
                     $statusClass = match (mb_strtolower($status)) {
                         'pagada' => 'paid',
                         'pendiente' => 'pending',
+                        'vencida' => 'overdue',
                         default => '',
                     };
                     $invoiceUrl = site_url('facturas/' . $invoice['factura_id']);
@@ -446,19 +509,22 @@ foreach ($recentInvoices ?? [] as $invoice) {
                         </div>
                       </td>
                       <td><?= esc(date('m/Y', strtotime($invoice['periodo_facturacion']))) ?></td>
-                      <td><strong><?= esc(date('d/m/Y', strtotime($invoice['fecha_primer_vencimiento']))) ?></strong></td>
+                      <td><strong><?= esc(date('d/m/Y', strtotime($invoice['fecha_vencimiento_efectivo']))) ?></strong></td>
                       <td><strong>$ <?= esc(number_format((float) $invoice['monto_total'], 2, ',', '.')) ?></strong> ARS</td>
                       <td>
                         <span class="status-badge <?= esc($statusClass, 'attr') ?>">
                           <span class="dot"></span> <?= esc($status) ?>
                         </span>
+                        <?php if ($status === 'Vencida'): ?>
+                          <span class="invoice-overdue-days"><?= esc((string) $invoice['dias_mora']) ?> <?= $invoice['dias_mora'] === 1 ? 'día' : 'días' ?> de mora</span>
+                        <?php endif ?>
                       </td>
                       <td style="text-align: right;">
                         <div class="action-icons" style="justify-content: flex-end;">
                           <a class="table-icon-btn" href="<?= esc($invoiceUrl, 'attr') ?>" title="Ver detalle de factura" aria-label="Ver detalle de factura">
                             <svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                           </a>
-                          <?php if (mb_strtolower($status) === 'pendiente'): ?>
+                          <?php if (mb_strtolower($status) !== 'pagada'): ?>
                             <a class="table-icon-btn" href="<?= esc($invoiceUrl . '#payment-title', 'attr') ?>" title="Registrar pago" aria-label="Registrar pago">
                               <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2-2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                             </a>

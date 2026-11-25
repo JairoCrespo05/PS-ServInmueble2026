@@ -106,6 +106,8 @@ final class InvoiceManagementTest extends CIUnitTestCase
         $this->assertMatchesRegularExpression('/id="kpiProperties">\s*2\s*<small>propiedades/s', $body);
         $this->assertMatchesRegularExpression('/id="kpiServices">\s*1\s*<small>contratos/s', $body);
         $this->assertMatchesRegularExpression('/id="kpiToPay">\s*\$\s*1\.234,50/s', $body);
+        $this->assertMatchesRegularExpression('/id="kpiOverdue">\s*1\s*<small>factura/s', $body);
+        $home->assertSee('$ 500,00 ARS pendientes');
         $this->assertMatchesRegularExpression('/1\s*factura pendiente\s*con vencimiento este mes/s', $body);
         $this->assertMatchesRegularExpression('/id="kpiCompliance">\s*33,3%/s', $body);
         $this->assertMatchesRegularExpression('/1\s*de 3 facturas del período pagadas/s', $body);
@@ -125,6 +127,46 @@ final class InvoiceManagementTest extends CIUnitTestCase
         $this->assertMatchesRegularExpression('/id="kpiProperties">\s*0\s*<small>propiedades/s', $body);
         $this->assertMatchesRegularExpression('/id="kpiServices">\s*0\s*<small>contratos/s', $body);
         $this->assertMatchesRegularExpression('/>\s*0\s*facturas pendientes\s*con vencimiento este mes/s', $body);
+        $this->assertMatchesRegularExpression('/id="kpiOverdue">\s*0\s*<small>facturas/s', $body);
+        $home->assertDontSee('overdue-home-alert');
+    }
+
+    public function testOwnerHomeHighlightsOverdueInvoicesAndDoesNotShowOtherOwnersInvoices(): void
+    {
+        $ownerId = $this->createOwner('invoice-home-overdue-owner@example.test');
+        $otherOwnerId = $this->createOwner('invoice-home-overdue-other@example.test');
+        $overdueAssociationId = $this->createServiceAssociation($ownerId, 'Casa mora');
+        $oldOverdueAssociationId = $this->createServiceAssociation($ownerId, 'Departamento mora');
+        $paidAssociationId = $this->createServiceAssociation($ownerId, 'Casa pagada');
+        $foreignAssociationId = $this->createServiceAssociation($otherOwnerId, 'Casa ajena mora');
+        $today = new DateTimeImmutable('today');
+        $overdueInvoiceId = $this->createInvoice($overdueAssociationId, '2026-01-01', 'Pendiente', '1000.00');
+        $oldOverdueInvoiceId = $this->createInvoice($oldOverdueAssociationId, '2026-02-01', 'Pendiente', '750.00');
+        $paidInvoiceId = $this->createInvoice($paidAssociationId, '2026-03-01', 'Pagada', '300.00', [
+            'fecha_pago_realizado' => $today->format('Y-m-d'),
+            'monto_abonado' => '300.00',
+            'medio_pago' => 'Transferencia',
+        ]);
+        $foreignInvoiceId = $this->createInvoice($foreignAssociationId, '2026-04-01', 'Pendiente', '9000.00');
+        $this->setInvoiceDueDates($overdueInvoiceId, $today->modify('-10 days'));
+        $this->setInvoiceDueDates($oldOverdueInvoiceId, $today->modify('-30 days'), $today->modify('-20 days'));
+        $this->setInvoiceDueDates($paidInvoiceId, $today->modify('-20 days'));
+        $this->setInvoiceDueDates($foreignInvoiceId, $today->modify('-40 days'));
+
+        $home = $this->withSession(['user_id' => $ownerId])->get('home');
+        $body = $home->response()->getBody();
+
+        $home->assertStatus(200);
+        $home->assertSee('2 facturas vencidas');
+        $home->assertSee('$ 1.750,00 ARS');
+        $home->assertSee('20 días de mora');
+        $home->assertSee('10 días de mora');
+        $home->assertSee('Casa mora');
+        $home->assertSee('Departamento mora');
+        $home->assertDontSee('Casa ajena mora');
+        $home->assertDontSee('$ 9.000,00');
+        $home->assertSee(site_url('facturas/' . $oldOverdueInvoiceId . '#payment-title'));
+        $this->assertStringContainsString('status-badge overdue', $body);
     }
 
     public function testUpcomingInvoiceBannerShowsNearestPendingDueDateWithinSevenDays(): void
@@ -222,13 +264,18 @@ final class InvoiceManagementTest extends CIUnitTestCase
         $otherOwnerId = $this->createOwner('invoice-filter-other@example.test');
         $associationId = $this->createServiceAssociation($ownerId, 'Casa Filtrable');
         $otherAssociationId = $this->createServiceAssociation($otherOwnerId, 'Casa Ajena Filtrable');
-        $this->createInvoice($associationId, '2026-11-01', 'Pendiente');
+        $pendingInvoiceId = $this->createInvoice($associationId, '2026-11-01', 'Pendiente');
         $this->createInvoice($associationId, '2026-10-01', 'Pagada', '1000.00', [
             'fecha_pago_realizado' => '2026-10-15',
             'monto_abonado' => '1000.00',
             'medio_pago' => 'Transferencia',
         ]);
         $this->createInvoice($otherAssociationId, '2026-11-01', 'Pendiente');
+        $this->setInvoiceDueDates($pendingInvoiceId, (new DateTimeImmutable('today'))->modify('+5 days'));
+
+        $initialList = $this->withSession(['user_id' => $ownerId])->get('facturas');
+        $initialList->assertStatus(200);
+        $initialList->assertDontSee('Ingresá una fecha válida para el filtro de vencimiento.');
 
         foreach (['Casa Filtrable', 'Electricidad', 'Proveedor de Prueba'] as $term) {
             $search = $this->withSession(['user_id' => $ownerId])
@@ -256,19 +303,87 @@ final class InvoiceManagementTest extends CIUnitTestCase
         $noResults->assertDontSee('Todavía no registraste facturas');
     }
 
+    public function testInvoiceDashboardClassifiesByEffectiveDueDateAndScopesOwnerData(): void
+    {
+        $ownerId = $this->createOwner('invoice-dashboard-owner@example.test');
+        $otherOwnerId = $this->createOwner('invoice-dashboard-other@example.test');
+        $overdueAssociationId = $this->createServiceAssociation($ownerId, 'Casa vencida');
+        $secondDueAssociationId = $this->createServiceAssociation($ownerId, 'Casa con segundo vencimiento');
+        $paidAssociationId = $this->createServiceAssociation($ownerId, 'Casa pagada');
+        $foreignAssociationId = $this->createServiceAssociation($otherOwnerId, 'Casa ajena vencida');
+        $overdueInvoiceId = $this->createInvoice($overdueAssociationId, '2026-01-01');
+        $secondDueInvoiceId = $this->createInvoice($secondDueAssociationId, '2026-02-01');
+        $paidInvoiceId = $this->createInvoice($paidAssociationId, '2026-03-01', 'Pagada', '500.00', [
+            'fecha_pago_realizado' => date('Y-m-d'),
+            'monto_abonado' => '500.00',
+            'medio_pago' => 'Transferencia',
+        ]);
+        $foreignInvoiceId = $this->createInvoice($foreignAssociationId, '2026-01-01');
+        $today = new DateTimeImmutable('today');
+        $overdueDate = $today->modify('-10 days');
+
+        $this->setInvoiceDueDates($overdueInvoiceId, $today->modify('-20 days'), $overdueDate);
+        $this->setInvoiceDueDates($secondDueInvoiceId, $today->modify('-3 days'), $today->modify('+3 days'));
+        $this->setInvoiceDueDates($paidInvoiceId, $today->modify('-30 days'), $today->modify('-20 days'));
+        $this->setInvoiceDueDates($foreignInvoiceId, $today->modify('-50 days'));
+
+        $overdueList = $this->withSession(['user_id' => $ownerId])->get('facturas?estado=Vencida');
+
+        $overdueList->assertStatus(200);
+        $overdueList->assertSee('Casa vencida');
+        $overdueList->assertSee('10 días de mora');
+        $overdueList->assertSee('33,3%');
+        $overdueList->assertSee('class="invoice-mora-chart"');
+        $overdueList->assertSee('Vencidas <strong>1</strong>');
+        $overdueList->assertSee('Casa con segundo vencimiento');
+        $overdueList->assertDontSee('Casa ajena vencida');
+        $overdueList->assertSee(site_url('facturas/' . $overdueInvoiceId));
+
+        $pendingList = $this->withSession(['user_id' => $ownerId])->get('facturas?estado=Pendiente');
+        $pendingList->assertStatus(200);
+        $pendingList->assertSee('Casa con segundo vencimiento');
+        preg_match(
+            '/<section class="service-card invoice-list-card".*?<tbody>(.*?)<\/tbody>/s',
+            $pendingList->response()->getBody(),
+            $pendingRows
+        );
+        $this->assertStringContainsString('Casa con segundo vencimiento', $pendingRows[1] ?? '');
+        $this->assertStringNotContainsString('Casa vencida', $pendingRows[1] ?? '');
+        $this->assertStringNotContainsString('Casa pagada', $pendingRows[1] ?? '');
+
+        $report = $this->withSession(['user_id' => $ownerId])
+            ->get('facturas/informe?estado=Vencida&desde=' . $overdueDate->format('Y-m-d') . '&hasta=' . $overdueDate->format('Y-m-d'));
+        $report->assertStatus(200);
+        $report->assertSee('Facturas vencidas');
+        $report->assertSee('100,0%');
+        $report->assertSee('Casa vencida');
+        $report->assertDontSee('Casa ajena vencida');
+    }
+
+    public function testInvoiceDashboardReportsInvalidDueDateFilter(): void
+    {
+        $ownerId = $this->createOwner('invoice-dashboard-invalid-date@example.test');
+
+        $response = $this->withSession(['user_id' => $ownerId])->get('facturas?desde=2026-02-31');
+
+        $response->assertStatus(200);
+        $response->assertSee('Ingresá una fecha válida para el filtro de vencimiento.');
+    }
+
     public function testReportSeparatesInvoiceStatesAndShowsOwnerTotals(): void
     {
         $ownerId = $this->createOwner('invoice-report-owner@example.test');
         $otherOwnerId = $this->createOwner('invoice-report-other@example.test');
         $associationId = $this->createServiceAssociation($ownerId, 'Casa Informe');
         $otherAssociationId = $this->createServiceAssociation($otherOwnerId, 'Casa Informe Ajena');
-        $this->createInvoice($associationId, '2026-09-01', 'Pendiente', '1200.00');
+        $pendingInvoiceId = $this->createInvoice($associationId, '2026-09-01', 'Pendiente', '1200.00');
         $this->createInvoice($associationId, '2026-10-01', 'Pagada', '800.00', [
             'fecha_pago_realizado' => '2026-10-15',
             'monto_abonado' => '800.00',
             'medio_pago' => 'Transferencia',
         ]);
         $this->createInvoice($otherAssociationId, '2026-10-01', 'Pendiente', '9900.00');
+        $this->setInvoiceDueDates($pendingInvoiceId, (new DateTimeImmutable('today'))->modify('+5 days'));
 
         $report = $this->withSession(['user_id' => $ownerId])->get('facturas/informe');
 
@@ -297,19 +412,22 @@ final class InvoiceManagementTest extends CIUnitTestCase
             'Agua',
             'Aguas del Sur'
         );
-        $this->createInvoice($waterAssociationId, '2026-09-01', 'Pendiente', '1200.00');
+        $waterPendingId = $this->createInvoice($waterAssociationId, '2026-09-01', 'Pendiente', '1200.00');
         $this->createInvoice($waterAssociationId, '2026-10-01', 'Pagada', '800.00', [
             'fecha_pago_realizado' => '2026-10-15',
             'monto_abonado' => '800.00',
             'medio_pago' => 'Transferencia',
         ]);
-        $this->createInvoice($electricityAssociationId, '2026-07-01', 'Pendiente', '300.00');
+        $electricityPendingId = $this->createInvoice($electricityAssociationId, '2026-07-01', 'Pendiente', '300.00');
         $this->createInvoice($electricityAssociationId, '2026-08-01', 'Pagada', '400.00', [
             'fecha_pago_realizado' => '2026-08-15',
             'monto_abonado' => '400.00',
             'medio_pago' => 'Efectivo',
         ]);
         $this->createInvoice($otherAssociationId, '2026-11-01', 'Pendiente', '9900.00');
+        $today = new DateTimeImmutable('today');
+        $this->setInvoiceDueDates($waterPendingId, $today->modify('+5 days'));
+        $this->setInvoiceDueDates($electricityPendingId, $today->modify('+10 days'));
 
         foreach ([
             'Casa Mistral' => ['Casa Mistral', 'Departamento Norte'],

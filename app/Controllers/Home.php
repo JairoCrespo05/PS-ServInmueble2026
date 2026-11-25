@@ -39,6 +39,7 @@ class Home extends BaseController
                 'user'            => $user,
                 'isAdministrator' => false,
                 'recentInvoices'  => $invoices->findRecentForOwner((int) $user['id']),
+                'overdueInvoices' => $invoices->findOverdueForOwner((int) $user['id']),
                 'upcomingInvoice' => $invoices->findNearestUpcomingForOwner((int) $user['id']),
                 'dashboardMetrics' => (new OwnerDashboardModel())->findMetricsForOwner((int) $user['id']),
             ]);
