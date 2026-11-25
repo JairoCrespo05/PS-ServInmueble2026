@@ -42,6 +42,12 @@ final class ServiceListingTest extends CIUnitTestCase
         $serviceName = $xpath->query('.//h2[@class="service-name"]', $cards->item(0));
         $this->assertNotFalse($serviceName);
         $this->assertSame('Servicio asociado de prueba', trim($serviceName->item(0)->textContent));
+        $this->assertSame(1, $xpath->query('//span[@data-state-domain="vinculo" and @data-state="activo"]')->length);
+        $this->assertSame(1, $xpath->query('//span[@data-state-domain="inmueble" and @data-state="activo"]')->length);
+        $this->assertSame(1, $xpath->query('//button[@id="open-associate" and contains(@class, "crud-button--create")]')->length);
+        $this->assertSame(1, $xpath->query('//button[@data-associate-service and @disabled]')->length);
+        $this->assertSame(1, $xpath->query('//button[@data-edit-association and contains(@class, "crud-button--edit") and @aria-label]')->length);
+        $this->assertSame(1, $xpath->query('//form[@data-deactivate-association]//button[contains(@class, "crud-button--delete") and @aria-label]')->length);
         $this->assertSame(
             1,
             $xpath->query('//select[@id="associate-service"]/option[@value="' . $unusedServiceId . '"]')->length
@@ -53,6 +59,30 @@ final class ServiceListingTest extends CIUnitTestCase
         $this->assertSame(
             'Inmueble con servicio — Calle de prueba 123, Ciudad de prueba (Activo)',
             trim($xpath->query('//select[@id="associate-property"]/option[@value="' . $propertyId . '"]')->item(0)->textContent)
+        );
+    }
+
+    public function testTelevisionServiceUsesTelevisionIcon(): void
+    {
+        $ownerId = $this->createOwner('television-service-owner@example.test');
+        $propertyId = $this->createProperty($ownerId, 'Inmueble con television');
+        $serviceId = $this->createService('TV Cable', 'Televisión', 'Mes');
+
+        $this->db->table('inmueble_servicios')->insert([
+            'inmueble_id'        => $propertyId,
+            'servicio_id'        => $serviceId,
+            'titular_inmueble'   => 'Titular de prueba',
+            'estado'             => 'Activo',
+            'estado_vinculacion' => 'Activo',
+        ]);
+
+        $response = $this->withSession(['user_id' => $ownerId])->get('servicios/asociaciones');
+        $response->assertOK();
+
+        $xpath = $this->xpathFor($response->response()->getBody());
+        $this->assertSame(
+            'tv',
+            trim($xpath->query('//article[@data-service-card]//span[contains(@class, "service-icon")]')->item(0)->textContent)
         );
     }
 
@@ -323,13 +353,13 @@ final class ServiceListingTest extends CIUnitTestCase
         return (int) $this->db->insertID();
     }
 
-    private function createService(string $name): int
+    private function createService(string $name, string $category = 'Electricidad', string $unit = 'kWh'): int
     {
         $this->db->table('servicios')->insert([
             'nombre'            => $name,
-            'unidad_medida_std' => 'kWh',
+            'unidad_medida_std' => $unit,
             'proveedor'         => 'Proveedor de prueba',
-            'categoria'         => 'Electricidad',
+            'categoria'         => $category,
         ]);
 
         return (int) $this->db->insertID();

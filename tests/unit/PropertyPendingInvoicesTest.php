@@ -57,8 +57,11 @@ final class PropertyPendingInvoicesTest extends CIUnitTestCase
         $inactiveMaintenance = $inactive;
         $inactiveMaintenance['id'] = 6;
         $inactiveMaintenance['estado'] = 'En Mantenimiento';
+        $maintenance = $property;
+        $maintenance['id'] = 7;
+        $maintenance['estado'] = 'En Mantenimiento';
         $html = view('inmuebles/index', [
-            'inmuebles' => [$property, $withoutPending, $inactive, $historical, $inactiveOccupied, $inactiveMaintenance],
+            'inmuebles' => [$property, $withoutPending, $inactive, $historical, $inactiveOccupied, $inactiveMaintenance, $maintenance],
             'serviciosPorInmueble' => [],
             'facturasPendientesPorInmueble' => [1 => 2],
             'resumen' => ['total' => 6, 'disponibles' => 1, 'superficie_total' => 600, 'servicios_activos' => 2],
@@ -69,7 +72,14 @@ final class PropertyPendingInvoicesTest extends CIUnitTestCase
         libxml_clear_errors();
         libxml_use_internal_errors($previous);
         $xpath = new DOMXPath($document);
+        foreach (['disponible', 'ocupado', 'dado de baja', 'dado de baja', 'dado de baja', 'dado de baja', 'en mantenimiento'] as $index => $state) {
+            $badge = $xpath->query('(//article[@data-property-row])[' . ($index + 1) . ']//span[@data-state-domain="inmueble"]')->item(0);
+            $this->assertSame($state, $badge->getAttribute('data-state'));
+        }
         $card = $xpath->query('//article[@data-property-row]')->item(0);
+        $this->assertSame(1, $xpath->query('.//button[@data-view-property and contains(@class, "crud-button--detail") and @aria-label]', $card)->length);
+        $this->assertSame(1, $xpath->query('.//button[@data-edit-property and contains(@class, "crud-button--edit") and @aria-label]', $card)->length);
+        $this->assertSame(1, $xpath->query('.//form[@data-deactivate-form]//button[contains(@class, "crud-button--delete") and @aria-label]', $card)->length);
         $this->assertSame('córdoba', $card->getAttribute('data-city'));
         $this->assertSame('con', $card->getAttribute('data-debt'));
         $this->assertStringContainsString('2 facturas pendientes', $html);
@@ -80,6 +90,7 @@ final class PropertyPendingInvoicesTest extends CIUnitTestCase
         $this->assertSame('Inactivo', $xpath->query('//article[@data-property-row]')->item(2)->getAttribute('data-activity'));
         foreach (['Disponible', 'Desconocido', 'Ocupado', 'En Mantenimiento'] as $index => $state) {
             $inactiveCard = $xpath->query('//article[@data-property-row]')->item($index + 2);
+            $this->assertSame(0, $xpath->query('.//form[@data-deactivate-form]', $inactiveCard)->length);
             $badges = $xpath->query('.//span[contains(concat(" ", normalize-space(@class), " "), " status ")]', $inactiveCard);
             $this->assertSame(1, $badges->length);
             $this->assertSame('Dado de baja', trim($badges->item(0)->textContent));

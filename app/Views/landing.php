@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('css/landing.css') ?>?v=<?= filemtime(FCPATH . 'css/landing.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/state-colors.css') ?>?v=1">
 </head>
 <body class="landing-page">
   <header class="landing-header">
@@ -106,9 +107,9 @@
             <div class="showcase-visual invoices-visual" aria-hidden="true">
               <div class="visual-caption"><span class="visual-caption-dot"></span> Facturación</div>
               <div class="invoice-mini-header"><span>Servicio</span><span>Estado</span></div>
-              <div class="invoice-mini-row"><span><i class="invoice-glyph invoice-glyph-blue">ϟ</i><b>Electricidad</b></span><em class="invoice-status-pending">Pendiente</em></div>
-              <div class="invoice-mini-row"><span><i class="invoice-glyph invoice-glyph-green">≈</i><b>Agua</b></span><em class="invoice-status-paid">Pagada</em></div>
-              <div class="invoice-mini-row"><span><i class="invoice-glyph invoice-glyph-violet">⌁</i><b>Internet</b></span><em class="invoice-status-pending">Pendiente</em></div>
+              <div class="invoice-mini-row"><span><i class="invoice-glyph invoice-glyph-blue">ϟ</i><b>Electricidad</b></span><em class="invoice-status-pending state-color" data-state-domain="factura" data-state="pendiente">Pendiente</em></div>
+              <div class="invoice-mini-row"><span><i class="invoice-glyph invoice-glyph-green">≈</i><b>Agua</b></span><em class="invoice-status-paid state-color" data-state-domain="factura" data-state="pagada">Pagada</em></div>
+              <div class="invoice-mini-row"><span><i class="invoice-glyph invoice-glyph-violet">⌁</i><b>Internet</b></span><em class="invoice-status-pending state-color" data-state-domain="factura" data-state="pendiente">Pendiente</em></div>
               <div class="invoice-mini-footer"><span>Informe de facturación</span><span>Ver detalle&nbsp; ↗</span></div>
             </div>
           </article>

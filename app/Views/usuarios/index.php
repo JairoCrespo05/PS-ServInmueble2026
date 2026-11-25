@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="<?= base_url('css/home.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/usuarios.css') ?>?v=2">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/crud-buttons.css') ?>?v=1">
+  <link rel="stylesheet" href="<?= base_url('css/state-colors.css') ?>?v=1">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'usuarios', 'isAdministrator' => true]) ?>

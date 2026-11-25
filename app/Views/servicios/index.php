@@ -11,6 +11,7 @@ $iconoServicio = static function (array $servicio): string {
         str_contains($identificador, 'agua') => 'water_drop',
         str_contains($identificador, 'gas') => 'local_fire_department',
         str_contains($identificador, 'internet') || str_contains($identificador, 'wifi') => 'wifi',
+        str_contains($identificador, 'televis') => 'tv',
         str_contains($identificador, 'expensa') || str_contains($identificador, 'consorcio') => 'receipt_long',
         default => 'miscellaneous_services',
     };
@@ -36,6 +37,8 @@ $editandoAsociacion = $editAssociationId !== null;
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/radio-options.css') ?>?v=1">
   <link rel="stylesheet" href="<?= base_url('css/modal-forms.css') ?>?v=4">
+  <link rel="stylesheet" href="<?= base_url('css/crud-buttons.css') ?>?v=1">
+  <link rel="stylesheet" href="<?= base_url('css/state-colors.css') ?>?v=1">
 
 </head>
 <body>
@@ -66,7 +69,7 @@ $editandoAsociacion = $editAssociationId !== null;
         <div class="service-actions">
           <a class="button secondary" href="<?= site_url('inmuebles') ?>"><span class="icon">apartment</span>Ver inmuebles</a>
           <?php if ($catalogoServicios !== [] && $inmuebles !== []): ?>
-            <button class="button" id="open-associate" type="button"><span class="icon">add_link</span>Asociar servicio</button>
+            <button class="crud-button crud-button--create" id="open-associate" type="button"><span class="icon" aria-hidden="true">add_link</span>Asociar servicio</button>
           <?php endif ?>
         </div>
       </section>
@@ -152,13 +155,13 @@ $editandoAsociacion = $editAssociationId !== null;
                   ><span class="icon" aria-hidden="true">expand_more</span>Ver inmuebles</button>
                 <?php endif ?>
                 <button
-                  class="button secondary"
+                  class="crud-button crud-button--create"
                   type="button"
                   data-associate-service
                   data-service-id="<?= esc($servicio['id'], 'attr') ?>"
                   data-associated-ids="<?= esc(json_encode($servicio['inmueble_ids']), 'attr') ?>"
                   <?= count($servicio['inmueble_ids']) >= count($inmuebles) ? 'disabled' : '' ?>
-                ><span class="icon">add_link</span>Asociar</button>
+                ><span class="icon" aria-hidden="true">add_link</span>Asociar</button>
                 <span class="association-count<?= $servicio['inmuebles'] === [] ? ' none' : '' ?>">
                   <?= esc(count($servicio['inmuebles'])) ?> <?= count($servicio['inmuebles']) === 1 ? 'inmueble' : 'inmuebles' ?>
                 </span>
@@ -199,16 +202,18 @@ $editandoAsociacion = $editAssociationId !== null;
                                 default => '',
                             };
                           ?>
-                          <span class="tag<?= esc($estadoClase, 'attr') ?>">Vínculo: <?= esc($inmueble['estado_servicio'] ?? 'Desconocido') ?></span>
-                          <span class="tag">Inmueble: <?= esc($inmueble['estado_inmueble'] ?? 'Desconocido') ?><?= $inmueble['estado_actividad'] === 'Inactivo' ? ' (Dado de baja)' : '' ?></span>
+                          <span class="tag state-color<?= esc($estadoClase, 'attr') ?>" data-state-domain="vinculo" data-state="<?= esc(mb_strtolower(trim((string) ($inmueble['estado_servicio'] ?? ''))), 'attr') ?>">Vínculo: <?= esc($inmueble['estado_servicio'] ?? 'Desconocido') ?></span>
+                          <span class="tag state-color" data-state-domain="inmueble" data-state="<?= esc($inmueble['estado_actividad'] === 'Inactivo' ? 'dado de baja' : mb_strtolower(trim((string) ($inmueble['estado_inmueble'] ?? ''))), 'attr') ?>">Inmueble: <?= esc($inmueble['estado_inmueble'] ?? 'Desconocido') ?><?= $inmueble['estado_actividad'] === 'Inactivo' ? ' (Dado de baja)' : '' ?></span>
                           <?php if ($inmueble['nro_medidor']): ?><span class="tag">Medidor: <?= esc($inmueble['nro_medidor']) ?></span><?php endif ?>
                         </div>
                       </div>
                       <div class="association-actions">
                         <?php if (mb_strtolower(trim($inmueble['estado_servicio'])) !== 'inactivo'): ?>
                           <button
-                            class="association-action"
+                            class="crud-button crud-button--icon crud-button--edit"
                             type="button"
+                            aria-label="Modificar vínculo de <?= esc($servicio['nombre'] . ' con ' . $inmueble['alias_nombre'], 'attr') ?>"
+                            title="Modificar vínculo"
                             data-edit-association
                             data-id="<?= esc($inmueble['asociacion_id'], 'attr') ?>"
                             data-service-id="<?= esc($servicio['id'], 'attr') ?>"
@@ -219,12 +224,12 @@ $editandoAsociacion = $editAssociationId !== null;
                             data-account="<?= esc($inmueble['nro_cuenta_contrato'] ?? '', 'attr') ?>"
                             data-payment="<?= esc($inmueble['cod_pago_electronico'] ?? '', 'attr') ?>"
                             data-billing="<?= esc($inmueble['domicilio_facturacion'] ?? '', 'attr') ?>"
-                          >Modificar</button>
+                          ><?= view('partials/crud_icon', ['entity' => 'link', 'action' => 'edit']) ?></button>
                         <?php endif ?>
                         <?php if (mb_strtolower(trim($inmueble['estado_servicio'])) !== 'inactivo'): ?>
                           <form method="post" action="<?= site_url('servicios/asociaciones/' . $inmueble['asociacion_id'] . '/baja') ?>" data-deactivate-association>
                             <?= csrf_field() ?>
-                            <button class="association-action danger" type="submit">Dar de baja</button>
+                            <button class="crud-button crud-button--icon crud-button--delete" type="submit" aria-label="Dar de baja vínculo de <?= esc($servicio['nombre'] . ' con ' . $inmueble['alias_nombre'], 'attr') ?>" title="Dar de baja vínculo"><?= view('partials/crud_icon', ['entity' => 'link', 'action' => 'block']) ?></button>
                           </form>
                         <?php endif ?>
                       </div>

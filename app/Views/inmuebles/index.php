@@ -42,6 +42,8 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/radio-options.css') ?>?v=1">
   <link rel="stylesheet" href="<?= base_url('css/modal-forms.css') ?>?v=4">
+  <link rel="stylesheet" href="<?= base_url('css/crud-buttons.css') ?>?v=1">
+  <link rel="stylesheet" href="<?= base_url('css/state-colors.css') ?>?v=1">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'inmuebles', 'isAdministrator' => false]) ?>
@@ -70,7 +72,7 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
         </div>
         <div class="actions">
           <button class="button" id="export-button" type="button"><span class="icon">download</span>Exportar</button>
-          <button class="button primary" id="open-create" type="button"><span class="icon">add</span>Nuevo inmueble</button>
+          <button class="crud-button crud-button--create" id="open-create" type="button"><span class="icon" aria-hidden="true">add</span>Nuevo inmueble</button>
         </div>
       </section>
 
@@ -169,8 +171,8 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
                 <article class="property-card" data-property-row data-search="<?= esc($searchText, 'attr') ?>" data-city="<?= esc(mb_strtolower($inmueble['ciudad']), 'attr') ?>" data-debt="<?= $pendientes > 0 ? 'con' : 'sin' ?>" data-type="<?= esc(mb_strtolower($inmueble['tipo']), 'attr') ?>" data-status="<?= esc(mb_strtolower(trim((string) $inmueble['estado'])), 'attr') ?>" data-export-status="<?= esc($estadoVisible($inmueble['estado']), 'attr') ?>" data-activity="<?= esc($inmueble['estado_actividad'], 'attr') ?>" data-active-services="<?= (int) $inmueble['servicios_activos'] ?>">
                   <div class="property-card-head">
                     <div class="property"><span class="property-icon icon" aria-hidden="true"><?= esc($iconoTipo) ?></span><div data-export-value="<?= esc($inmueble['alias_nombre'] . ' - ID: INM-' . str_pad((string) $inmueble['id'], 4, '0', STR_PAD_LEFT), 'attr') ?>"><h2 class="property-name"><?= esc($inmueble['alias_nombre']) ?></h2><span class="property-id">ID: INM-<?= esc(str_pad((string) $inmueble['id'], 4, '0', STR_PAD_LEFT)) ?></span></div></div>
-                    <?php if (! $inactivo): ?><span class="status<?= esc($claseEstado, 'attr') ?>"><?= esc($estadoVisible($inmueble['estado'])) ?></span><?php endif ?>
-                    <?php if ($inactivo): ?><span class="status inactive">Dado de baja</span><?php endif ?>
+                    <?php if (! $inactivo): ?><span class="status state-color<?= esc($claseEstado, 'attr') ?>" data-state-domain="inmueble" data-state="<?= esc(mb_strtolower(trim($estadoVisible($inmueble['estado']))), 'attr') ?>"><?= esc($estadoVisible($inmueble['estado'])) ?></span><?php endif ?>
+                    <?php if ($inactivo): ?><span class="status inactive state-color" data-state-domain="inmueble" data-state="dado de baja">Dado de baja</span><?php endif ?>
                   </div>
                   <p class="address" data-export-value="<?= esc($direccion, 'attr') ?>"><?= esc($direccion) ?></p>
                   <div class="property-card-meta">
@@ -187,15 +189,15 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
                   <p class="property-debt"><?= $pendientes > 0 ? esc($pendientes) . ($pendientes === 1 ? ' factura pendiente' : ' facturas pendientes') : 'Sin facturas pendientes' ?></p>
                     <div class="row-actions">
                       <button
-                        class="row-action"
+                        class="crud-button crud-button--icon crud-button--detail"
                         type="button"
                         data-view-property
                         data-property-details="<?= esc(json_encode($detalleInmueble, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), 'attr') ?>"
                         aria-label="Ver detalles de <?= esc($inmueble['alias_nombre'], 'attr') ?>"
                         title="Ver detalles"
-                      ><span class="icon" aria-hidden="true">visibility</span><span class="visually-hidden">Ver detalles</span></button>
+                      ><?= view('partials/crud_icon', ['entity' => 'home', 'action' => 'visibility']) ?><span class="visually-hidden">Ver detalles</span></button>
                       <button
-                        class="row-action"
+                        class="crud-button crud-button--icon crud-button--edit"
                         type="button"
                         data-edit-property
                         aria-label="Modificar <?= esc($inmueble['alias_nombre'], 'attr') ?>"
@@ -211,11 +213,11 @@ $formatNumber = static fn ($value, int $decimals = 0): string => number_format((
                         data-piso="<?= esc($inmueble['piso_dpto'] ?? '', 'attr') ?>"
                         data-provincia="<?= esc($inmueble['provincia'] ?? '', 'attr') ?>"
                         data-ciudad="<?= esc($inmueble['ciudad'], 'attr') ?>"
-                      ><span class="icon" aria-hidden="true">edit</span><span class="visually-hidden">Modificar inmueble</span></button>
+                      ><?= view('partials/crud_icon', ['entity' => 'home', 'action' => 'edit']) ?><span class="visually-hidden">Modificar inmueble</span></button>
                       <?php if ($inmueble['estado_actividad'] === 'Activo'): ?>
                         <form method="post" action="<?= site_url('inmuebles/' . $inmueble['id'] . '/baja') ?>" data-deactivate-form>
                           <?= csrf_field() ?>
-                          <button class="row-action danger" type="submit" aria-label="Dar de baja <?= esc($inmueble['alias_nombre'], 'attr') ?>" title="Dar de baja"><span class="icon" aria-hidden="true">person_off</span><span class="visually-hidden">Dar de baja</span></button>
+                          <button class="crud-button crud-button--icon crud-button--delete" type="submit" aria-label="Dar de baja <?= esc($inmueble['alias_nombre'], 'attr') ?>" title="Dar de baja"><?= view('partials/crud_icon', ['entity' => 'home', 'action' => 'block']) ?><span class="visually-hidden">Dar de baja</span></button>
                         </form>
                       <?php endif ?>
                     </div>

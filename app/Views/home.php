@@ -18,6 +18,8 @@ foreach ($recentInvoices ?? [] as $invoice) {
   <link rel="stylesheet" href="<?= base_url('css/admin-home.css') ?>?v=<?= hash_file('sha256', FCPATH . 'css/admin-home.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/support-modal.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/crud-buttons.css') ?>?v=1">
+  <link rel="stylesheet" href="<?= base_url('css/state-colors.css') ?>?v=1">
 </head>
 <body>
 
@@ -431,11 +433,8 @@ foreach ($recentInvoices ?? [] as $invoice) {
             Exportar Informe
           </button>
            -->
-          <a class="btn btn-primary" id="btnNewInvoice" href="<?= site_url('facturas/nueva') ?>">
-            <svg class="icon" viewBox="0 0 24 24">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
+          <a class="crud-button crud-button--create" id="btnNewInvoice" href="<?= site_url('facturas/nueva') ?>">
+            <span class="crud-symbol" aria-hidden="true">add</span>
             Cargar Factura
           </a>
         </div>
@@ -681,7 +680,7 @@ foreach ($recentInvoices ?? [] as $invoice) {
                       <td><strong><?= esc(date('d/m/Y', strtotime($invoice['fecha_vencimiento_efectivo']))) ?></strong></td>
                       <td><strong>$ <?= esc(number_format((float) $invoice['monto_total'], 2, ',', '.')) ?></strong> ARS</td>
                       <td>
-                        <span class="status-badge <?= esc($statusClass, 'attr') ?>">
+                        <span class="status-badge state-color <?= esc($statusClass, 'attr') ?>" data-state-domain="factura" data-state="<?= esc(mb_strtolower($status), 'attr') ?>">
                           <span class="dot"></span> <?= esc($status) ?>
                         </span>
                         <?php if ($status === 'Vencida'): ?>

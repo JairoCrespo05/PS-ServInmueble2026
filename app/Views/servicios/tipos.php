@@ -49,6 +49,7 @@ $formatError = static fn (string $field): string => isset($errors[$field])
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/radio-options.css') ?>?v=1">
   <link rel="stylesheet" href="<?= base_url('css/modal-forms.css') ?>?v=4">
+  <link rel="stylesheet" href="<?= base_url('css/crud-buttons.css') ?>?v=1">
 </head>
 <body>
   <?= view('partials/sidebar', ['activeNav' => 'tipos-servicio', 'isAdministrator' => true]) ?>
@@ -75,7 +76,7 @@ $formatError = static fn (string $field): string => isset($errors[$field])
           <h1>Catalogo de Tipos de Servicios</h1>
           <p class="subtitle">Configura los tipos de servicios, unidades de medida y proveedores predeterminados para la asociacion en inmuebles.</p>
         </div>
-        <button class="button" id="open-create" type="button"><span class="icon">add_circle</span>Nuevo Tipo de Servicio</button>
+        <button class="crud-button crud-button--create" id="open-create" type="button"><span class="icon" aria-hidden="true">add</span>Nuevo Tipo de Servicio</button>
       </section>
 
       <?php if ($success): ?><div class="notice" role="status"><?= esc($success) ?></div><?php endif ?>
@@ -151,7 +152,7 @@ $formatError = static fn (string $field): string => isset($errors[$field])
                   <td>
                     <div class="row-actions">
                       <button
-                        class="row-action"
+                        class="crud-button crud-button--icon crud-button--edit"
                         type="button"
                         data-edit-service
                         data-id="<?= esc($servicio['id'], 'attr') ?>"
@@ -160,12 +161,12 @@ $formatError = static fn (string $field): string => isset($errors[$field])
                         data-provider="<?= esc($servicio['proveedor'], 'attr') ?>"
                         data-category="<?= esc($servicio['categoria'], 'attr') ?>"
                       >
-                        <span class="icon" aria-hidden="true">edit</span>
+                        <?= view('partials/crud_icon', ['entity' => 'build', 'action' => 'edit']) ?>
                         <span class="visually-hidden">Modificar <?= esc($servicio['nombre']) ?></span>
                       </button>
                       <form method="post" action="<?= site_url('tipos-servicio/' . $servicio['id'] . '/baja') ?>" data-delete-form>
                         <?= csrf_field() ?>
-                        <button class="row-action danger" type="submit" aria-label="Eliminar <?= esc($servicio['nombre'], 'attr') ?>" title="Eliminar"><span class="icon" aria-hidden="true">block</span></button>
+                        <button class="crud-button crud-button--icon crud-button--delete" type="submit" aria-label="Eliminar <?= esc($servicio['nombre'], 'attr') ?>" title="Eliminar"><?= view('partials/crud_icon', ['entity' => 'build', 'action' => 'block']) ?></button>
                       </form>
                     </div>
                   </td>
