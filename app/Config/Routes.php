@@ -10,6 +10,9 @@ $routes->get('/login', 'Init::login');
 $routes->get('/sing_up', 'Init::singUp');
 
 $routes->get('/home', 'Home::home', ['filter' => 'auth']);
+$routes->get('/admin/dashboard/grafico', 'Home::adminChart', [
+    'filter' => ['auth', 'role:' . \App\Models\RolModel::ROLE_ADMINISTRATOR],
+]);
 $routes->get('/usuarios', 'AdminController::users', [
     'filter' => ['auth', 'role:' . \App\Models\RolModel::ROLE_ADMINISTRATOR],
 ]);

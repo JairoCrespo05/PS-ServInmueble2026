@@ -14,8 +14,8 @@ foreach ($recentInvoices ?? [] as $invoice) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
-  <link rel="stylesheet" href="<?= base_url('css/home.css') ?>?v=<?= filemtime(FCPATH . 'css/home.css') ?>">
-  <link rel="stylesheet" href="<?= base_url('css/admin-home.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/home.css') ?>?v=<?= hash_file('sha256', FCPATH . 'css/home.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/admin-home.css') ?>?v=<?= hash_file('sha256', FCPATH . 'css/admin-home.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/support-modal.css') ?>">
 </head>
@@ -86,10 +86,179 @@ foreach ($recentInvoices ?? [] as $invoice) {
         <section class="page-header">
           <div>
             <div class="welcome-badge">Administración</div>
-            <h1 class="page-title">Administración del sistema</h1>
-            <p class="page-subtitle">Desde acá podés gestionar las cuentas y el catálogo de tipos de servicios.</p>
+            <h1 class="page-title">Dashboard de administración</h1>
+            <p class="page-subtitle">Consultá métricas globales de propietarios, inmuebles, servicios y facturas.</p>
           </div>
         </section>
+
+
+        <?php
+        $adminMonthLabels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        $adminChartValues = $adminChartData['values'];
+        $adminChartMaximum = max($adminChartValues);
+        $adminChartTotal = array_sum($adminChartValues);
+        $adminOverdueItems = $adminOverdueInvoices['items'];
+        $adminOverduePage = $adminOverdueInvoices['page'];
+        $adminOverduePageCount = $adminOverdueInvoices['page_count'];
+        ?>
+
+        <section class="admin-metric-grid" aria-label="Indicadores globales del sistema">
+          <article class="admin-metric-card">
+            <span class="admin-metric-label">Propietarios aprobados</span>
+            <strong id="adminOwnerCount"><?= esc((string) $adminMetrics['owners']) ?></strong>
+            <span class="admin-metric-note">Cuentas con rol Propietario</span>
+          </article>
+          <article class="admin-metric-card">
+            <span class="admin-metric-label">Inmuebles</span>
+            <strong id="adminPropertyCount"><?= esc((string) ($adminMetrics['properties_active'] + $adminMetrics['properties_inactive'])) ?></strong>
+            <span class="admin-metric-note">
+              <?= esc((string) $adminMetrics['properties_active']) ?> activos ·
+              <?= esc((string) $adminMetrics['properties_inactive']) ?> inactivos
+            </span>
+          </article>
+          <article class="admin-metric-card">
+            <span class="admin-metric-label">Servicios asociados</span>
+            <strong id="adminAssociationCount"><?= esc((string) ($adminMetrics['associations_active'] + $adminMetrics['associations_inactive'])) ?></strong>
+            <span class="admin-metric-note">
+              <?= esc((string) $adminMetrics['associations_active']) ?> activos ·
+              <?= esc((string) $adminMetrics['associations_inactive']) ?> inactivos
+            </span>
+          </article>
+          <article class="admin-metric-card">
+            <span class="admin-metric-label">Facturas</span>
+            <strong id="adminInvoiceCount"><?= esc((string) ($adminMetrics['invoices_pending'] + $adminMetrics['invoices_paid'])) ?></strong>
+            <span class="admin-metric-note">
+              <?= esc((string) $adminMetrics['invoices_pending']) ?> pendientes ·
+              <?= esc((string) $adminMetrics['invoices_paid']) ?> pagadas
+            </span>
+          </article>
+          <article class="admin-metric-card admin-metric-card-danger">
+            <span class="admin-metric-label">Mora</span>
+            <strong id="adminOverduePercentage">
+              <?= $adminMetrics['overdue_percentage'] === null
+                  ? 'Sin datos'
+                  : esc(number_format($adminMetrics['overdue_percentage'], 1, ',', '.') . '%') ?>
+            </strong>
+            <span class="admin-metric-note">
+              <?= esc((string) $adminMetrics['invoices_overdue']) ?> de
+              <?= esc((string) $adminMetrics['invoices_pending']) ?> facturas pendientes vencidas
+            </span>
+          </article>
+        </section>
+
+        <section class="admin-dashboard-card" aria-labelledby="adminAnnualChartTitle">
+          <div class="admin-dashboard-card-header">
+            <div>
+              <h2 id="adminAnnualChartTitle">Altas mensuales</h2>
+              <p>Compará el movimiento anual por tipo de registro.</p>
+            </div>
+            <div class="admin-chart-controls">
+              <label>
+                <span>Año</span>
+                <select id="adminChartYear">
+                  <?php foreach ($adminChartYears as $year): ?>
+                    <option value="<?= esc((string) $year, 'attr') ?>"<?= $year === $adminChartYear ? ' selected' : '' ?>>
+                      <?= esc((string) $year) ?>
+                    </option>
+                  <?php endforeach ?>
+                </select>
+              </label>
+              <label>
+                <span>Mostrar</span>
+                <select id="adminChartMetric">
+                  <option value="properties">Inmuebles</option>
+                  <option value="owners">Propietarios aprobados</option>
+                  <option value="associations">Servicios asociados</option>
+                  <option value="service_types">Tipos de servicio del catálogo</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <div
+            id="adminDashboardChart"
+            class="admin-monthly-chart"
+            data-chart-url="<?= esc(site_url('admin/dashboard/grafico'), 'attr') ?>"
+          >
+            <p id="adminChartStatus" class="admin-chart-status" role="status" aria-live="polite">
+              <?= $adminChartTotal === 0
+                  ? 'No hay altas de inmuebles para ' . esc((string) $adminChartYear) . '.'
+                  : 'Altas mensuales de inmuebles durante ' . esc((string) $adminChartYear) . '.' ?>
+            </p>
+            <ol id="adminChartMonths" class="admin-chart-months" aria-label="Altas por mes">
+              <?php foreach ($adminMonthLabels as $index => $monthLabel): ?>
+                <?php
+                $chartValue = $adminChartValues[$index];
+                $barHeight = $adminChartMaximum > 0
+                    ? max(4, (int) round(($chartValue / $adminChartMaximum) * 120))
+                    : 0;
+                ?>
+                <li class="admin-chart-month" aria-label="<?= esc($monthLabel . ': ' . $chartValue . ' altas', 'attr') ?>">
+                  <strong class="admin-chart-value"><?= esc((string) $chartValue) ?></strong>
+                  <span class="admin-chart-bar" aria-hidden="true" style="height: <?= esc((string) $barHeight, 'attr') ?>px"></span>
+                  <span class="admin-chart-month-label"><?= esc($monthLabel) ?></span>
+                </li>
+              <?php endforeach ?>
+            </ol>
+            <button type="button" class="admin-chart-retry" id="adminChartRetry" hidden>Reintentar</button>
+          </div>
+        </section>
+
+        <section class="admin-dashboard-card" aria-labelledby="adminOverdueTitle" id="overdue-invoices">
+          <div class="admin-dashboard-card-header">
+            <div>
+              <h2 id="adminOverdueTitle">Facturas pendientes vencidas</h2>
+              <p>Listado global de propietarios aprobados; incluye facturas vinculadas a registros inactivos.</p>
+            </div>
+            <span class="admin-overdue-count"><?= esc((string) $adminOverdueInvoices['total']) ?> registros</span>
+          </div>
+          <div class="admin-overdue-table-wrapper">
+            <table class="admin-overdue-table">
+              <thead>
+                <tr>
+                  <th scope="col">Propietario</th>
+                  <th scope="col">Inmueble</th>
+                  <th scope="col">Servicio / proveedor</th>
+                  <th scope="col">Período</th>
+                  <th scope="col">Monto</th>
+                  <th scope="col">Vencimiento</th>
+                  <th scope="col">Mora</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php if ($adminOverdueItems === []): ?>
+                  <tr><td colspan="7" class="admin-overdue-empty">No hay facturas pendientes vencidas.</td></tr>
+                <?php else: ?>
+                  <?php foreach ($adminOverdueItems as $invoice): ?>
+                    <tr>
+                      <td><?= esc(trim($invoice['propietario_nombre'] . ' ' . $invoice['propietario_apellido'])) ?></td>
+                      <td><?= esc($invoice['alias_nombre']) ?></td>
+                      <td>
+                        <strong><?= esc($invoice['servicio_nombre']) ?></strong>
+                        <small><?= esc($invoice['proveedor']) ?></small>
+                      </td>
+                      <td><?= esc(date('m/Y', strtotime($invoice['periodo_facturacion']))) ?></td>
+                      <td>$ <?= esc(number_format((float) $invoice['monto_total'], 2, ',', '.')) ?> ARS</td>
+                      <td><?= esc(date('d/m/Y', strtotime($invoice['fecha_vencimiento_efectivo']))) ?></td>
+                      <td><?= esc((string) $invoice['dias_mora']) ?> <?= $invoice['dias_mora'] === 1 ? 'día' : 'días' ?></td>
+                    </tr>
+                  <?php endforeach ?>
+                <?php endif ?>
+              </tbody>
+            </table>
+          </div>
+          <?php if ($adminOverduePageCount > 1): ?>
+            <nav class="admin-overdue-pagination" aria-label="Paginación de facturas vencidas">
+              <?php if ($adminOverduePage > 1): ?>
+                <a href="<?= esc(site_url('home?pagina_mora=' . ($adminOverduePage - 1) . '#overdue-invoices'), 'attr') ?>">Anterior</a>
+              <?php endif ?>
+              <span>Página <?= esc((string) $adminOverduePage) ?> de <?= esc((string) $adminOverduePageCount) ?></span>
+              <?php if ($adminOverduePage < $adminOverduePageCount): ?>
+                <a href="<?= esc(site_url('home?pagina_mora=' . ($adminOverduePage + 1) . '#overdue-invoices'), 'attr') ?>">Siguiente</a>
+              <?php endif ?>
+            </nav>
+          <?php endif ?>
+        </section>
+
 
         <section class="admin-shortcuts" aria-label="Funciones administrativas">
           <article class="card admin-shortcut">
@@ -666,7 +835,10 @@ foreach ($recentInvoices ?? [] as $invoice) {
 
   <?= view('partials/support_modal') ?>
   <!-- ================= JAVASCRIPT VANILLA PURO ================= -->
-  <script src="<?= base_url('js/home.js') ?>?v=<?= filemtime(FCPATH . 'js/home.js') ?>"></script>
+  <script src="<?= base_url('js/home.js') ?>?v=<?= hash_file('sha256', FCPATH . 'js/home.js') ?>"></script>
+  <?php if ($isAdministrator): ?>
+    <script src="<?= base_url('js/admin-dashboard.js') ?>?v=<?= hash_file('sha256', FCPATH . 'js/admin-dashboard.js') ?>"></script>
+  <?php endif ?>
   <script src="<?= base_url('js/support-modal.js') ?>"></script>
 </body>
 </html>
