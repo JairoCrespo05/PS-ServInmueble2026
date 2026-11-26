@@ -5,6 +5,7 @@ $formatDecimal = static fn ($value): string => $value === null ? '—' : number_
 $formatDate = static fn ($value): string => $value ? date('d/m/Y', strtotime($value)) : '—';
 $formatPeriod = static fn ($value): string => $value ? date('m/Y', strtotime($value)) : '—';
 $paid = $factura['estado_factura'] === 'Pagada';
+$displayStatus = $factura['estado_visual'];
 $paymentValue = static fn (string $field, string $fallback = ''): string => (string) ($formData[$field] ?? $fallback);
 
 ?>
@@ -19,7 +20,7 @@ $paymentValue = static fn (string $field, string $fallback = ''): string => (str
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/servicios.css') ?>">
-  <link rel="stylesheet" href="<?= base_url('css/facturas.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('css/facturas.css') ?>?v=<?= filemtime(FCPATH . 'css/facturas.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/brand.css') ?>">
   <link rel="stylesheet" href="<?= base_url('css/state-colors.css') ?>?v=1">
 </head>
@@ -56,8 +57,17 @@ $paymentValue = static fn (string $field, string $fallback = ''): string => (str
         <section class="service-card invoice-detail-card" aria-labelledby="invoice-detail-title">
           <div class="invoice-list-head">
             <h2 id="invoice-detail-title">Datos de la factura</h2>
-            <span class="invoice-status state-color <?= $paid ? 'paid' : 'pending' ?>" data-state-domain="factura" data-state="<?= esc(mb_strtolower(trim((string) $factura['estado_factura'])), 'attr') ?>"><?= esc($factura['estado_factura']) ?></span>
+
+            <span class="invoice-status state-color <?= $displayStatus === 'Pagada' ? 'paid' : ($displayStatus === 'Vencida' ? 'overdue' : 'pending') ?>"
+              data-state-domain="factura"
+              data-state="<?= esc(mb_strtolower(trim((string) $displayStatus)), 'attr') ?>">
+              <?= esc($displayStatus) ?>
+            </span>
+
           </div>
+          <?php if ($displayStatus === 'Vencida'): ?>
+            <p class="invoice-overdue-detail"><?= esc($factura['dias_mora']) ?> <?= $factura['dias_mora'] === 1 ? 'día' : 'días' ?> de mora, calculados desde el vencimiento efectivo.</p>
+          <?php endif ?>
           <dl class="invoice-detail-grid">
             <div><dt>Inmueble</dt><dd><?= esc($factura['alias_nombre']) ?></dd></div>
             <div><dt>Tipo de inmueble</dt><dd><?= esc($factura['tipo_inmueble']) ?></dd></div>

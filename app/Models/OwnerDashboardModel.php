@@ -13,6 +13,8 @@ class OwnerDashboardModel extends Model
      *     active_service_count: int,
      *     pending_invoice_count: int,
      *     pending_invoice_amount: float,
+     *     overdue_invoice_count: int,
+     *     overdue_invoice_amount: float,
      *     paid_invoice_count: int,
      *     invoice_count: int
      * }
@@ -55,6 +57,17 @@ class OwnerDashboardModel extends Model
             ->get()
             ->getRowArray();
 
+        $todayString = (new DateTimeImmutable('today'))->format('Y-m-d');
+        $overdueInvoices = $this->db->table('facturas f')
+            ->select('COUNT(f.id) AS invoice_count, COALESCE(SUM(f.monto_total), 0) AS invoice_amount')
+            ->join('inmueble_servicios isv', 'isv.id = f.inmueble_servicio_id')
+            ->join('inmuebles i', 'i.id = isv.inmueble_id')
+            ->where('i.usuario_id', $ownerId)
+            ->where('f.estado_factura', 'Pendiente')
+            ->where(FacturaModel::FECHA_VENCIMIENTO_EFECTIVA . ' <', $todayString)
+            ->get()
+            ->getRowArray();
+
         $monthlyInvoices = $this->db->table('facturas f')
             ->select([
                 'COUNT(f.id) AS invoice_count',
@@ -73,6 +86,8 @@ class OwnerDashboardModel extends Model
             'active_service_count' => (int) $activeServiceCount,
             'pending_invoice_count' => (int) ($pendingInvoices['invoice_count'] ?? 0),
             'pending_invoice_amount' => (float) ($pendingInvoices['invoice_amount'] ?? 0),
+            'overdue_invoice_count' => (int) ($overdueInvoices['invoice_count'] ?? 0),
+            'overdue_invoice_amount' => (float) ($overdueInvoices['invoice_amount'] ?? 0),
             'paid_invoice_count' => (int) ($monthlyInvoices['paid_invoice_count'] ?? 0),
             'invoice_count' => (int) ($monthlyInvoices['invoice_count'] ?? 0),
         ];

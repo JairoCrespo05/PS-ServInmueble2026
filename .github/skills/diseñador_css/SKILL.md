@@ -80,7 +80,7 @@ Botones de Ver Detalle:
 
 ## Estados de elementos
 
-- Texto: de color oscuro (dependiendo del fondo) para todos los estados. 
+- Texto: de color oscuro (dependiendo del fondo) para todos los estados.
 - Fondo: de color suave representativo del estado.
 - En las etiquetas existentes, conservar el tamaño de letra, las dimensiones y la forma; cambiar únicamente los colores, sin agregar etiquetas donde solo hay texto.
 - Cargar `public/css/state-colors.css` después de los estilos de la vista. Agregar `state-color`, `data-state-domain` (`inmueble`, `usuario`, `vinculo` o `factura`) y `data-state` con el estado mostrado en minúsculas. Mantener el texto visible y un color neutro para estados desconocidos.
@@ -108,4 +108,3 @@ Estados de facturas:
 - Pendiente: Color amarillo suave
 - Pagada: Color verde suave
 - Vencida: Color rojo suave
-

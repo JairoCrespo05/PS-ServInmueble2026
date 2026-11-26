@@ -57,6 +57,282 @@
   box-shadow: 0 1px 5px rgb(16 42 67 / 5%);
 }
 
+.invoice-alert-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 5px rgb(16 42 67 / 5%);
+}
+
+.invoice-dashboard {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0 22px;
+}
+
+.invoice-dashboard-head h2,
+.invoice-alert-card h3 {
+  margin: 0;
+  color: var(--navy);
+  font: 700 18px Manrope, sans-serif;
+}
+
+.invoice-dashboard-head .eyebrow {
+  margin: 0 0 4px;
+}
+
+.invoice-dashboard-head .subtitle,
+.invoice-alert-card .invoice-list-head p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.invoice-dashboard-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.invoice-metric-card {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 11px;
+  min-width: 0;
+  border: 1px solid #e3eaf0;
+  border-top: 3px solid transparent;
+  border-radius: 14px;
+  padding: 17px 18px;
+  box-shadow: 0 4px 12px rgb(16 42 67 / 5%);
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+
+.invoice-metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 9px 20px rgb(16 42 67 / 10%);
+}
+
+.invoice-metric-card.pending,
+.invoice-total-card.pending {
+  border-top-color: #d79b24;
+  background: linear-gradient(145deg, #fff 60%, #fffaf0);
+}
+
+.invoice-metric-card.overdue,
+.invoice-metric-card.overdue-rate,
+.invoice-total-card.overdue {
+  border-top-color: #c62828;
+  background: linear-gradient(145deg, #fff 60%, #fff5f4);
+}
+
+.invoice-metric-card.paid,
+.invoice-total-card.paid {
+  border-top-color: #278454;
+  background: linear-gradient(145deg, #fff 60%, #f3fbf6);
+}
+
+.invoice-metric-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.invoice-metric-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border-radius: 10px;
+  background: #eef3f8;
+  color: var(--blue);
+  font-size: 18px;
+}
+
+.invoice-metric-card.pending .invoice-metric-icon {
+  background: #fff3d6;
+  color: #8a5700;
+}
+
+.invoice-metric-card.overdue .invoice-metric-icon,
+.invoice-metric-card.overdue-rate .invoice-metric-icon {
+  background: #fde8e7;
+  color: #a61b1b;
+}
+
+.invoice-metric-card.paid .invoice-metric-icon {
+  background: #e7f6ed;
+  color: #146c43;
+}
+
+.invoice-metric-label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.invoice-metric-card .invoice-metric-value {
+  color: var(--navy);
+  font: 700 25px Manrope, sans-serif;
+}
+
+.invoice-mora-chart-layout {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.invoice-mora-chart {
+  position: relative;
+  display: grid;
+  width: 78px;
+  height: 78px;
+  flex: 0 0 78px;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(
+    #c62828 0 var(--mora-porcentaje),
+    #e5ebf1 var(--mora-porcentaje) 100%
+  );
+}
+
+.invoice-mora-chart::before {
+  position: absolute;
+  inset: 9px;
+  border: 1px solid #eef2f6;
+  border-radius: 50%;
+  background: #fff;
+  content: "";
+}
+
+.invoice-mora-chart > span {
+  position: relative;
+  color: var(--navy);
+  font: 700 14px Manrope, sans-serif;
+}
+
+.invoice-mora-legend {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.invoice-mora-legend > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.invoice-mora-legend i {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+}
+
+.invoice-mora-legend i.overdue {
+  background: #c62828;
+}
+
+.invoice-mora-legend i.not-overdue {
+  background: #cbd5df;
+}
+
+.invoice-mora-legend strong {
+  margin-left: auto;
+  color: var(--navy);
+}
+
+.invoice-metric-help,
+.invoice-dashboard-note {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.invoice-dashboard-note {
+  margin: -4px 0 0;
+}
+
+.invoice-alert-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 14px;
+}
+
+.invoice-alert-card .invoice-list-head {
+  padding: 16px 18px 12px;
+}
+
+.invoice-alert-card.overdue {
+  border-top: 3px solid #c62828;
+  background: linear-gradient(180deg, #fff 0%, #fff 85%, #fff8f7);
+}
+
+.invoice-alert-card.upcoming {
+  border-top: 3px solid #d79b24;
+  background: linear-gradient(180deg, #fff 0%, #fff 85%, #fffcf5);
+}
+
+.invoice-alert-list {
+  margin: 0;
+  padding: 0 18px;
+  list-style: none;
+}
+
+.invoice-alert-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #edf1f5;
+  padding: 12px 0;
+}
+
+.invoice-alert-main,
+.invoice-alert-meta {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.invoice-alert-main strong {
+  color: var(--navy);
+  font-size: 11px;
+}
+
+.invoice-alert-main > span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.invoice-alert-meta {
+  flex: 0 0 auto;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  color: var(--navy);
+  font-size: 10px;
+}
+
+.invoice-alert-more {
+  display: inline-flex;
+  margin: 0 18px 14px;
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.invoice-filter-error {
+  margin-top: 10px;
+}
+
+.invoice-filter-error p {
+  margin: 0;
+}
+
 .invoice-card {
   width: min(860px, 100%);
   margin: 0 auto;
@@ -241,7 +517,7 @@
 
 .invoice-filters {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(160px, .45fr) auto;
+  grid-template-columns: minmax(200px, 1fr) repeat(3, minmax(125px, .4fr)) auto;
   align-items: end;
   gap: 12px;
   padding: 16px 22px;
@@ -250,7 +526,6 @@
 }
 
 .invoice-report-filters {
-  grid-template-columns: minmax(220px, 1fr) auto;
   border-radius: 12px;
 }
 
@@ -363,6 +638,11 @@
   color: #146c43;
 }
 
+.invoice-status.overdue {
+  background: #fde8e7;
+  color: #a61b1b;
+}
+
 .invoice-detail-link {
   display: inline-flex;
   width: 32px;
@@ -418,7 +698,7 @@
 
 .invoice-report-totals {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 16px;
 }
@@ -456,6 +736,12 @@
 .invoice-section-icon.paid {
   background: #e7f6ed;
   color: #146c43;
+}
+
+.invoice-total-card.overdue .invoice-total-icon,
+.invoice-section-icon.overdue {
+  background: #fde8e7;
+  color: #a61b1b;
 }
 
 .invoice-total-label,
@@ -502,6 +788,14 @@
   padding: 20px 22px;
   color: var(--muted);
   font-size: 12px;
+}
+
+.invoice-overdue-detail {
+  margin: 0;
+  padding: 0 22px 14px;
+  color: #a61b1b;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .invoice-detail-layout {
@@ -568,8 +862,16 @@
     grid-template-columns: 1fr;
   }
 
+  .invoice-dashboard-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .invoice-alert-grid {
+    grid-template-columns: 1fr;
+  }
+
   .invoice-filters {
-    grid-template-columns: minmax(0, 1fr) minmax(160px, .65fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .invoice-filter-actions {
@@ -588,8 +890,11 @@
   }
 
   .invoice-form-grid,
-  .invoice-report-totals,
   .invoice-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .invoice-report-totals {
     grid-template-columns: 1fr;
   }
 
@@ -645,6 +950,16 @@
   .invoice-table {
     min-width: 680px;
   }
+
+  .invoice-alert-list li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .invoice-alert-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 @media (max-width: 420px) {
@@ -654,5 +969,15 @@
 
   .page-head .actions .button {
     width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .invoice-metric-card {
+    transition: none;
+  }
+
+  .invoice-metric-card:hover {
+    transform: none;
   }
 }

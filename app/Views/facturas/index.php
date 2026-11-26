@@ -55,6 +55,15 @@ $formatPeriod = static fn ($value): string => $value ? date('m/Y', strtotime($va
       <?php if ($error): ?>
         <div class="notice error" role="alert"><?= esc($error) ?></div>
       <?php endif ?>
+      <?= view('facturas/_filters', [
+          'action' => site_url('facturas'),
+          'buscar' => $buscar,
+          'estado' => $estado,
+          'desde' => $desde,
+          'hasta' => $hasta,
+          'filterErrors' => $filterErrors,
+      ]) ?>
+      <?= view('facturas/_dashboard', ['dashboard' => $dashboard]) ?>
 
       <?php if ($totalFacturas === 0): ?>
         <section class="service-card invoice-empty" aria-labelledby="invoice-empty-title">
@@ -68,28 +77,10 @@ $formatPeriod = static fn ($value): string => $value ? date('m/Y', strtotime($va
           <div class="invoice-list-head">
             <div>
               <h2 id="invoice-list-title">Facturas registradas</h2>
-              <p>Ordenadas desde el período más reciente.</p>
+              <p><?= $estado === 'Vencida' ? 'Ordenadas desde la que acumula más días de mora.' : 'Ordenadas desde el período más reciente.' ?> Los filtros se aplican al listado.</p>
             </div>
-            <a class="button secondary" href="<?= site_url('facturas/informe') ?>"><span class="icon" aria-hidden="true">assessment</span>Pendientes y pagadas</a>
+            <a class="button secondary" href="<?= site_url('facturas/informe') ?>"><span class="icon" aria-hidden="true">assessment</span>Ver informe de facturas</a>
           </div>
-          <form class="invoice-filters" method="get" action="<?= site_url('facturas') ?>">
-            <div class="field invoice-filter-search">
-              <label for="invoice-search">Buscar por inmueble, servicio o proveedor</label>
-              <input id="invoice-search" name="buscar" type="search" maxlength="100" value="<?= esc($buscar, 'attr') ?>" placeholder="Ej.: Casa Centro, electricidad o proveedor">
-            </div>
-            <div class="field">
-              <label for="invoice-status">Estado</label>
-              <select id="invoice-status" name="estado">
-                <option value="">Todos los estados</option>
-                <option value="Pendiente"<?= $estado === 'Pendiente' ? ' selected' : '' ?>>Pendiente</option>
-                <option value="Pagada"<?= $estado === 'Pagada' ? ' selected' : '' ?>>Pagada</option>
-              </select>
-            </div>
-            <div class="invoice-filter-actions">
-              <button class="button" type="submit"><span class="icon" aria-hidden="true">search</span>Buscar</button>
-              <a class="button secondary" href="<?= site_url('facturas') ?>">Limpiar</a>
-            </div>
-          </form>
           <p class="invoice-results-count" role="status">
             Mostrando <?= esc(count($facturas)) ?> de <?= esc($totalResultados) ?>
             <?= $totalResultados === 1 ? 'resultado' : 'resultados' ?>
@@ -122,9 +113,33 @@ $formatPeriod = static fn ($value): string => $value ? date('m/Y', strtotime($va
                         <span class="invoice-secondary"><?= esc($factura['servicio_nombre'] . ' · ' . $factura['proveedor']) ?></span>
                       </td>
                       <td><?= esc($formatAmount($factura['monto_total'])) ?></td>
-                      <td><?= esc($formatDate($factura['fecha_primer_vencimiento'])) ?></td>
-                      <td><span class="invoice-status state-color <?= $factura['estado_factura'] === 'Pagada' ? 'paid' : 'pending' ?>" data-state-domain="factura" data-state="<?= esc(mb_strtolower(trim((string) $factura['estado_factura'])), 'attr') ?>"><?= esc($factura['estado_factura']) ?></span></td>
-                      <td><a class="crud-button crud-button--icon crud-button--detail" href="<?= site_url('facturas/' . $factura['factura_id']) ?>" title="Ver detalle de factura" aria-label="Ver detalle de <?= esc($factura['servicio_nombre'] . ' ' . $formatPeriod($factura['periodo_facturacion']), 'attr') ?>"><?= view('partials/crud_icon', ['entity' => 'receipt_long', 'action' => 'visibility']) ?></a></td>
+
+                      <td><?= esc($formatDate($factura['fecha_vencimiento_efectivo'])) ?></td>
+
+                      <td>
+                        <span class="invoice-status state-color <?= $factura['estado_visual'] === 'Pagada' ? 'paid' : ($factura['estado_visual'] === 'Vencida' ? 'overdue' : 'pending') ?>"
+                        data-state-domain="factura"
+                        data-state="<?= esc(mb_strtolower(trim((string) $factura['estado_visual'])), 'attr') ?>">
+                        <?= esc($factura['estado_visual']) ?>
+                        </span>
+
+                        <?php if ($factura['estado_visual'] === 'Vencida'): ?>
+                        <span class="invoice-secondary">
+                        <?= esc($factura['dias_mora']) ?>
+                        <?= $factura['dias_mora'] === 1 ? 'día' : 'días' ?> de mora
+                        </span>
+                        <?php endif ?>
+                      </td>
+
+                      <td>
+                        <a class="crud-button crud-button--icon crud-button--detail"
+                        href="<?= site_url('facturas/' . $factura['factura_id']) ?>"
+                        title="Ver detalle de factura"
+                        aria-label="Ver detalle de <?= esc($factura['servicio_nombre'] . ' ' . $formatPeriod($factura['periodo_facturacion']), 'attr') ?>">
+                        <?= view('partials/crud_icon', ['entity' => 'receipt_long', 'action' => 'visibility']) ?>
+                        </a>
+                      </td>
+
                     </tr>
                   <?php endforeach ?>
                 </tbody>

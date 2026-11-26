@@ -14,6 +14,7 @@ class Facturas extends BaseController
 {
     private const ESTADO_PENDIENTE = 'Pendiente';
     private const ESTADO_PAGADA = 'Pagada';
+    private const ESTADO_VENCIDA = 'Vencida';
     private const MEDIOS_PAGO = [
         'Transferencia',
         'Débito Automático',
@@ -66,6 +67,7 @@ class Facturas extends BaseController
                 's.proveedor',
                 's.unidad_medida_std',
             ]);
+            $query->select(FacturaModel::FECHA_VENCIMIENTO_EFECTIVA . ' AS fecha_vencimiento_efectivo', false);
         }
 
         return $query;
@@ -90,6 +92,198 @@ class Facturas extends BaseController
         }
 
         return $query;
+    }
+
+    /**
+     * @return array{desde: string, hasta: string, errores: list<string>}
+     */
+    private function invoiceDateFilters(): array
+    {
+        $errors = [];
+        $from = $this->readDateFilter('desde', $errors);
+        $to = $this->readDateFilter('hasta', $errors);
+
+        if ($from !== '' && $to !== '' && $from > $to) {
+            $errors[] = 'La fecha desde no puede ser posterior a la fecha hasta.';
+            $from = '';
+            $to = '';
+        }
+
+        return ['desde' => $from, 'hasta' => $to, 'errores' => $errors];
+    }
+
+    /**
+     * @param list<string> $errors
+     */
+    private function readDateFilter(string $field, array &$errors): string
+    {
+        $value = $this->request->getGet($field);
+        if ($value === null) {
+            return '';
+        }
+
+        if (! is_scalar($value)) {
+            $errors[] = 'Ingresá una fecha válida para el filtro de vencimiento.';
+
+            return '';
+        }
+
+        $value = trim((string) $value);
+        if ($value === '') {
+            return '';
+        }
+
+        $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+        $dateErrors = DateTimeImmutable::getLastErrors();
+        if (
+            $date === false
+            || ($dateErrors !== false && ($dateErrors['warning_count'] > 0 || $dateErrors['error_count'] > 0))
+            || $date->format('Y-m-d') !== $value
+        ) {
+            $errors[] = 'Ingresá una fecha válida para el filtro de vencimiento.';
+
+            return '';
+        }
+
+        return $value;
+    }
+
+    private function applyInvoiceDateRange(BaseBuilder $query, string $from, string $to): BaseBuilder
+    {
+        if ($from !== '') {
+            $query->where(FacturaModel::FECHA_VENCIMIENTO_EFECTIVA . ' >=', $from);
+        }
+        if ($to !== '') {
+            $query->where(FacturaModel::FECHA_VENCIMIENTO_EFECTIVA . ' <=', $to);
+        }
+
+        return $query;
+    }
+
+    private function applyInvoiceStatus(BaseBuilder $query, string $status): BaseBuilder
+    {
+        if ($status === self::ESTADO_PAGADA) {
+            return $query->where('f.estado_factura', self::ESTADO_PAGADA);
+        }
+
+        if ($status === self::ESTADO_VENCIDA) {
+            return $query
+                ->where('f.estado_factura', self::ESTADO_PENDIENTE)
+                ->where(FacturaModel::FECHA_VENCIMIENTO_EFECTIVA . ' <', date('Y-m-d'));
+        }
+
+        if ($status === self::ESTADO_PENDIENTE) {
+            return $query
+                ->where('f.estado_factura', self::ESTADO_PENDIENTE)
+                ->where(FacturaModel::FECHA_VENCIMIENTO_EFECTIVA . ' >=', date('Y-m-d'));
+        }
+
+        return $query;
+    }
+
+    private function applyInvoiceFilters(
+        BaseBuilder $query,
+        string $search,
+        string $from,
+        string $to
+    ): BaseBuilder {
+        $this->applyInvoiceSearch($query, $search);
+
+        return $this->applyInvoiceDateRange($query, $from, $to);
+    }
+
+    /**
+     * @param list<array<string, mixed>> $invoices
+     * @return list<array<string, mixed>>
+     */
+    private function addInvoiceDisplayState(array $invoices): array
+    {
+        $today = new DateTimeImmutable('today');
+        foreach ($invoices as &$invoice) {
+            $dueDate = (string) $invoice['fecha_vencimiento_efectivo'];
+            $isOverdue = $invoice['estado_factura'] === self::ESTADO_PENDIENTE && $dueDate < $today->format('Y-m-d');
+            $invoice['estado_visual'] = $isOverdue ? self::ESTADO_VENCIDA : $invoice['estado_factura'];
+            $invoice['dias_mora'] = $isOverdue
+                ? (int) (new DateTimeImmutable($dueDate))->diff($today)->format('%a')
+                : 0;
+            $invoice['dias_restantes'] = $invoice['estado_factura'] === self::ESTADO_PENDIENTE && $dueDate >= $today->format('Y-m-d')
+                ? (int) $today->diff(new DateTimeImmutable($dueDate))->format('%a')
+                : 0;
+        }
+        unset($invoice);
+
+        return $invoices;
+    }
+
+    /**
+     * @return array{
+     *     cantidadPendiente: int,
+     *     cantidadPagada: int,
+     *     cantidadVencida: int,
+     *     porcentajeMora: ?float,
+     *     cantidadProxima: int,
+     *     vencidas: list<array<string, mixed>>,
+     *     proximas: list<array<string, mixed>>
+     * }
+     */
+    private function invoiceDashboardData(string $search, string $from, string $to): array
+    {
+        $baseQuery = $this->applyInvoiceFilters(
+            $this->ownedInvoicesQuery(false),
+            $search,
+            $from,
+            $to
+        );
+        $total = (clone $baseQuery)->countAllResults();
+        $pendingCount = (clone $this->applyInvoiceStatus(clone $baseQuery, self::ESTADO_PENDIENTE))
+            ->countAllResults();
+        $paidCount = (clone $this->applyInvoiceStatus(clone $baseQuery, self::ESTADO_PAGADA))
+            ->countAllResults();
+        $overdueCount = (clone $this->applyInvoiceStatus(clone $baseQuery, self::ESTADO_VENCIDA))
+            ->countAllResults();
+
+        $overdueQuery = $this->applyInvoiceFilters(
+            $this->applyInvoiceStatus($this->ownedInvoicesQuery(), self::ESTADO_VENCIDA),
+            $search,
+            $from,
+            $to
+        );
+        $overdueInvoices = $overdueQuery
+            ->orderBy(FacturaModel::FECHA_VENCIMIENTO_EFECTIVA, 'ASC', false)
+            ->orderBy('f.id', 'DESC')
+            ->limit(5)
+            ->get()
+            ->getResultArray();
+
+        $today = date('Y-m-d');
+        $lastEligibleDate = (new DateTimeImmutable('today'))->modify('+7 days')->format('Y-m-d');
+        $upcomingQuery = $this->applyInvoiceFilters(
+            $this->ownedInvoicesQuery(),
+            $search,
+            $from,
+            $to
+        );
+        $upcomingInvoices = $upcomingQuery
+            ->where('f.estado_factura', self::ESTADO_PENDIENTE)
+            ->where(FacturaModel::FECHA_VENCIMIENTO_EFECTIVA . ' >=', $today)
+            ->where(FacturaModel::FECHA_VENCIMIENTO_EFECTIVA . ' <=', $lastEligibleDate);
+        $upcomingCount = (clone $upcomingQuery)->countAllResults();
+        $upcomingInvoices = $upcomingQuery
+            ->orderBy(FacturaModel::FECHA_VENCIMIENTO_EFECTIVA, 'ASC', false)
+            ->orderBy('f.id', 'DESC')
+            ->limit(5)
+            ->get()
+            ->getResultArray();
+
+        return [
+            'cantidadPendiente' => $pendingCount,
+            'cantidadPagada' => $paidCount,
+            'cantidadVencida' => $overdueCount,
+            'porcentajeMora' => $total > 0 ? round($overdueCount * 100 / $total, 1) : null,
+            'cantidadProxima' => $upcomingCount,
+            'vencidas' => $this->addInvoiceDisplayState($overdueInvoices),
+            'proximas' => $this->addInvoiceDisplayState($upcomingInvoices),
+        ];
     }
 
     private function serviceAssociationsForCurrentUser(): array
@@ -211,21 +405,18 @@ class Facturas extends BaseController
     public function index(): string
     {
         $search = $this->invoiceSearchTerm();
+        $dateFilters = $this->invoiceDateFilters();
 
         $statusInput = $this->request->getGet('estado');
         $status = is_scalar($statusInput) ? trim((string) $statusInput) : '';
-        if (! in_array($status, [self::ESTADO_PENDIENTE, self::ESTADO_PAGADA], true)) {
+        if (! in_array($status, [self::ESTADO_PENDIENTE, self::ESTADO_PAGADA, self::ESTADO_VENCIDA], true)) {
             $status = '';
         }
 
         $query = $this->ownedInvoicesQuery();
         $totalFacturas = (clone $query)->countAllResults();
-
-        $this->applyInvoiceSearch($query, $search);
-
-        if ($status !== '') {
-            $query->where('f.estado_factura', $status);
-        }
+        $this->applyInvoiceFilters($query, $search, $dateFilters['desde'], $dateFilters['hasta']);
+        $this->applyInvoiceStatus($query, $status);
 
         $total = (clone $query)->countAllResults();
         $pageInput = $this->request->getGet('page');
@@ -233,23 +424,32 @@ class Facturas extends BaseController
         $pageCount = max(1, (int) ceil($total / self::PER_PAGE));
         $page = min($page, $pageCount);
 
+        if ($status === self::ESTADO_VENCIDA) {
+            $query->orderBy(FacturaModel::FECHA_VENCIMIENTO_EFECTIVA, 'ASC', false);
+        } else {
+            $query->orderBy('f.periodo_facturacion', 'DESC');
+        }
         $invoices = $query
-            ->orderBy('f.periodo_facturacion', 'DESC')
             ->orderBy('f.id', 'DESC')
             ->limit(self::PER_PAGE, ($page - 1) * self::PER_PAGE)
             ->get()
             ->getResultArray();
+        $invoices = $this->addInvoiceDisplayState($invoices);
         $pagerLinks = $total > self::PER_PAGE
             ? service('pager')->makeLinks($page, self::PER_PAGE, $total, 'default_full', 0, 'default')
             : '';
 
         return view('facturas/index', [
             'facturas' => $invoices,
+            'dashboard' => $this->invoiceDashboardData($search, $dateFilters['desde'], $dateFilters['hasta']),
             'pagerLinks' => $pagerLinks,
             'totalFacturas' => $totalFacturas,
             'totalResultados' => $total,
             'buscar' => $search,
             'estado' => $status,
+            'desde' => $dateFilters['desde'],
+            'hasta' => $dateFilters['hasta'],
+            'filterErrors' => $dateFilters['errores'],
             'success' => session()->getFlashdata('invoiceSuccess'),
             'error' => session()->getFlashdata('invoiceError'),
         ]);
@@ -388,6 +588,7 @@ class Facturas extends BaseController
         if ($invoice === null) {
             throw PageNotFoundException::forPageNotFound('No se encontró la factura solicitada.');
         }
+        $invoice = $this->addInvoiceDisplayState([$invoice])[0];
 
         return view('facturas/show', [
             'factura' => $invoice,
@@ -402,19 +603,54 @@ class Facturas extends BaseController
     public function report(): string
     {
         $search = $this->invoiceSearchTerm();
-        $pendingQuery = $this->ownedInvoicesQuery()
-            ->where('f.estado_factura', self::ESTADO_PENDIENTE);
-        $paidQuery = $this->ownedInvoicesQuery()
-            ->where('f.estado_factura', self::ESTADO_PAGADA);
+        $dateFilters = $this->invoiceDateFilters();
+        $statusInput = $this->request->getGet('estado');
+        $status = is_scalar($statusInput) ? trim((string) $statusInput) : '';
+        if (! in_array($status, [self::ESTADO_PENDIENTE, self::ESTADO_PAGADA, self::ESTADO_VENCIDA], true)) {
+            $status = '';
+        }
+
+        $baseQuery = $this->applyInvoiceDateRange(
+            $this->ownedInvoicesQuery(),
+            $dateFilters['desde'],
+            $dateFilters['hasta']
+        );
+        $pendingQuery = clone $baseQuery;
+        $overdueQuery = clone $baseQuery;
+        $paidQuery = clone $baseQuery;
+
+        if ($status === '' || $status === self::ESTADO_PENDIENTE) {
+            $pendingQuery = $this->applyInvoiceStatus($pendingQuery, self::ESTADO_PENDIENTE);
+        } else {
+            $pendingQuery->where('f.id', 0);
+        }
+        if ($status === '' || $status === self::ESTADO_VENCIDA) {
+            $overdueQuery = $this->applyInvoiceStatus($overdueQuery, self::ESTADO_VENCIDA);
+        } else {
+            $overdueQuery->where('f.id', 0);
+        }
+        if ($status === '' || $status === self::ESTADO_PAGADA) {
+            $paidQuery = $this->applyInvoiceStatus($paidQuery, self::ESTADO_PAGADA);
+        } else {
+            $paidQuery->where('f.id', 0);
+        }
         $pendingCount = (clone $pendingQuery)->countAllResults();
+        $overdueCount = (clone $overdueQuery)->countAllResults();
         $paidCount = (clone $paidQuery)->countAllResults();
         $pendingSearchQuery = $this->applyInvoiceSearch(clone $pendingQuery, $search);
+        $overdueSearchQuery = $this->applyInvoiceSearch(clone $overdueQuery, $search);
         $paidSearchQuery = $this->applyInvoiceSearch(clone $paidQuery, $search);
         $pendingMatches = (clone $pendingSearchQuery)->countAllResults();
+        $overdueMatches = (clone $overdueSearchQuery)->countAllResults();
         $paidMatches = (clone $paidSearchQuery)->countAllResults();
 
         $pending = $pendingSearchQuery
-            ->orderBy('f.fecha_primer_vencimiento', 'ASC')
+            ->orderBy(FacturaModel::FECHA_VENCIMIENTO_EFECTIVA, 'ASC', false)
+            ->orderBy('f.id', 'DESC')
+            ->get()
+            ->getResultArray();
+        $overdue = $overdueSearchQuery
+            ->orderBy(FacturaModel::FECHA_VENCIMIENTO_EFECTIVA, 'ASC', false)
             ->orderBy('f.id', 'DESC')
             ->get()
             ->getResultArray();
@@ -423,29 +659,50 @@ class Facturas extends BaseController
             ->orderBy('f.id', 'DESC')
             ->get()
             ->getResultArray();
-        $pendingTotal = $this->ownedInvoicesQuery(false)
-            ->selectSum('f.monto_total', 'total')
-            ->where('f.estado_factura', self::ESTADO_PENDIENTE)
-            ->get()
-            ->getRowArray()['total'] ?? '0.00';
-        $paidTotal = $this->ownedInvoicesQuery(false)
-            ->selectSum('f.monto_abonado', 'total')
-            ->where('f.estado_factura', self::ESTADO_PAGADA)
-            ->get()
-            ->getRowArray()['total'] ?? '0.00';
+        $pending = $this->addInvoiceDisplayState($pending);
+        $overdue = $this->addInvoiceDisplayState($overdue);
+        $paid = $this->addInvoiceDisplayState($paid);
+        $sumByStatus = function (string $targetStatus, string $amountField) use ($dateFilters, $status): float {
+            $query = $this->applyInvoiceDateRange(
+                $this->ownedInvoicesQuery(false),
+                $dateFilters['desde'],
+                $dateFilters['hasta']
+            );
+            if ($status !== '' && $status !== $targetStatus) {
+                $query->where('f.id', 0);
+            } else {
+                $this->applyInvoiceStatus($query, $targetStatus);
+            }
+
+            $total = $query->selectSum($amountField, 'total')->get()->getRowArray()['total'] ?? '0.00';
+
+            return (float) $total;
+        };
+        $pendingTotal = $sumByStatus(self::ESTADO_PENDIENTE, 'f.monto_total');
+        $overdueTotal = $sumByStatus(self::ESTADO_VENCIDA, 'f.monto_total');
+        $paidTotal = $sumByStatus(self::ESTADO_PAGADA, 'f.monto_abonado');
 
         return view('facturas/report', [
             'pendientes' => $pending,
+            'vencidas' => $overdue,
             'pagadas' => $paid,
             'cantidadPendiente' => $pendingCount,
+            'cantidadVencida' => $overdueCount,
             'cantidadPagada' => $paidCount,
             'coincidenciasPendientes' => $pendingMatches,
+            'coincidenciasVencidas' => $overdueMatches,
             'coincidenciasPagadas' => $paidMatches,
-            'totalCoincidencias' => $pendingMatches + $paidMatches,
-            'totalFacturas' => $pendingCount + $paidCount,
+            'totalCoincidencias' => $pendingMatches + $overdueMatches + $paidMatches,
+            'totalFacturas' => $pendingCount + $overdueCount + $paidCount,
             'buscar' => $search,
-            'totalPendiente' => (float) $pendingTotal,
-            'totalPagado' => (float) $paidTotal,
+            'estado' => $status,
+            'desde' => $dateFilters['desde'],
+            'hasta' => $dateFilters['hasta'],
+            'filterErrors' => $dateFilters['errores'],
+            'totalPendiente' => $pendingTotal,
+            'totalVencido' => $overdueTotal,
+            'totalPagado' => $paidTotal,
+            'dashboard' => $this->invoiceDashboardData($search, $dateFilters['desde'], $dateFilters['hasta']),
         ]);
     }
 
